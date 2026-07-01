@@ -32,55 +32,117 @@ concrete detail in children. Delete stale notes instead of explaining history.
 
 ---
 
-# grid-validator — proactive grid health validator
+# grid-validator — distributed Grid validation node
 
 ## Purpose
 
-The grid's **active, adversarial health layer**. The node stakes AIPG, probes grid workers
-with unpredictable canary jobs, scores the replies (`healthy` / `slow` / `failed`), and
-submits **signed attestations** to the grid. A `failed` verdict drives the same strike/evict
-logic as a real job failure. Validators earn AIPG for honest, consensus-matching work and are
-slashable for false attestations. CPU-only (no GPU, no local model) — validates text, image,
-and video on a small always-on box. Python package: `validator/`. Entry: `validator.main`.
+The Grid's validator node. In V0 it is a CPU-only distributed audit runner: it sends
+small canary jobs through the normal Grid path, scores replies (`healthy` / `slow` /
+`failed`), and submits signed attestations when the Grid exposes the sink. The current
+workspace has a V0 `POST /v1/validator/attest` evidence sink in Grid core, but production
+deployment and targeted assignments are separate rollout steps. Future phases add targeted
+assignments, worker scorecards, deterministic media workflow certification, validator
+rewards, staking, and objective-fraud slashing. Do not describe future economic authority as
+live until the Grid endpoints and contracts exist. Python package: `validator/`. Entry:
+`validator.main`.
 
 ## Ownership
 
 - **`validator/`** — the whole node (config, stake gate, grid client, canary probing +
-  scoring, attestation signing, probe loop, CLI). Owned in its own AGENTS.md.
-- **`README.md`** — operator quick start + going-live checklist.
+  scoring, attestation signing, probe loop, CLI, local dashboard). Owned in its own AGENTS.md.
+- **`README.md`** — V0 scope, quick start, and target public distribution shape.
+- **`QUICKSTART.md`** — one-page operator path that mirrors the worker quickstart:
+  source preview, future binary install, Docker, systemd, health checks, and V0
+  safety boundaries.
 - **`OPERATORS.md`** — plain-language run guide (install, systemd, troubleshooting, FAQ).
-- **`DESIGN.md`** — source of truth for architecture, economics, threat model, rewards/slashing,
-  settlement integration, and the grid-side dependencies still TODO. Read before any design change.
-- **`install.sh` / `aipg-validator.service` / `.env.template`** — install + run-as-service.
+- **`DESIGN.md`** — source of truth for validator phases, proof lanes, modality scoring,
+  reference pool, future economics, Base anchoring, and Grid-side dependencies.
+- **`ROADMAP.md`** — dev-manager build order from V0 preview through targeted
+  validation, text/image/video policy work, and Base-anchored economics.
+- **`RELEASE_V0.md`** — cross-repo evidence-only release runbook: core migration/API,
+  console scorecards, validator packaging, canary operation, and rollback notes.
+- **`pyproject.toml`** — package metadata and `aipg-validator` console script.
+  Default dependencies cover V0 text probing plus signing; heavier future-lane
+  dependencies live under `media` and `stake` extras. Do not reintroduce a
+  parallel `requirements.txt`; it drifts from release builds.
+- **`Dockerfile` / `docker-compose.yml` / `.dockerignore`** — container packaging and
+  local Compose run paths.
+- **`.github/workflows/`** — CI, image-release, and binary-release workflows.
+  Tag pushes publish normal release artifacts. Manual binary releases must set
+  `release_tag`; manual Docker publishes must set `image_tag`, with `latest`
+  opt-in only.
+- **`scripts/install-binary.sh`** — GitHub Release binary installer intended to
+  back the hosted `get.aipowergrid.io/validator` path. It installs the binary
+  under `$HOME/.local/bin` by default and creates `$HOME/.aipg-validator` as
+  the private config directory unless overridden.
+- **`scripts/install-systemd.sh`** — Linux systemd service installer for source
+  or released-binary validator nodes. Dry-run safe; generated unit must keep
+  secrets in `.env`, not in the unit file.
+- **`scripts/smoke-release.sh`** — full local release smoke: unit tests, CLI,
+  dashboard, Docker, release binary, and binary installer using throwaway
+  offline config. Use `SKIP_DOCKER=1` or `SKIP_BINARY=1` only when the local
+  machine genuinely cannot run that lane.
+- **`install.sh` / `aipg-validator.service` / `.env.template`** — source-checkout
+  install + run-as-service. `install.sh` may launch interactive setup only when
+  stdin is a terminal; non-interactive runs must skip setup and point operators
+  to `aipg-validator init`.
+- **`tests/`** — lightweight unit tests for V0 scoring/operator surfaces.
 
 ## Local Contracts
 
-- **Inherit org engineering standards:** /Users/j/fix-axios-vuln/aipg-documentation/engineering-standards/
-  (core + git + the matching language file). The rules below are grid-validator specializations.
-- **Early-stage / v0:** the grid does not yet expose targeted probing (`POST /v1/validator/probe`),
-  the worker list (`GET /v1/validator/workers`), the attestation sink (`POST /v1/validator/attest`),
-  or the `ValidatorStaking` contract. The node is written so each is best-effort: missing
-  endpoints fall back to **v0 model-routed probing** (can't attribute to a single worker, but
-  failed canaries still strike via grid Layer 2). Do not assume these exist; keep the fallbacks.
-- **Secrets:** `.env` holds `VALIDATOR_PRIVATE_KEY` (signs attestations + controls stake) — always
-  chmod 600, never commit. The key never leaves the box; the grid receives only signed payloads.
-- **Pay for verified-correct work, never presence.** Any reward/scoring logic added here must track
-  consensus agreement, not attestation count (DESIGN.md "Rewards & slashing").
-- **Canaries must stay unpredictable** — random per-probe nonce + rotating QA — so a worker can't
-  precompute answers and a validator can't fake a verdict without actually probing.
-- On-chain reads (stake gate) fail fast and gate startup; they are not on the probe hot path.
+- **Inherit org engineering standards:**
+  `../aipg-documentation/engineering-standards/`
+  (core + git + the matching language file). The rules below are
+  grid-validator specializations.
+- **Early-stage / v0:** current Grid core work has
+  `GET /v1/validator/capabilities`, `POST /v1/validator/attest` evidence
+  storage, `GET /v1/validator/scorecards` aggregate evidence, and
+  `GET /v1/validator/workers` inventory. Targeted probing
+  (`POST /v1/validator/probe`), assignments, and `ValidatorStaking` are not live.
+  Worker inventory is ignored unless core returns `targeted_probe_enabled=true`.
+  Missing/disabled endpoints fall back to **v0 model-routed probing**. V0 evidence
+  must be treated as observation/scoring input, not as slash or reward authority.
+- **Secrets:** `.env` may hold `VALIDATOR_PRIVATE_KEY` (signs attestations and later controls
+  stake) — always chmod 600, never commit. The key never leaves the box; the grid receives only
+  signed payloads. If the private key is configured, `VALIDATOR_WALLET` must be the derived
+  wallet address.
+- **Pay for verified-correct work, never presence.** Any future reward/scoring logic added here
+  must track accepted useful attestations and consensus agreement, not attestation count.
+- **Canaries must stay unpredictable.** Do not commit static challenge answer keys, golden
+  pHashes, private prompts, or live scoring secrets into the public repo.
+- On-chain reads (stake gate) fail fast and gate startup only when `VALIDATOR_REQUIRE_STAKE=true`;
+  they are not on the probe hot path.
 
 ## Work Guidance
 
-- New env vars: add to `validator/config.py` `Settings` (typed, with a default), not ad-hoc `getenv`.
-- Keep heavy deps (web3, eth-account, Pillow, imagehash) lazily imported so a missing optional dep
-  degrades a check to skip/dev-mode rather than crashing the node.
-- New grid-side endpoint dependencies must stay optional with a documented fallback (see Local Contracts).
+- New env vars: add to `validator/config.py` `Settings` (typed, with a
+  default), not ad-hoc `getenv`.
+- Keep heavy deps (web3, Pillow, imagehash) lazily imported and in optional
+  extras so default V0 text validators stay small. `eth-account` remains a
+  default dependency because signed V0 attestations are part of the preview.
+- New grid-side endpoint dependencies must stay optional with a documented
+  fallback (see Local Contracts).
 
 ## Verification
 
-—
+- `./.venv/bin/python -m compileall validator`
+- `./.venv/bin/python -m unittest discover -s tests`
+- `./.venv/bin/aipg-validator --help`
+- `./.venv/bin/python -m validator --help`
+- `docker build -t aipowergrid/validator:local .`
+- `docker run --rm --mount type=bind,source="$PWD/.env",target=/app/.env,readonly aipowergrid/validator:local check --no-probe`
+- `bash -n scripts/install-binary.sh scripts/install-systemd.sh`
+- `./scripts/smoke-release.sh`
+- `./scripts/install-systemd.sh --dry-run --exec ./.venv/bin/aipg-validator`
+- Release-binary smoke:
+  `./.venv/bin/python -m pip install -e '.[release]'` then
+  `./.venv/bin/pyinstaller --onefile --name aipg-validator-local`
+  `--specpath build/pyinstaller-local validator/__main__.py`
+  then `./dist/aipg-validator-local --help`; also run at least one
+  `check --no-probe` smoke from a temp working directory with only a local
+  `.env` to prove the binary does not depend on the source checkout.
 
 ## Child DOX Index
 
-- [validator/AGENTS.md](validator/AGENTS.md) — the node: config, stake, probing, attestation, loop, CLI.
+- [validator/AGENTS.md](validator/AGENTS.md) — the node: config, stake,
+  probing, attestation, loop, CLI.
