@@ -21,8 +21,10 @@ adds targeted assignments and modality-aware probe jobs.
 - **`staking.py`** — on-chain stake gate (`stake_of`, `assert_eligible`). Raises `NotDeployed`
   until `VALIDATOR_STAKING_ADDR` is set; honors `REQUIRE_STAKE=false` for pre-launch/dev.
 - **`grid_client.py`** — async httpx client for grid endpoints: `list_models`,
-  `validator_capabilities`, `validator_scorecards`, `list_workers`,
-  `probe_worker` (targeted), `chat` (v0 model-routed), `submit_attestation`.
+  `validator_capabilities`, `validator_scorecards`, `validator_assignments`,
+  `probe_assignment` (assignment-bound targeted), `list_workers`,
+  `probe_worker` (legacy targeted), `chat` (v0 model-routed),
+  `submit_attestation`.
   Each grid-only endpoint degrades gracefully (conservative capabilities,
   unavailable scorecards, empty list, `None`, or `False`) when not yet deployed.
   It sends both Grid-native `apikey` and OpenAI-compatible `Authorization:
@@ -30,10 +32,10 @@ adds targeted assignments and modality-aware probe jobs.
   behavior unless core deliberately drops one auth style.
   `features.targeted_probe` is only a capability signal; only the explicit
   `targeted_probe_enabled=true` rollout flag may put the node or dashboard into
-  targeted mode.
-  `list_workers` must return no workers until core reports
-  `targeted_probe_enabled=true`; otherwise the node would treat inventory as
-  targetable and emit false failures.
+  targeted mode. Assignment-bound targeting is preferred over legacy
+  worker-id targeting; if `/v1/validator/workers` advertises
+  `/v1/validator/probe/{assignment_id}`, `list_workers` must return no legacy
+  targets so `probe_round` uses `validator_assignments` instead.
 - **`prober.py`** — text canaries (`echo` nonce + generated arithmetic `qa`) and `score()`;
   `is_text_model` heuristic skips media models in v0; `_strip_think` ignores
   reasoning-model chain-of-thought. Do not reintroduce static QA answer lists.
@@ -47,8 +49,9 @@ adds targeted assignments and modality-aware probe jobs.
   marked `assignment_source=validator_v0`; V1 economic use must require
   Grid-issued assignment ids/nonces.
 - **`main.py`** — entrypoint: `run()` (optional stake gate → probe loop), `probe_round`
-  (targeted if the grid exposes workers, else v0 model-routed), `_probe_worker` /
-  `_probe_model`. `probe_round` returns the number of canaries actually
+  (Grid-issued assignments first, legacy targeted workers second, else v0
+  model-routed), `_probe_assignment` / `_probe_worker` / `_probe_model`.
+  `probe_round` returns the number of canaries actually
   attempted; one-shot checks use this to reject green-looking no-op probes.
   If `VALIDATOR_REQUIRE_STAKE=true`, missing stake config/deployment must raise
   a startup error before the Grid client starts; do not silently return success.
@@ -75,6 +78,9 @@ adds targeted assignments and modality-aware probe jobs.
   matches the one signed. Do not change the field set or serialization without the grid side.
   Never sign raw prompts, expected answers, or raw responses in V0; sign compact
   hashes so scorecards can stay private while evidence is still committed.
+  Assignment-bound attestations must echo the Grid's returned probe
+  `evidence_hash`; do not let the node invent a different hash after a targeted
+  probe.
 - **Signing identity must be coherent:** `Settings.validate()` and `aipg-validator init`
   must reject malformed `VALIDATOR_WALLET` values and any
   `VALIDATOR_WALLET` / `VALIDATOR_PRIVATE_KEY` mismatch. If init receives a private key

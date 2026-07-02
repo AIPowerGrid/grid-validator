@@ -39,12 +39,13 @@ concrete detail in children. Delete stale notes instead of explaining history.
 The Grid's validator node. In V0 it is a CPU-only distributed audit runner: it sends
 small canary jobs through the normal Grid path, scores replies (`healthy` / `slow` /
 `failed`), and submits signed attestations when the Grid exposes the sink. The current
-workspace has a V0 `POST /v1/validator/attest` evidence sink in Grid core, but production
-deployment and targeted assignments are separate rollout steps. Future phases add targeted
-assignments, worker scorecards, deterministic media workflow certification, validator
-rewards, staking, and objective-fraud slashing. Do not describe future economic authority as
-live until the Grid endpoints and contracts exist. Python package: `validator/`. Entry:
-`validator.main`.
+Grid core preview exposes assignment-bound text probes (`GET /v1/validator/assignments`,
+`POST /v1/validator/probe/{assignment_id}`) plus preview scorecards. These assignments
+make evidence attributable, but they are still non-economic: no reward, routing, strike,
+or slashing logic may read them as authority yet. Future phases add multi-validator
+quorum, deterministic media workflow certification, validator rewards, staking, and
+objective-fraud slashing. Do not describe future economic authority as live until the
+Grid endpoints and contracts exist. Python package: `validator/`. Entry: `validator.main`.
 
 ## Ownership
 
@@ -95,13 +96,13 @@ live until the Grid endpoints and contracts exist. Python package: `validator/`.
   (core + git + the matching language file). The rules below are
   grid-validator specializations.
 - **Early-stage / v0:** current Grid core work has
-  `GET /v1/validator/capabilities`, `POST /v1/validator/attest` evidence
-  storage, `GET /v1/validator/scorecards` aggregate evidence, and
-  `GET /v1/validator/workers` inventory. Targeted probing
-  (`POST /v1/validator/probe`), assignments, and `ValidatorStaking` are not live.
-  Worker inventory is ignored unless core returns `targeted_probe_enabled=true`.
-  Missing/disabled endpoints fall back to **v0 model-routed probing**. V0 evidence
-  must be treated as observation/scoring input, not as slash or reward authority.
+  `GET /v1/validator/capabilities`, `GET /v1/validator/assignments`,
+  `POST /v1/validator/probe/{assignment_id}`, `POST /v1/validator/attest`,
+  `GET /v1/validator/scorecards`, and `GET /v1/validator/workers`. The node
+  prefers Grid-issued assignments; missing/empty assignment endpoints fall back
+  to **v0 model-routed probing**. Assignment-bound evidence must include the
+  Grid assignment id, nonce, and probe evidence hash, but still must be treated
+  as observation/scoring input, not as slash or reward authority.
 - **Secrets:** `.env` may hold `VALIDATOR_PRIVATE_KEY` (signs attestations and later controls
   stake) — always chmod 600, never commit. The key never leaves the box; the grid receives only
   signed payloads. If the private key is configured, `VALIDATOR_WALLET` must be the derived

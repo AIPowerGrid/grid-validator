@@ -1,0 +1,308 @@
+# Validator Node Roadmap
+
+This is the practical build plan for turning validators from a preview audit
+runner into a network primitive. Keep this document honest: mark a capability as
+live only when the validator node, Grid core endpoint, operator docs, and tests
+exist.
+
+For the evidence-only rollout sequence, use [RELEASE_V0.md](RELEASE_V0.md).
+
+## Product Story
+
+Validators are independent audit nodes. They do not need GPUs. Their job is to
+send small, unpredictable challenges through the Grid, score whether workers
+followed the job contract, and submit signed evidence.
+
+The point is not to prove every byte of a remote model stack. For most
+generation work, the point is proof of usefulness and proof of honesty:
+
+- did the worker solve the task it accepted?
+- did it respect parameters such as max tokens, dimensions, seeds, duration, and
+  output format?
+- did it return usable output instead of unrelated cached output?
+- did it perform within the claimed capability tier?
+
+For deterministic workflows, especially image workflows with fixed model and
+workflow hashes, validators can also provide proof of fidelity by comparing a
+candidate worker against certified reference output.
+
+## Design Principles
+
+- Start with evidence, not punishment.
+- Pay later for accepted useful attestations, never for mere uptime.
+- Prefer objective checks over subjective judges.
+- Treat bonded workers as more accountable, not automatically correct.
+- Use trusted/reference workers to create baselines, but never one permanent
+  oracle.
+- Keep live challenge seeds, prompts, answer keys, pHashes, and thresholds out
+  of the public repo.
+- Raw prompts and outputs stay off-chain; Base gets compact commitments, roots,
+  bonds, rewards, and dispute results.
+
+## Phase 0: Preview Audit Runner
+
+Status: in progress.
+
+Goal: give operators something easy to run while the Grid learns from evidence
+without economic side effects.
+
+Live or scaffolded in this repo:
+
+- source install
+- local Docker build and Compose
+- tag/manual GitHub Actions binary-release workflow
+- release-binary installer script
+- Linux systemd installer script
+- `aipg-validator init`
+- `aipg-validator check`
+- `aipg-validator dashboard`
+- `aipg-validator run`
+- model-routed text canaries through `/v1/chat/completions`
+- nonce/generated-QA/latency scoring
+- optional signed attestations with V0 evidence hashes
+- graceful fallback when validator-specific endpoints are missing
+
+Grid-core worktree support:
+
+- `GET /v1/validator/capabilities` advertises safe validator feature flags
+- `POST /v1/validator/attest` stores evidence only
+- `GET /v1/validator/scorecards` returns aggregate evidence only
+- `GET /v1/validator/workers` exposes non-targetable inventory only
+- `targeted_probe_enabled=false` until a real targeted probe endpoint exists
+
+Hard no-go boundaries:
+
+- no slashing
+- no validator rewards
+- no routing impact
+- no false targeted failures
+- no claim that exact model weights are proven
+
+Definition of done:
+
+- package installs cleanly from source
+- local dashboard shows Grid reachability and mode
+- unit tests pass
+- docs say V0 is evidence-only
+- current Grid core worktree can accept and aggregate attestations without money
+  or routing
+- production rollout uses `RELEASE_V0.md` and requires explicit Alembic migration
+  plus endpoint checks
+
+## Phase 1: Public Distribution
+
+Goal: make validators as easy to run as workers.
+
+Deliverables:
+
+- release binaries for Linux x64, Linux ARM64, macOS ARM64, Windows x64
+- published Docker image
+- install script at a stable URL
+- signed release artifacts
+- GitHub release workflow
+- service install/update path
+- operator health page that shows core capability flags
+
+Operator shape:
+
+```bash
+curl -fsSL https://get.aipowergrid.io/validator | bash
+cd ~/.aipg-validator
+aipg-validator init
+aipg-validator check --no-probe
+aipg-validator dashboard
+aipg-validator run
+```
+
+Definition of done:
+
+- release-binary workflow runs clean on a real tag/manual dispatch
+- binary installer downloads and smoke-tests a release artifact
+- systemd installer dry-run and Linux host install path are verified
+- a non-developer can install, run `check --no-probe`, and see a healthy
+  dashboard in under 10 minutes
+- `.env` stays local and private
+- Docker path does not expose secrets in process listings
+
+## Phase 2: Targeted Assignments
+
+Goal: move from "probe a model through the normal router" to "probe this worker
+for this capability."
+
+Grid-core endpoints:
+
+- `GET /v1/validator/capabilities`
+- `GET /v1/validator/assignments`
+- `POST /v1/validator/probe`
+- `POST /v1/validator/attest`
+- worker scorecard APIs
+
+Assignment fields:
+
+- assignment id
+- target worker id
+- modality
+- capability
+- prompt/workflow reference
+- nonce
+- scoring policy id
+- expiration
+- validator signature domain
+
+Rules:
+
+- one validator must not validate its own worker
+- assignments expire quickly
+- probes must be unpredictable
+- failed core endpoints must skip, not punish
+- validators sign canonical attestation payloads
+
+Definition of done:
+
+- targeted endpoint reaches exactly the assigned worker
+- retries cannot create duplicate economic effects
+- missing or disabled targeted probes produce no false `failed` attestations
+- scorecards can display evidence without routing impact first
+
+## Phase 3: Text Validation
+
+Goal: validate useful LLM behavior without pretending to know exact quantization.
+
+Capability lanes:
+
+- basic instruction following
+- strict JSON/schema output
+- code generation with hidden tests
+- math and logic tasks with generated answers
+- tool-call chains
+- long-context retrieval
+- max-token, stop-sequence, and streaming honesty
+
+Scoring:
+
+- deterministic checks where possible
+- hidden unit tests for code
+- exact nonce and schema checks
+- latency and timeout classification
+- LLM-as-judge only as secondary evidence
+
+Definition of done:
+
+- each text capability has a scoring policy id
+- validators can explain `healthy`, `slow`, and `failed`
+- repeated objective failures affect routing caps before any slash design
+
+## Phase 4: Image Validation
+
+Goal: separate general image usefulness from deterministic workflow fidelity.
+
+General image checks:
+
+- output decodes
+- dimensions match
+- format matches
+- image is not blank/noise
+- explicit seed behavior is respected when claimed
+- simple prompt constraints are plausibly followed
+
+Deterministic workflow checks:
+
+- workflow hash
+- checkpoint/model hash
+- LoRA/VAE/control model hashes where applicable
+- sampler/scheduler/steps/CFG/dimensions
+- explicit seed
+- pHash/SSIM/LPIPS tolerance against reference output
+
+Reference path:
+
+- select bonded, highly validated workers as reference workers
+- use more than one reference for important certification
+- discard ambiguous reference disagreement
+- rotate references
+
+Definition of done:
+
+- deterministic image workflow certificate format exists
+- certificate evidence is reproducible by independent validators
+- product layers can require certified deterministic workflow provenance
+  without embedding minting policy in the validator node
+
+## Phase 5: Video Validation
+
+Goal: score basic video contract honesty first, then add semi-deterministic
+workflow checks where the stack supports it.
+
+General video checks:
+
+- output decodes
+- duration matches
+- fps matches
+- resolution matches
+- frames are not a static still unless requested
+- simple motion/key-event constraints are present where objectively checkable
+
+Deterministic or semi-deterministic checks:
+
+- workflow hash
+- keyframe pHash
+- frame count
+- optical-flow/motion profile
+- reference comparison for certified workflows
+
+Definition of done:
+
+- video evidence affects routing/caps first
+- slashing is limited to objective fraud, not subjective quality
+
+## Phase 6: Economics And Base Anchoring
+
+Goal: validators become economically useful without making the hot path brittle.
+
+On-chain surfaces:
+
+- validator registry
+- validator stake
+- worker bond/slash events
+- epoch attestation roots
+- workflow certificate roots
+- validator reward roots
+
+Reward shape:
+
+```text
+reward =
+  base_fee
+  * difficulty_weight
+  * modality_weight
+  * agreement_score
+  * timeliness
+  * validator_reputation
+```
+
+Rules:
+
+- pay for accepted useful attestations
+- do not pay for duplicate spam
+- going offline stops rewards but should not slash stake
+- objective fraud may become slashable after quorum and dispute tooling exist
+- subjective quality affects routing, not stake
+
+Definition of done:
+
+- epoch roots are published on Base
+- reward claims are transparent
+- slashing has a dispute path
+- validators cannot profit by self-validating their own workers
+
+## Immediate Next Build Order
+
+1. Keep V0 evidence-only and deploy the attest/inventory endpoints safely.
+2. Package public binaries and a published Docker image.
+3. Add targeted assignment/probe only when core can reach exactly one worker.
+4. Deploy console validator evidence scorecards with "informational only" labels.
+5. Add text capability policies before media/video economic effects.
+6. Add deterministic image workflow certification before any product-level
+   minting or marketplace trust gate depends on validator evidence.
+7. Add validator stake/rewards after evidence, scorecards, and references are
+   proven operationally.

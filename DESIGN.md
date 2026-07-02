@@ -1,247 +1,436 @@
-# AIPG Validator Node
+# AIPG Validator Node Design
 
-A validator node is the **active, adversarial health layer** of the grid. Where the
-worker self-health check (Layer 1) and the grid's strike/evict logic (Layer 2) are
-*reactive* — they only act after a real user job fails — a validator is *proactive*:
-it continuously probes workers with canary jobs, verifies the outputs are real, and
-feeds the result into both grid eviction and on-chain settlement.
+Validator nodes are the Grid's quality, honesty, and provenance layer. They are
+not a magic proof that a remote machine is running a specific private stack. They
+are a distributed way to measure whether workers deliver the capability they
+claim, follow job parameters, and deserve more trust.
 
-Validators are an economic role: they **stake AIPG** to participate, **earn AIPG** for
-honest validation work, and are **slashable** for provable misbehavior.
+The first public version should be deliberately low-authority:
 
-## Why staking
+> easy to run, useful evidence, no slashing power.
 
-Validators have power — their attestations can get a worker evicted and unpaid. That
-power must be costly to abuse:
+For the practical build sequence and release gates, see [ROADMAP.md](ROADMAP.md).
 
-- **Stake to participate** (`MIN_STAKE`, e.g. 50,000 AIPG). No stake → the grid rejects
-  the validator's attestations. This is sybil resistance: spinning up 100 fake validators
-  to collude requires 100× the stake.
-- **Earn** a share of grid fees / emissions proportional to honest attestation volume and
-  stake. Validating is paid work, like a worker generating tokens.
-- **Slash** on provable fault: signing an attestation that contradicts the majority of
-  other validators on the same canary (false-fail to grief an honest worker, or false-pass
-  to cover a colluding worker). Slashed stake is burned or redistributed.
+## Phases
 
-## System requirements
+### V0: Distributed Audit Runner
 
-One node, one spec. A validator does light network work (small canary prompts, fetching a
-few hundred KB of probe output, perceptual-hash math) — **no GPU, no AI model runs locally.**
+Status: current repo direction.
 
-| Resource | Minimum | Recommended |
-|---|---|---|
-| CPU | 1 core | 2 cores |
-| RAM | 1 GB | 2 GB |
-| Disk | 1 GB (code + venv + deps) | 2 GB |
-| Network | stable; ~low bandwidth (small prompts + a few hundred KB/probe) | — |
-| OS | Linux / macOS / Windows, **Python 3.10+** | Linux + systemd (always-on) |
-| GPU | **none** | none |
-| Uptime | runs 24/7 (use the systemd unit) | — |
-| To stake (at launch) | a Base wallet + **50,000 AIPG** | — |
+- Source install with `init`, `check`, and `run`.
+- GitHub Release binary installer scaffold.
+- Linux systemd installer scaffold for always-on operation.
+- Editable package install with the `aipg-validator` console command.
+- Module entrypoint for `python -m validator`.
+- Local Docker image and Compose definitions.
+- CI for compile, unit tests, CLI smoke, Docker build, and release-binary build
+  scaffolding.
+- Read-only local dashboard on `127.0.0.1:8790`.
+- CPU-only.
+- Model-routed text canaries through normal Grid APIs.
+- Best-effort signed attestations.
+- Core-side `GET /v1/validator/capabilities` is implemented in the current
+  Grid core V0 worktree so nodes can discover safe feature flags.
+- Core-side `POST /v1/validator/attest` evidence storage is implemented in the
+  current Grid core V0 worktree; deployment/use is a rollout step.
+- Core-side `GET /v1/validator/scorecards` aggregate evidence view is
+  implemented in the current Grid core V0 worktree; it is informational only.
+- Core-side `GET /v1/validator/workers` inventory is implemented in the current
+  Grid core V0 worktree, but returns `targeted_probe_enabled=false`.
+- Missing validator endpoints degrade gracefully.
+- No rewards, no slashing, no targeted worker attribution.
+- Outputs inform dashboards and implementation work.
 
-That's it — a ~$5–10/mo VPS, a Raspberry Pi 4, or a spare always-on machine all qualify.
+### V1: Routing Signal
 
-## Components
+- Grid exposes validator assignments and an attestation sink.
+- Validators receive signed assignments from the Grid.
+- Attestations update worker scorecards.
+- Routing begins to use scores cautiously.
+- Still no slashing from public validators.
 
+### V2: Capability Certification
+
+- Text capability probes: JSON, code, tool use, long context, max-token honesty.
+- Image probes: prompt adherence, parameter honesty, deterministic workflow checks.
+- Video probes: duration, fps, motion, keyframe consistency.
+- Bonded high-trust workers can enter a reference pool.
+- Deterministic workflow certificates prove reproducible provenance for product
+  layers that need it. Minting policy, marketplace policy, and user experience
+  decisions stay outside the validator node.
+
+### V3: Economic Validation
+
+- Validator staking on Base.
+- Validator rewards for accepted attestations.
+- Epoch roots anchored on-chain.
+- Objective fraud can be slashable through quorum and dispute processes.
+
+## Validator Data Flow
+
+This is the target flow for validators once the Grid supports assignments and
+targeted probes. V0 only runs the left edge of this flow as evidence-only,
+model-routed canaries; anything that affects routing, rewards, or slashing must
+wait for Grid-issued assignments, targeted worker execution, evidence hashes,
+and quorum.
+
+```mermaid
+flowchart TD
+  A["Grid core assignment service"] --> B["Signed assignment<br/>worker, modality, policy, nonce, deadline"]
+  B --> C["Validator node"]
+  C --> D["Challenge engine<br/>text, image, video"]
+  D --> E["Targeted probe endpoint"]
+  E --> F["Assigned worker"]
+  E --> G["Reference worker pool<br/>bonded, highly validated"]
+  F --> H["Candidate output"]
+  G --> I["Reference output(s)"]
+  H --> J["Modality scorer"]
+  I --> J
+  J --> K["Evidence package<br/>prompt hash, response hash, verdict"]
+  K --> L["Signed attestation"]
+  L --> M["Grid core evidence store"]
+  M --> N["Quorum and dispute logic"]
+  N --> O["Worker scorecards<br/>routing reputation"]
+  N --> P["Epoch roots<br/>attestations, rewards, certificates"]
+  P --> Q["Base contracts<br/>bonds, validator stake, rewards"]
+  N --> R["Future objective-fraud slashing<br/>only after dispute tooling"]
 ```
-validator-node/
-  validator/
-    config.py       # env + constants
-    staking.py      # on-chain stake gate (web3 → ValidatorStaking contract)
-    grid_client.py  # grid API: list workers, probe a worker, submit attestations
-    prober.py       # canary generation + output scoring
-    attest.py       # build + sign (EIP-191) attestations
-    main.py         # entrypoint: verify stake → probe loop
-```
 
-## Probe lifecycle (one round, every PROBE_INTERVAL_S)
+Base should anchor compact roots, rewards, bonds, stake, and dispute outcomes.
+Raw prompts, raw outputs, answer keys, pHashes, private thresholds, and live
+challenge seeds should stay off-chain and out of the public repo.
 
-1. **Stake gate** — confirm this validator's on-chain stake ≥ MIN_STAKE. If not, refuse to
-   run (attestations would be rejected anyway).
-2. **Enumerate** active (worker, model) pairs from the grid.
-3. **Canary** each — two kinds, mixed so a worker can't special-case them:
-   - *Liveness/echo*: "Reply with exactly this token and nothing else: `<nonce>`" → output
-     must contain the per-probe random nonce. Proves the pipeline runs and isn't replaying.
-   - *Correctness*: a small deterministic QA ("What is 7×6? Reply with only the number." →
-     `42`). Catches a model that's loaded-but-wrong (corrupted weights, wrong model swapped in).
-4. **Score**: `healthy` (correct + within latency budget), `slow` (correct but over budget),
-   `failed` (empty / wrong / timeout).
-5. **Attest**: sign `{worker_id, model, nonce, verdict, latency_ms, ts}` with the validator's
-   key and POST to the grid. The grid:
-   - counts a `failed` verdict as a **strike** (same mechanism as Layer 2 → evict at 3),
-   - records the attestation for settlement + the worker-health dashboard.
+## Validation Lanes
 
-## Validating image & video models
+### Proof Of Usefulness
 
-Text canaries don't work for generative media — output is non-deterministic pixels with no
-exact-match answer. Media validation works along three axes (cheap → expensive), and a media
-canary uses a **fixed seed + an unpredictable prompt** (random object/color/setting + nonce)
-at small dimensions/steps (cheap to generate). The worker uploads to R2 as usual; the
-validator fetches the object bytes and scores them.
+For text, general image, and general video jobs.
 
-**Axis 1 — structural / liveness (cheap, no ML).** Output decodes; dimensions/format match
-the request; it isn't blank or pure noise (entropy/variance threshold); latency is sane for
-the requested steps. This is the media equivalent of "empty completion = failure" and catches
-dead backends + garbage instantly.
+The question is: did the worker produce a useful result for the advertised
+capability tier?
 
-**Axis 2 — cross-worker perceptual consensus (cheap, the key unlock).** Send the *same*
-fixed-seed canary to multiple workers on the same model. Honest workers produce perceptually
-near-identical images; compare via **perceptual hash (pHash)** and flag the outlier
-(model-swapper, cached-image returner). Same Schelling-point logic as text — no "correct
-answer" needed, just agreement. pHash is trivial CPU (Pillow + imagehash). Tolerance accounts
-for cross-GPU/library nondeterminism (compare Hamming distance, not equality).
+Examples:
 
-**Video** applies axes 1–2 to sampled keyframes (the grid's probe response returns a few
-preview frames, so the validator needs no video decoder), plus: correct frame count / fps /
-duration, frames decode, and a **motion check** (perceptual-hash diff between first and last
-frame) to confirm real animation rather than a looped still.
+- text worker solves generated code/math/tool-use tasks
+- image worker follows object count, dimensions, and prompt constraints
+- video worker returns real motion, correct length, and expected resolution
 
-Both axes are **CPU-only** (Pillow + imagehash) — no GPU, no ML model — so the single
-validator node validates text, image, and video on the same modest hardware (see *System
-requirements*). Semantic prompt-adherence via CLIP is a possible **future** add, deliberately
-left out so there's one node with one clear, light requirement.
+This should primarily affect routing and reputation.
 
-## Targeted probing — grid dependency (Layer 3b, TODO on the grid)
+### Proof Of Fidelity
 
-The current dispatch is a shared Redis-Streams consumer group, so a job can't be aimed at a
-*specific* worker — that's exactly why a single bad worker was hard to isolate. The validator
-needs a **direct-probe endpoint** on the grid:
+For deterministic workflows.
 
-`POST /v1/validator/probe  {worker_id, payload}` → grid sends the job straight to
-`_local_ws[worker_id]`, collects the reply, returns it to the validator. Validator-role +
-staked only. Until this exists, `prober.py` runs in **v0 mode**: it injects canaries through
-the normal model-routed path — it can't name which worker answered, but because Layer 2
-strikes any worker that returns empty/wrong, canary traffic alone still drives eviction of
-bad workers. Targeted attribution + per-worker scoring needs the endpoint.
+The question is: did the worker reproduce an approved workflow within tolerance?
 
-## On-chain: `ValidatorStaking` contract (TODO in aipg-smart-contracts)
+For image workflows this can use:
 
-Standalone, Synthetix-adjacent (mirror `StakingVault.sol`), on Base:
-- `stake(amount)` / `requestUnstake()` / `withdraw()` with an unbonding delay (e.g. 7d) so a
-  validator can't stake → misbehave → instantly exit before being slashed.
-- `slash(validator, amount, reason)` callable only by the grid's settlement authority (a
-  RoleManager role), emitting an auditable event.
-- `isActiveValidator(addr) → bool` and `stakeOf(addr)` read by the grid to gate attestations.
-- Rewards: either funded like `StakingVault` (manual `notifyRewardAmount`) or wired into the
-  grid `RewardPool` module so validator pay comes from the same emissions as worker den.
+- workflow hash
+- model/checkpoint hash
+- VAE/LoRA/control model hashes
+- sampler, scheduler, steps, CFG, dimensions
+- explicit seed behavior
+- pHash, SSIM, LPIPS, and metadata checks
 
-AIPG token: `0xa1c0deCaFE3E9Bf06A5F29B7015CD373a9854608` (Base).
+This lane should certify reproducible workflow provenance. A product may later
+choose to require that certificate for NFT minting, marketplace badges, or
+other high-trust actions, but the validator node does not decide mint policy.
 
-## Threat model (what staking+slashing defends)
+> Validators certify reproducibility; product layers decide which certified
+> workflows are eligible for product-specific actions.
 
-| Attack | Defense |
+### Proof Of Honesty
+
+For every modality.
+
+The question is: did the worker follow the job contract?
+
+Examples:
+
+- respects explicit seed
+- respects max tokens or media dimensions
+- returns valid JSON when requested
+- does not claim completion without usable output
+- signs receipts correctly
+- does not return cached unrelated output
+- reports failures honestly
+
+Objective dishonesty is the future slashing surface. Subjective quality should
+downgrade routing, not slash.
+
+## Worker Trust Levels
+
+Bonding gives a worker economic skin in the game. Validation determines how much
+trust that worker earns.
+
+| Level | Meaning |
 |---|---|
-| Sybil validators to outvote honest ones | per-validator MIN_STAKE; influence ∝ stake |
-| False-fail to grief a competitor's worker | attestation must match validator majority; minority is slashed |
-| False-pass to cover a colluding worker | same majority check; canaries are unpredictable (random nonce) |
-| Stake → attack → exit before slash | unbonding delay on withdraw |
-| Worker hardcodes canary answers | random nonce echo + rotating QA set; targeted probe uses live job path |
+| Unbonded | low-risk testing or very limited traffic |
+| Bonded | normal paid jobs with caps |
+| Validated | higher routing and payout caps |
+| Certified | approved deterministic workflow access |
+| Reference | high-trust baseline worker used for comparisons |
 
-## Rewards & slashing
+Bond should raise the trust ceiling. It should not replace validation.
 
-**Golden rule: pay for *correct work verified against consensus*, never for mere presence.**
-Uptime is a multiplier, not a paycheck — a node that's "up" but rubber-stamps everything is
-worthless and must not earn.
+## Reference Pool
 
-**Validators are a thin security layer, not a primary earner.** Workers carry the real cost
-of the network — GPU capex plus electricity — so workers must always capture the large
-majority of rewards. Validating runs on a ~$5 VPS, so its pool is deliberately small (a few
-percent of worker rewards). This isn't stinginess; it's supply protection: if validating ever
-out-earned compute per dollar invested, capital would flee GPUs for cheap validator boxes and
-starve the grid of the very compute it exists to provide. A validator's return comes mostly
-from the *opportunity cost of its locked stake* (it should modestly beat passive staking to
-justify the work + slashing risk), not from the work paying like a GPU.
+Some bonded, highly validated workers can become reference workers. Validators use
+them to produce baselines for candidate workers.
 
-### What earns
+Flow:
 
-| Earns for | Measured as |
-|---|---|
-| **Validation work** (the core) | canary checks whose verdict matched epoch **consensus** |
-| **Uptime / availability** | `uptime_factor` = assigned rounds delivered ÷ assigned (a *multiplier*) |
-| **Catching real faults** | flat bonus per worker you correctly flagged that consensus + grid signals confirm + evict |
-| **Coverage** (minor) | validating across the assigned spread of workers/models, not camping one |
-
-### Per-epoch reward formula
-
-```
-reward_v = VALIDATOR_POOL_DEN × (score_v / Σ score_all)
-
-score_v = correct_validations_v
-        × agreement_rate_v        # your verdicts matching consensus, 0..1
-        × uptime_factor_v         # assigned rounds delivered, 0..1
-        × stake_weight_v          # sqrt(stake), capped (anti-plutocracy)
-        + fault_bonus_v
+```text
+challenge generator
+  -> reference worker result(s)
+  -> candidate worker result
+  -> modality scorer
+  -> signed validator attestation
+  -> worker score / certification state
 ```
 
-### Starting constants (all tunable via the contract / grid config)
+Rules:
 
-| Constant | Value | Why |
-|---|---|---|
-| `MIN_STAKE` | 50,000 AIPG | sybil cost; gates participation |
-| `VALIDATOR_POOL_BPS` | 200 (2% of epoch worker den) | thin security tax; workers keep ~98%. Hard-capped so validators can never out-earn compute |
-| `CONSENSUS_THRESHOLD` | ≥ 2/3 agreeing | what counts as "consensus" for a canary |
-| `SLASH_THRESHOLD` | disagree w/ ≥ 80% consensus | only slash against *strong* consensus (avoids slashing on noise) |
-| `SLASH_RATE` | 1% of stake / offense, escalating | griefing & collusion both punished |
-| `STAKE_WEIGHT` | `min(sqrt(stake), sqrt(10×MIN_STAKE))` | diminishing returns; whales can't dominate |
-| `UNBONDING_DELAY` | 7 days | can't stake → cheat → exit before slash |
-| `FAULT_BONUS` | small flat den | points validators at workers that matter |
+- avoid a single reference oracle
+- use quorum for important certifications
+- throw out ambiguous reference disagreements
+- rotate reference workers
+- never reveal live challenge answers in the public binary
 
-### Anti-gaming
+Reference workers are strongest for deterministic image workflows. For text, use
+objective verifiers first and reference answers only as supporting evidence.
 
-- **Assigned probes, not free choice.** Each round the grid deterministically assigns each
-  validator a pseudo-random subset of workers — `assignment = H(epoch, round, validator, worker) < threshold`.
-  Even coverage; you can't farm one easy worker or skip a suspected-bad one.
-- **Unpredictable canaries.** Random per-probe nonce (echo) + rotating QA — a worker can't
-  precompute answers, and a validator can't fake a result without actually probing.
-- **Consensus, not count.** Reward tracks *agreement*, so spamming attestations does nothing.
-- **No self-validation.** A validator's assignments exclude workers under its own account/wallet.
-- **Commit–reveal (v2 hardening).** Submit `hash(verdict, salt)` first, reveal after the round
-  closes, so a lazy validator can't copy others' verdicts before committing. Not needed at
-  launch (attestations are private to the grid, not a public mempool), but the upgrade path.
+## Probe Lifecycle
 
-### Slashing
+V0 lifecycle:
 
-A single rule covers both failure modes: **your verdict must match strong consensus.**
-- False `failed` on a worker the network says is `healthy` → **griefing** → slash.
-- False `healthy` on a worker the network says is `failed` → **collusion / laziness** → slash.
-- Persistent statistical bias toward one worker against consensus → escalated slash.
-Slashed stake is burned (or routed to the reward pool). Going *offline* is **not** slashed —
-you just stop earning and are eventually deregistered.
+1. Load config from `.env`.
+2. Optionally check local stake configuration.
+3. List models from `/v1/models`.
+4. Filter out names that look like media models.
+5. Submit text canaries through `/v1/chat/completions`.
+6. Score response as `healthy`, `slow`, or `failed`.
+7. Build an attestation with assignment metadata, epoch, and evidence hashes;
+   optionally sign it.
+8. Submit the attestation if `/v1/validator/attest` exists.
 
-### Bootstrapping (before there's a quorum)
+Future targeted lifecycle:
 
-With 1–2 validators there's no consensus to score against. So early validators are graded
-against the grid's **objective** signals — Layer 2 already *knows* if a worker returned
-empty / timed out. Verdicts are checked against that ground truth, transitioning to
-consensus-weighting as the validator set grows past `CONSENSUS_THRESHOLD`-viable size.
+1. Fetch signed assignments from the Grid.
+2. Submit probe to a specific worker through a validator-only endpoint.
+3. Score the result using the assigned modality scorer.
+4. Sign the attestation.
+5. Grid stores evidence and updates worker scorecards.
+6. Epoch scoring computes validator rewards and public roots.
 
-## Settlement integration (grid_ledger)
+## Text Validation
 
-Validator pay rides the **existing** ledger → epoch → Merkle → on-chain rails — no parallel
-system. At epoch close the settlement bot:
+Current V0 checks:
 
-1. Sums worker den for the epoch → `VALIDATOR_POOL_DEN = total_worker_den × VALIDATOR_POOL_BPS/10000`.
-2. Computes each validator's `score_v` from that epoch's attestations (agreement, uptime, stake, bonuses).
-3. Writes one `grid_ledger` row per validator with:
-   - `job_type = "validation"`, `worker_id` = validator's id, `wallet` = validator wallet,
-   - `den = VALIDATOR_POOL_DEN × score_v/Σscore`, `output_units` = correct_validations,
-   - `result_hash` = hash over the epoch's attestation set for this validator (audit trail).
-4. These rows fold into `grid_epochs.total_den` and the **same Merkle root** → validators are
-   paid AIPG pro-rata exactly like workers, in one settlement tx.
+- exact nonce echo
+- generated arithmetic QA
+- latency classification
 
-Attestations themselves are stored (a `grid_attestations` table: epoch, validator, worker,
-nonce, verdict, latency, sig) so consensus, scoring, and slashing are recomputable and
-auditable against the on-chain root.
+Planned checks:
+
+- strict JSON schema
+- hidden code tests
+- generated math/logic tasks
+- long-context retrieval
+- tool-call chains
+- max-token and stop-sequence compliance
+- streaming integrity
+
+Prefer objective checks. Use LLM-as-judge only as a supporting signal.
+
+## Image Validation
+
+General image validation:
+
+- output decodes
+- dimensions and format match
+- not blank or pure noise
+- prompt constraints are plausibly followed
+- explicit seed behavior is honored where claimed
+
+Deterministic workflow validation:
+
+- same workflow
+- same seed
+- same params
+- compare against certified reference output
+- pHash/SSIM/LPIPS within tolerance
+
+This is where the network can get close to proof-of-fidelity.
+
+## Video Validation
+
+General video validation:
+
+- output decodes
+- duration/fps/resolution match
+- frames are not just a static still
+- motion direction or key events match the prompt where objectively checkable
+
+Deterministic or semi-deterministic video validation:
+
+- sample keyframes
+- compare keyframe pHashes
+- check optical flow / motion profile
+- confirm duration and frame count
+
+Video scoring should start as routing evidence, not a slashing surface.
+
+## Attestations
+
+Attestations should be deterministic, signed, and hashable. The wire form sent
+to Grid core is an envelope: `{ "payload": { ...canonical fields... },
+"signature": "0x..." }`. In unsigned V0 preview mode, `signature` is `null`.
+
+Current V0 text payload shape:
+
+```json
+{
+  "validator": "0x...",
+  "attestation_schema": "aipg.validator.attestation.v0",
+  "assignment_id": "validator-v0:...",
+  "assignment_source": "validator_v0",
+  "grid_nonce": "",
+  "epoch": "2026062614",
+  "worker_id": "",
+  "model": "qwen3-27b",
+  "modality": "text",
+  "capability": "text.basic.v0",
+  "canary_kind": "echo",
+  "nonce": "A1B2C3D4",
+  "evidence_schema": "aipg.validator.evidence.v0",
+  "prompt_hash": "sha256...",
+  "response_hash": "sha256...",
+  "evidence_hash": "sha256...",
+  "verdict": "healthy",
+  "score": 1.0,
+  "latency_ms": 3200,
+  "ts": 1782470000
+}
+```
+
+V0 assignment ids are validator-generated and explicitly marked
+`assignment_source=validator_v0`; they are not proof of Grid assignment or
+worker attribution. Targeted/economic phases must require Grid-issued
+assignment ids and nonces, then add modality-specific evidence fields.
+
+The public repo can contain the attestation format and scoring engines. It must
+not contain live answer keys, static private challenge prompts, golden pHashes,
+live scoring secrets, or private policy thresholds. Public default tolerances are
+fine for local preview scorers; production assignment policies should be
+versioned and rotated from the Grid side.
+
+## Grid Dependencies
+
+V0 can run probes with only:
+
+- `GET /v1/models`
+- `POST /v1/chat/completions`
+
+V0 can discover Grid validator feature flags when deployed core exposes:
+
+- `GET /v1/validator/capabilities`
+
+V0 can submit evidence when deployed core exposes:
+
+- `POST /v1/validator/attest`
+
+V0 can show aggregate evidence when deployed core exposes:
+
+- `GET /v1/validator/scorecards`
+
+V0 can discover worker inventory when deployed core exposes:
+
+- `GET /v1/validator/workers` with `targeted_probe_enabled=false`
+
+Next Grid endpoints:
+
+- `POST /v1/validator/probe`
+- `GET /v1/validator/assignments`
+- worker scorecard APIs
+
+The validator must continue to degrade gracefully when future endpoints are
+missing.
+
+## On-Chain Path
+
+Base should not receive raw prompts or outputs. The chain should get compact,
+auditable commitments:
+
+- validator registry
+- validator stake
+- worker bond/slash events
+- workflow certificate roots
+- epoch attestation roots
+- reward distribution roots
+
+Raw evidence stays off-chain unless needed for a dispute.
+
+## Rewards And Slashing
+
+Not live in V0.
+
+Future reward model:
+
+```text
+reward =
+  base_fee
+  * difficulty_weight
+  * modality_weight
+  * agreement_score
+  * timeliness
+  * validator_reputation
+```
+
+Do not pay for mere presence. Pay for accepted, useful, timely attestations.
+
+Future slashing should be limited to objective fraud:
+
+- forged receipts
+- signing impossible results
+- repeated explicit seed dishonesty
+- deterministic workflow mismatch after certification
+- fake completions
+- challenge leakage or collusion
+
+Going offline should stop rewards, not slash stake.
 
 ## Status
 
-- [x] Node scaffold + v0 prober (this folder)
-- [x] Rewards/slashing spec + ledger integration (this doc)
-- [x] Image/video validation design + media prober (structural + pHash consensus + video motion, CPU-only)
-- [ ] Wire media prober into the probe loop (needs targeted probe + worker modality, Layer 3b)
-- [ ] `grid_attestations` table + `POST /v1/validator/attest` (stake-gated, sig-verified)
-- [ ] Grid: `POST /v1/validator/probe` (targeted) + `GET /v1/validator/workers`
-- [ ] Grid: deterministic probe assignment (`H(epoch,round,validator,worker)`)
-- [ ] Settlement bot: validator scoring + `job_type="validation"` ledger rows (see task #45)
-- [ ] `ValidatorStaking.sol` (stake / unbond / slash / `stakeOf`) + deploy on Base
-- [ ] Grid: validator-role gate keyed on on-chain stake
+- [x] Node scaffold.
+- [x] V0 text prober.
+- [x] Operator CLI.
+- [x] Release binary installer scaffold.
+- [x] Linux systemd installer scaffold.
+- [x] Package metadata and console script.
+- [x] Module entrypoint for source/binary packaging.
+- [x] Local read-only status dashboard.
+- [x] Local Dockerfile and Compose packaging.
+- [x] GitHub Actions CI for package/test/CLI/Docker build.
+- [x] GitHub Actions release-binary workflow scaffold.
+- [x] Optional attestation signing.
+- [x] Core-side `GET /v1/validator/capabilities` in current workspace.
+- [x] Core-side `POST /v1/validator/attest` evidence sink in current workspace.
+- [x] Core-side `GET /v1/validator/scorecards` aggregate evidence view in
+  current workspace.
+- [x] Core-side `GET /v1/validator/workers` non-targetable inventory in current workspace.
+- [x] Image/video scoring design.
+- [x] Dev-manager roadmap and go/no-go boundaries.
+- [ ] Public binary packaging.
+- [ ] Publish Docker image on release.
+- [ ] Grid validator assignment endpoint.
+- [ ] Deploy `POST /v1/validator/attest` to production core.
+- [ ] Deploy `GET /v1/validator/workers` to production core.
+- [ ] `POST /v1/validator/probe` targeted worker execution.
+- [ ] Targeted worker probe endpoint.
+- [ ] Media/video probe loop integration.
+- [x] Informational worker/model scorecards in core.
+- [x] Console validator evidence scorecards in current workspace.
+- [ ] Validator staking contract.
+- [ ] Validator rewards.
+- [ ] Epoch roots on Base.

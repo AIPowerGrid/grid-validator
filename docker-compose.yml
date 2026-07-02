@@ -1,0 +1,27 @@
+services:
+  validator:
+    build: .
+    image: aipowergrid/validator:local
+    container_name: aipg-validator
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: ./.env
+        target: /app/.env
+        read_only: true
+    command: ["run"]
+
+  validator-dashboard:
+    build: .
+    image: aipowergrid/validator:local
+    container_name: aipg-validator-dashboard
+    profiles: ["dashboard"]
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: ./.env
+        target: /app/.env
+        read_only: true
+    command: ["dashboard", "--host", "0.0.0.0", "--port", "8790"]
+    ports:
+      - "8790:8790"

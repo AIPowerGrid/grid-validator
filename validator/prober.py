@@ -4,37 +4,76 @@
 """Canary generation + output scoring.
 
 Two canary families, mixed per round so a worker can't special-case them:
-- echo:  prove liveness + that the pipeline returns prompt-derived content
+- echo:  prove liveness + exact instruction following for a random nonce
 - qa:    prove the model is loaded AND correct (catches corrupted/swapped weights)
 
 Verdicts: "healthy" | "slow" | "failed".
 """
 
 import secrets
+import re
 
 from .config import Settings
 
-# Deterministic QA canaries with unambiguous one-token answers. Keep the set
-# small and rotate; the echo canary (random nonce) carries the anti-replay weight.
-_QA = [
-    ("What is 7 multiplied by 6? Reply with only the number.", "42"),
-    ("What is the capital of France? Reply with only the word.", "paris"),
-    ("Complete: the opposite of 'hot' is ____. Reply with only the word.", "cold"),
-    ("How many days are in a week? Reply with only the number.", "7"),
-]
-
 
 # v0 runs against /v1/models, which doesn't carry modality, so we can't send a
-# text canary to an image/video model (it would always "fail" and unfairly strike
-# that worker). Skip names that look like media models. Layer 3b's worker-list
-# endpoint carries real job_types and removes the need for this heuristic.
-_MEDIA_HINTS = ("ltx", "stable-diffusion", "sd-", "sdxl", "flux", "comfy",
-                "video", "image", "kandinsky", "pixart", "wan2", "hunyuan")
+# text canary to an image/video model (it would always "fail" and produce
+# useless evidence). Skip names that look like media models. Layer 3b's
+# worker-list endpoint carries real job_types and removes the need for this
+# heuristic.
+_MEDIA_HINTS = (
+    "ltx",
+    "stable-diffusion",
+    "sd-",
+    "sdxl",
+    "flux",
+    "comfy",
+    "video",
+    "image",
+    "kandinsky",
+    "pixart",
+    "wan2",
+    "hunyuan",
+)
 
 
 def is_text_model(name: str) -> bool:
     n = (name or "").lower()
     return not any(h in n for h in _MEDIA_HINTS)
+
+
+def _rand_int(minimum: int, maximum: int) -> int:
+    """Cryptographic randomness keeps public challenge templates unpredictable."""
+    return minimum + secrets.randbelow(maximum - minimum + 1)
+
+
+def _make_qa_canary() -> dict:
+    """Generate a simple, answerable QA canary without committing answer keys."""
+    variant = secrets.randbelow(3)
+    nonce = secrets.token_hex(4)
+
+    if variant == 0:
+        a = _rand_int(11, 89)
+        b = _rand_int(11, 89)
+        answer = a + b
+        prompt = f"What is {a} plus {b}? Reply with only the number."
+    elif variant == 1:
+        a = _rand_int(50, 99)
+        b = _rand_int(10, 44)
+        answer = a - b
+        prompt = f"What is {a} minus {b}? Reply with only the number."
+    else:
+        a = _rand_int(6, 19)
+        b = _rand_int(6, 19)
+        answer = a * b
+        prompt = f"What is {a} multiplied by {b}? Reply with only the number."
+
+    return {
+        "kind": "qa",
+        "nonce": nonce,
+        "prompt": prompt,
+        "expect": str(answer),
+    }
 
 
 def make_canary(round_index: int) -> dict:
@@ -47,15 +86,39 @@ def make_canary(round_index: int) -> dict:
             "prompt": f"Reply with exactly this token and nothing else: {nonce}",
             "expect": nonce,
         }
-    prompt, answer = _QA[(round_index // 2) % len(_QA)]
-    return {"kind": "qa", "nonce": secrets.token_hex(4), "prompt": prompt, "expect": answer}
+    return _make_qa_canary()
 
 
 def _strip_think(text: str) -> str:
     """Reasoning models wrap chain-of-thought in <think>…</think>; judge only the
     actual answer that follows."""
-    import re
-    return re.sub(r"<think(?:ing)?>.*?</think(?:ing)?>", "", text or "", flags=re.DOTALL).strip()
+    return re.sub(
+        r"<think(?:ing)?>.*?</think(?:ing)?>",
+        "",
+        text or "",
+        flags=re.DOTALL,
+    ).strip()
+
+
+def _strip_wrapping_quotes(text: str) -> str:
+    """Allow harmless wrappers around an otherwise exact nonce answer."""
+    answer = (text or "").strip()
+    wrappers = (("`", "`"), ('"', '"'), ("'", "'"))
+    changed = True
+    while changed and len(answer) >= 2:
+        changed = False
+        for left, right in wrappers:
+            if answer.startswith(left) and answer.endswith(right):
+                answer = answer[1:-1].strip()
+                changed = True
+                break
+    return answer
+
+
+def _qa_contains_expected(answer: str, expect: str) -> bool:
+    if re.fullmatch(r"-?\d+", expect):
+        return re.search(rf"(?<![a-z0-9-]){re.escape(expect)}(?![a-z0-9])", answer) is not None
+    return expect.lower() in answer.lower()
 
 
 def score(canary: dict, text: str, latency_s: float) -> str:
@@ -63,7 +126,11 @@ def score(canary: dict, text: str, latency_s: float) -> str:
     answer = _strip_think(text)
     if not answer:
         return "failed"
-    correct = canary["expect"].lower() in answer.lower()
+    expect = canary["expect"]
+    if canary.get("kind") == "echo":
+        correct = _strip_wrapping_quotes(answer).lower() == expect.lower()
+    else:
+        correct = _qa_contains_expected(answer.lower(), expect.lower())
     if not correct:
         return "failed"
     if latency_s > Settings.LATENCY_BUDGET_S:

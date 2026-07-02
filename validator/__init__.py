@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 AI Power Grid
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""AIPG validator node — proactive, staked, slashable worker health attestation."""
+"""AIPG validator node — distributed evidence runner for Grid worker quality."""
 
 __version__ = "0.1.0"

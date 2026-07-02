@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aipg-validator"
+version = "0.1.0"
+description = "CPU-only validator node for AI Power Grid"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "AGPL-3.0-or-later" }
+authors = [{ name = "AI Power Grid" }]
+dependencies = [
+  "httpx>=0.27",
+  "python-dotenv>=1.0",
+  "eth-account>=0.11",
+]
+
+[project.optional-dependencies]
+media = [
+  "Pillow>=10.0",
+  "ImageHash>=4.3",
+]
+stake = [
+  "web3>=6.15",
+]
+release = [
+  "pyinstaller>=6.0",
+]
+
+[project.scripts]
+aipg-validator = "validator.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["validator*"]

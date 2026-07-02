@@ -1,0 +1,141 @@
+name: Release Binaries
+
+on:
+  push:
+    tags: ["v*", "[0-9]+.[0-9]+.[0-9]+"]
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Optional release tag to publish, e.g. v0.1.0-canary. Leave blank to build artifacts only."
+        required: false
+        type: string
+      prerelease:
+        description: "Mark manually published release as a prerelease."
+        required: true
+        default: true
+        type: boolean
+
+jobs:
+  build:
+    name: Build ${{ matrix.asset }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            asset: linux-x64
+          - os: ubuntu-24.04-arm
+            asset: linux-arm64
+          - os: macos-14
+            asset: macos-arm64
+          - os: windows-latest
+            asset: windows-x64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install release dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install ".[release]"
+
+      - name: Build binary
+        run: pyinstaller --onefile --name aipg-validator --specpath build/pyinstaller validator/__main__.py
+
+      - name: Smoke-test binary
+        shell: bash
+        run: |
+          BIN="dist/aipg-validator"
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            BIN="dist/aipg-validator.exe"
+          fi
+          "$BIN" --help
+          BIN_ABS="$(pwd)/$BIN"
+          tmp="$(mktemp -d)"
+          trap 'rm -rf "$tmp"' EXIT
+          cat > "$tmp/.env" <<'EOF'
+          GRID_API_URL=http://127.0.0.1:1
+          VALIDATOR_API_KEY=grid-key
+          VALIDATOR_REQUIRE_STAKE=false
+          PROBE_TIMEOUT_S=1
+          EOF
+          set +e
+          (
+            cd "$tmp"
+            "$BIN_ABS" check --no-probe
+          ) > "$tmp/check.out" 2>&1
+          code=$?
+          set -e
+          cat "$tmp/check.out"
+          test "$code" -eq 1
+          ! grep -Ei "Traceback|ModuleNotFoundError|ImportError" "$tmp/check.out"
+          grep -F "Grid models unavailable" "$tmp/check.out"
+
+      - name: Package artifact
+        shell: bash
+        run: |
+          mkdir -p dist-artifacts/package
+          BIN="dist/aipg-validator"
+          OUT="aipg-validator"
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            BIN="dist/aipg-validator.exe"
+            OUT="aipg-validator.exe"
+          fi
+          cp "$BIN" "dist-artifacts/package/$OUT"
+          (
+            cd dist-artifacts/package
+            python -m zipfile -c "../aipg-validator-${{ matrix.asset }}.zip" "$OUT"
+          )
+          python -m zipfile -l "dist-artifacts/aipg-validator-${{ matrix.asset }}.zip"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: aipg-validator-${{ matrix.asset }}
+          path: dist-artifacts/*.zip
+          if-no-files-found: error
+
+  release:
+    if: ${{ startsWith(github.ref, 'refs/tags/') || inputs.release_tag != '' }}
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist-artifacts
+          merge-multiple: true
+
+      - name: Resolve release tag
+        id: release_tag
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            tag="${GITHUB_REF#refs/tags/}"
+          else
+            tag="${{ inputs.release_tag }}"
+          fi
+          if [[ -z "$tag" ]]; then
+            echo "release tag is required to publish release assets" >&2
+            exit 1
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Publish GitHub release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release_tag.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          prerelease: ${{ github.event_name == 'workflow_dispatch' && inputs.prerelease }}
+          generate_release_notes: true
+          files: dist-artifacts/*.zip

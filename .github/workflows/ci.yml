@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+
+      - name: Compile package
+        run: python -m compileall validator
+
+      - name: Validate shell scripts
+        run: bash -n install.sh scripts/install-binary.sh scripts/install-systemd.sh scripts/smoke-release.sh
+
+      - name: Systemd helper dry-run
+        run: ./scripts/install-systemd.sh --dry-run --exec "$(command -v aipg-validator)"
+
+      - name: Source/dashboard smoke
+        run: SKIP_DOCKER=1 SKIP_BINARY=1 ./scripts/smoke-release.sh
+
+      - name: Binary installer local-asset smoke test
+        shell: bash
+        run: |
+          tmp="$(mktemp -d)"
+          trap 'rm -rf "$tmp"' EXIT
+          mkdir -p "$tmp/pkg" "$tmp/bin"
+          cp "$(command -v aipg-validator)" "$tmp/pkg/aipg-validator"
+          (
+            cd "$tmp/pkg"
+            python -m zipfile -c "$tmp/aipg-validator-local.zip" aipg-validator
+          )
+          AIPG_VALIDATOR_URL="$tmp/aipg-validator-local.zip" \
+            AIPG_VALIDATOR_INSTALL_DIR="$tmp/bin" \
+            AIPG_VALIDATOR_CONFIG_DIR="$tmp/config" \
+            ./scripts/install-binary.sh
+          "$tmp/bin/aipg-validator" --help
+          test -d "$tmp/config"
+          test "$(stat -c '%a' "$tmp/config")" = "700"
+
+  docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t aipowergrid/validator:ci .
+
+      - name: Docker runtime smoke test
+        shell: bash
+        run: |
+          tmp="$(mktemp -d)"
+          trap 'rm -rf "$tmp"' EXIT
+          cat > "$tmp/.env" <<'EOF'
+          GRID_API_URL=http://127.0.0.1:1
+          VALIDATOR_API_KEY=grid-key
+          VALIDATOR_REQUIRE_STAKE=false
+          PROBE_TIMEOUT_S=1
+          EOF
+          set +e
+          docker run --rm \
+            --mount type=bind,source="$tmp/.env",target=/app/.env,readonly \
+            aipowergrid/validator:ci check --no-probe > "$tmp/check.out" 2>&1
+          code=$?
+          set -e
+          cat "$tmp/check.out"
+          test "$code" -eq 1
+          ! grep -Ei "Traceback|ModuleNotFoundError|ImportError" "$tmp/check.out"
+          grep -F "Grid models unavailable" "$tmp/check.out"

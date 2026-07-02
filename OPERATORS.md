@@ -1,144 +1,334 @@
-# Run an AIPG Validator Node
+# Run An AIPG Validator Node
 
-**A validator helps keep the grid honest — and earns AIPG for it.** Your node quietly
-checks that the AI workers on the grid are actually working (not down, not returning
-garbage), and reports what it finds. You stake AIPG to take part, and you earn AIPG for
-doing the job well.
+A validator node helps measure whether Grid workers are useful, honest, and
+available. In V0, it is a distributed audit runner: it sends small canary jobs,
+scores the replies, and submits evidence to the Grid when `/v1/validator/attest`
+is deployed.
 
-You do **not** need a GPU. The one validator node checks text, image, *and* video workers —
-all with light CPU-only checks (small test prompts, and fast look-alike/structure checks on
-images and video frames). A small always-on machine is plenty.
+V0 does **not** slash workers, pay public validator rewards, or prove exact model
+identity. Those come later, after targeted assignments, staking, quorum rules, and
+dispute tooling exist.
 
----
+For the shortest install path, start with [QUICKSTART.md](QUICKSTART.md). This
+file is the longer operator runbook.
 
-## System requirements
+## System Requirements
 
-| | Minimum | Recommended |
-|---|---|---|
-| **CPU** | 1 core | 2 cores |
-| **RAM** | 1 GB | 2 GB |
-| **Disk** | 1 GB | 2 GB |
-| **GPU** | none | none |
-| **OS** | Linux / macOS / Windows | Linux + systemd |
-| **Python** | 3.10+ | 3.11+ |
-| **Network** | stable broadband (low bandwidth) | — |
-| **Uptime** | runs 24/7 | systemd service |
+| Resource | Minimum | Recommended |
+|---|---:|---:|
+| CPU | 1 core | 2 cores |
+| RAM | 1 GB | 2 GB |
+| Disk | 1 GB | 2 GB |
+| GPU | none | none |
+| OS | Linux / macOS / Windows | Linux + systemd |
+| Python | 3.10+ | 3.11+ |
+| Network | stable broadband | stable always-on |
 
-A ~$5–10/mo VPS, a Raspberry Pi 4, or a spare always-on machine all qualify.
+A small VPS, Raspberry Pi 4, or spare always-on machine is enough for V0 text
+probing. Future media/video scorers are designed to stay CPU-only where possible,
+but may need extra optional packages.
 
-**Also needed:**
-- A **validator API key** from the AIPG dashboard (validator role).
-- To stake (at launch): a **Base wallet** + **50,000 AIPG**. Skip during the pre-launch
-  test phase (`VALIDATOR_REQUIRE_STAKE=false`).
+## Install
 
-> **Pre-launch?** The staking contract isn't live yet. You can run a validator **today**
-> with no stake to help test — just answer "no" to the stake question during setup.
+### Binary Install
 
----
-
-## Install in 3 steps
+Once downloadable binaries are published, this is the intended public path:
 
 ```bash
-# 1. Get the code
-git clone https://github.com/AIPowerGrid/validator-node && cd validator-node
+curl -fsSL https://get.aipowergrid.io/validator | bash
+cd ~/.aipg-validator
+aipg-validator init
+aipg-validator check --no-probe
+aipg-validator dashboard
+```
 
-# 2. Run the installer (sets up Python, asks you a few questions)
+The installer places the binary in `$HOME/.local/bin` and creates
+`$HOME/.aipg-validator` for the private `.env` by default. Override with:
+
+```bash
+AIPG_VALIDATOR_INSTALL_DIR=/usr/local/bin \
+  AIPG_VALIDATOR_CONFIG_DIR=/var/lib/aipg-validator \
+  ./scripts/install-binary.sh
+```
+
+After a GitHub release exists, the same installer can be run from a checkout:
+
+```bash
+./scripts/install-binary.sh
+```
+
+### Source Install
+
+```bash
+git clone https://github.com/AIPowerGrid/grid-validator
+cd grid-validator
 ./install.sh
-
-# 3. Check it works
-./.venv/bin/python -m validator.cli check
 ```
 
-`check` connects to the grid, lists the models, sends one test prompt, and tells you the
-result. If you see `✅ check complete`, you're good.
+The installer creates `.venv` and installs dependencies. If stdin is an
+interactive terminal and `.env` is missing, it runs `aipg-validator init`. In
+non-interactive automation it does not write config; run init yourself or create
+`.env` from `.env.template`.
 
-Then start it for real:
+For the V0 preview:
+
+- use your validator Grid API key
+- set `VALIDATOR_REQUIRE_STAKE=false`
+- leave `VALIDATOR_STAKING_ADDR` empty
+- leave `VALIDATOR_PRIVATE_KEY` empty unless you are testing signed attestations;
+  if you set it, `VALIDATOR_WALLET` must match the key. The init command derives
+  the wallet when you leave the wallet prompt blank.
+- if you set `VALIDATOR_WALLET`, use a valid `0x` EVM address even in unsigned
+  preview mode
+- if you set `AIPG_TOKEN_ADDR` or `VALIDATOR_STAKING_ADDR`, use valid 20-byte
+  `0x` EVM addresses; malformed addresses fail startup before any RPC call
+
+Minimal V0 `.env`:
+
+```ini
+GRID_API_URL=https://api.aipowergrid.io
+VALIDATOR_API_KEY=your-grid-api-key
+VALIDATOR_REQUIRE_STAKE=false
+```
+
+Then run:
 
 ```bash
-./.venv/bin/python -m validator.cli run
+./.venv/bin/aipg-validator check
 ```
 
-You'll see a line per check, e.g. `[Qwen3.6-27B] qa canary → healthy (9.4s)`.
-
----
-
-## Keep it running (recommended)
-
-So it survives reboots and SSH logouts, install it as a service:
+The default source install keeps dependencies small: text probing and signed V0
+attestations work out of the box. Future media scoring and on-chain stake-gate
+experiments need optional extras:
 
 ```bash
-sudo cp aipg-validator.service /etc/systemd/system/
-sudo nano /etc/systemd/system/aipg-validator.service   # set User= and the two paths
-sudo systemctl daemon-reload
-sudo systemctl enable --now aipg-validator
-journalctl -u aipg-validator -f                          # watch the logs
+./.venv/bin/python -m pip install -e '.[media,stake]'
 ```
 
----
+What a first healthy preview run should prove:
 
-## Staking & rewards (plain version)
+- config loads from local `.env`
+- core validator capability flags are visible, or safely reported as unavailable
+- aggregate evidence scorecards are visible, or safely reported as unavailable
+- the Grid is reachable
+- visible text models can be listed
+- one model-routed canary round completes
+- optional stake/signature checks are either healthy or clearly skipped
 
-- **Why stake?** Your reports can get a worker kicked off the grid. Staking means you have
-  skin in the game — if you lie (report a good worker as bad, or cover for a broken one),
-  part of your stake gets **slashed**. Honest validators never lose stake.
-- **How much?** 50,000 AIPG minimum. More stake = more weight = a bigger share of rewards.
-- **Earning:** you earn AIPG continuously for honest validation work, paid from the same
-  settlement as workers. Roughly: your share ∝ (your honest checks × your stake).
-- **Set expectations:** validating is a **light-duty, modest-reward** role — *not* a way to
-  out-earn a GPU. By design the validator pool is a small slice (~2%) of what workers earn,
-  because workers carry the real cost (GPUs + power). Think of it as a fair return on your
-  *staked* AIPG plus a bit for the work — comparable to staking, a touch more for the effort
-  and slashing risk. If you want bigger rewards and have a GPU, run a **worker** instead.
-- **Getting out:** unstaking has a short waiting period (so nobody can stake, cheat, and
-  run before they're caught). Normal operators never notice it.
+Expected healthy output:
 
-> Exact stake amount, reward rate, and unbonding period are finalized with the
-> `ValidatorStaking` contract launch — this guide updates when it ships.
+```text
+Config OK
+Grid reachable
+Running one probe round
+Probe round submitted 1 canary job(s)
+check complete
+```
 
----
-
-## Is it working? (quick checks)
+For install validation without submitting a canary job:
 
 ```bash
-./.venv/bin/python -m validator.cli check     # one-shot test, prints verdicts
-systemctl status aipg-validator               # is the service up?
-journalctl -u aipg-validator --since "10 min ago"   # recent activity
+./.venv/bin/aipg-validator check --no-probe
 ```
 
-A healthy node logs `healthy` / occasionally `slow` verdicts. Lots of `failed` across
-*every* model usually means **your** network or key is the problem, not the workers.
+Use `check --no-probe` before enabling a long-running service. It still reaches
+the Grid and reads capability/scorecard metadata, but it does not send canary
+traffic or submit attestations.
 
----
+The source checkout also supports:
+
+```bash
+./.venv/bin/python -m validator --help
+```
+
+Start the loop:
+
+```bash
+./.venv/bin/aipg-validator run
+```
+
+Start the local dashboard:
+
+```bash
+./.venv/bin/aipg-validator dashboard
+```
+
+Open `http://127.0.0.1:8790/`. The dashboard is read-only and localhost-bound by
+default. It shows config health, Grid reachability, visible models, aggregate
+evidence scorecards, and staking mode without printing API keys or private keys.
+
+Override the bind address only when you know the machine/network boundary:
+
+```bash
+./.venv/bin/aipg-validator dashboard --host 127.0.0.1 --port 8790
+```
+
+### Docker Install
+
+Docker is the easiest server path once `.env` exists.
+
+```bash
+docker build -t aipowergrid/validator:local .
+docker run --rm \
+  --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
+  aipowergrid/validator:local check --no-probe
+docker run -d --name aipg-validator --restart unless-stopped \
+  --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
+  aipowergrid/validator:local
+```
+
+Run the dashboard container when you want a local browser view:
+
+```bash
+docker run --rm -p 8790:8790 \
+  --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
+  aipowergrid/validator:local dashboard --host 0.0.0.0
+```
+
+Or use Compose:
+
+```bash
+docker compose run --rm validator check --no-probe
+docker compose up -d validator
+docker compose --profile dashboard up -d validator-dashboard
+```
+
+## Keep It Running
+
+On Linux, install the systemd service after `check --no-probe` passes:
+
+```bash
+./scripts/install-systemd.sh --dry-run
+sudo ./scripts/install-systemd.sh
+journalctl -u aipg-validator -f
+```
+
+The helper writes `/etc/systemd/system/aipg-validator.service`, keeps the private
+config in `.env`, and refuses to start the service until `.env` exists.
+
+For released binaries, point the helper at the installed binary and a private
+working directory:
+
+```bash
+sudo AIPG_VALIDATOR_EXEC="$(command -v aipg-validator)" \
+  ./scripts/install-systemd.sh --workdir /var/lib/aipg-validator --user aipg
+```
+
+Useful service commands:
+
+```bash
+sudo systemctl status aipg-validator
+sudo systemctl restart aipg-validator
+sudo systemctl disable --now aipg-validator
+```
+
+## What The Node Checks In V0
+
+The current node probes text models only when running through the public model
+list. It avoids names that look like image/video models because V0 model metadata
+does not reliably expose modality.
+
+Checks:
+
+- exact nonce echo: proves the response is prompt-derived and follows the
+  instruction rather than echoing the whole prompt
+- generated arithmetic QA: catches broken backends or wildly wrong model routing
+- latency budget: classifies correct but slow responses as `slow`
+- optional signature: signs the attestation payload, including prompt/response
+  hashes and a compact evidence hash, when a private key is present
+
+The result is one of:
+
+```text
+healthy
+slow
+failed
+```
+
+In V0, these are evidence signals. They should feed dashboards and internal
+learning before they affect routing, payouts, or slashing.
+
+## Current Core Compatibility
+
+The node is intentionally defensive around new Grid endpoints:
+
+| Core capability | Node behavior |
+|---|---|
+| `/v1/validator/capabilities` | reads feature flags; falls back to safe V0 defaults |
+| `/v1/models` | required for model-routed V0 probing |
+| `/v1/chat/completions` | required for model-routed text canaries |
+| `/v1/validator/attest` | submits evidence when present; skips cleanly when unavailable |
+| `/v1/validator/workers` | reads inventory only; ignores it unless `targeted_probe_enabled=true` |
+| `/v1/validator/scorecards` | aggregate evidence view; no routing/reward/slash effect |
+| `/v1/validator/probe` | not assumed live; missing/disabled endpoint must not create failures |
+
+If every future validator endpoint is missing, the node should still run in V0
+model-routed mode. That is deliberate.
+
+## Future Validator Roles
+
+The public product should grow into three operator-friendly roles:
+
+| Role | Hardware | Purpose |
+|---|---|---|
+| Observer | CPU-only | Receipts, liveness, latency, format, parameter honesty |
+| Scorer | CPU, optional media deps | Text/image/video challenge scoring |
+| Reference | bonded, high-trust | Baseline outputs for deterministic workflow certification |
+
+Do not present Reference or slash-capable operation as live until the Grid supports
+targeted assignments and quorum validation.
+
+## Staking And Rewards
+
+Not live in V0.
+
+Planned model:
+
+- validators bond AIPG to participate in economic validation
+- accepted attestations earn modest rewards
+- rewards depend on agreement, timeliness, difficulty, and validator reputation
+- objective fraud can eventually be slashable
+- subjective quality should downgrade routing, not slash stake
+
+Until the staking contract and reward path are deployed, validator operation is a
+preview/testing role.
+
+For the implementation sequence, see [ROADMAP.md](ROADMAP.md). The short version:
+deploy evidence first, show informational scorecards next, then add targeted
+assignments, then rewards/staking after the evidence loop is boring.
 
 ## Troubleshooting
 
 | Symptom | Fix |
 |---|---|
-| `VALIDATOR_API_KEY is required` | Run `aipg-validator init` and paste your key |
-| `Grid reachable — models: (none)` | No workers online right now; not your fault |
-| every model shows `failed` | Check internet + that your API key is valid/active |
-| `Insufficient stake` | Stake more AIPG, or set `VALIDATOR_REQUIRE_STAKE=false` (pre-launch) |
-| service won't start | `journalctl -u aipg-validator -e` — usually a wrong path in the unit file |
-
----
+| `VALIDATOR_API_KEY is required` | Run setup again or edit `.env` |
+| `GRID_API_URL must be an http(s) URL` | Include the scheme, for example `https://api.aipowergrid.io`, not just the hostname |
+| `Config: PROBE_INTERVAL_S must be an integer` | Fix the named value in `.env`; numeric env vars reject typos instead of guessing |
+| `dashboard port must be between 1 and 65535` | Pick a valid free TCP port, usually `8790` |
+| `Grid reachable - models: (none)` | No compatible models are online or visible |
+| `no compatible text targets` | `check` found no text model to probe; use `check --no-probe` for install smoke |
+| every model shows `failed` | Check API key, Grid URL, and local network |
+| `VALIDATOR_PRIVATE_KEY is required` | Set `VALIDATOR_REQUIRE_STAKE=false` for V0 preview |
+| `Interactive setup requires a terminal` | Run `aipg-validator init` from a shell, or create `.env` from `.env.template` |
+| `web3 not installed` | Install stake extras with `./.venv/bin/python -m pip install -e '.[stake]'`, or keep `VALIDATOR_REQUIRE_STAKE=false` for V0 preview |
+| `Stake contract not deployed and REQUIRE_STAKE=true` | Expected in V0; set `VALIDATOR_REQUIRE_STAKE=false` unless you are testing the future stake gate |
+| service will not start | Run `scripts/install-systemd.sh --dry-run`; then check the journal |
+| dashboard will not load | Confirm `DASHBOARD_PORT` is free and the command is still running |
+| Docker exits immediately | Run `docker compose run --rm validator check --no-probe` |
 
 ## FAQ
 
-**Do I need a GPU?** No. Validators test workers; they don't run AI models themselves.
+**Do I need a GPU?**
+No. Validators test workers; they do not run generation models locally.
 
-**How much will it cost to run?** Pennies — tiny CPU and bandwidth. The stake is the only
-real capital, and you keep it (it's not spent, just locked).
+**Can I run a worker and validator?**
+For V0 testing, yes. Once targeted assignments exist, validators should not
+validate workers controlled by the same account.
 
-**Can I run a worker *and* a validator?** Yes, on separate machines/accounts. A validator
-should not validate its own worker.
+**Does the validator know exact model weights?**
+Usually no. For text and general media, validators measure usefulness and honesty.
+For deterministic image workflows, future validators can compare against certified
+reference outputs using pHash/SSIM/LPIPS tolerances.
 
-**Where's my private key stored?** Only in your local `.env`, which the installer sets to
-`chmod 600` (readable only by you). It never leaves your machine; it's used to sign reports.
-
-**Is my key sent to the grid?** No. The grid only receives your *signed reports* and
-verifies the signature against your staked address.
-
----
-
-Questions or want to validate? Reach the team — and see [DESIGN.md](DESIGN.md) for how it
-works under the hood.
+**Where is the private key stored?**
+Only in local `.env`, if configured. Keep that file at `chmod 600`.
