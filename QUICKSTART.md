@@ -165,11 +165,13 @@ V0 validator nodes rely on these Grid paths:
 
 | Endpoint | Required | Effect |
 |---|---:|---|
-| `GET /v1/models` | yes | find text models for model-routed probes |
+| `GET /v1/models` | fallback | find text models when assignments are unavailable |
 | `POST /v1/chat/completions` | yes | send V0 text canaries |
 | `GET /v1/validator/capabilities` | no | discover safe validator features |
+| `GET /v1/validator/assignments` | preferred | receive Grid-issued text assignments |
+| `POST /v1/validator/probe/{assignment_id}` | preferred | execute an assignment against its bound worker |
 | `POST /v1/validator/attest` | no | store signed evidence only |
-| `GET /v1/validator/workers` | no | inventory only until targeted probing is live |
+| `GET /v1/validator/workers` | no | discovery; targeting still requires an assignment |
 | `GET /v1/validator/scorecards` | no | aggregate evidence only |
 
 `GET /v1/validator/workers` must be treated as inventory unless core returns

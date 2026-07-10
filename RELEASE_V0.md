@@ -15,9 +15,11 @@ or ledger rows.
 - Deploy the Grid API before the console and validator release.
 - Apply Alembic migrations explicitly. Do not rely on `create_all(checkfirst=True)`
   as proof that an existing production database is migrated.
-- Keep `targeted_probe_enabled=false` until `/v1/validator/probe` can reach
-  exactly one assigned worker and has tests.
-- Treat `GET /v1/validator/workers` as inventory only.
+- Use targeted probing only through a Grid-issued assignment. Production
+  `/v1/validator/probe/{assignment_id}` reaches exactly one assigned worker and
+  is covered by core and node tests.
+- Treat `GET /v1/validator/workers` as discovery, never as authority to invent
+  an assignment locally.
 - Accept that V0 signatures verify claimed wallet control, not validator
   role/stake authorization.
 - Do not publish raw prompts, outputs, nonces, signatures, account IDs, or
@@ -68,11 +70,13 @@ Documentation gate:
   evidence-only.
 - They must describe `check --no-probe` as the no-canary install/API smoke.
 - They must not imply that public binary releases, published Docker images,
-  validator rewards, staking, targeted probes, routing impact, or slashing are
-  live before the matching core/contracts/release artifacts exist.
+  validator rewards, staking, media validation, routing impact, or slashing are
+  live before the matching core/contracts/release artifacts exist. Targeted
+  text probes are live only as assignment-bound, non-economic evidence.
 
 The V0 release binary intentionally includes the default dependency set:
-model-routed text probing plus signed attestations. Optional `media` and `stake`
+assignment-bound text probing (with model-routed fallback) plus signed
+attestations. Optional `media` and `stake`
 extras stay source/dev paths until those lanes are live.
 At least one release-binary smoke should run from a separate temp working
 directory with only a local `.env`, so the check proves the binary does not
@@ -111,10 +115,12 @@ curl -fsS https://api.aipowergrid.io/v1/validator/capabilities
 
 Must show:
 
-- `mode: "evidence_only"`
+- `mode: "assignment_bound_evidence"`
 - `economic_effect: "none"`
-- `features.targeted_probe: false`
-- `targeted_probe_enabled: false`
+- `features.assignments: true`
+- `features.targeted_probe: true`
+- `targeted_probe_enabled: true`
+- `features.quorum: true`
 - `features.validator_rewards: false`
 - `features.staking_required: false`
 
@@ -130,8 +136,9 @@ curl -fsS \
   "https://api.aipowergrid.io/v1/validator/workers"
 ```
 
-Scorecards may be empty. Worker inventory must return
-`targeted_probe_enabled:false`; individual workers must not be targetable.
+Scorecards may be empty. Worker inventory may be targetable only through the
+assignment endpoint; validators must not turn arbitrary worker IDs into
+authoritative probes.
 
 Rollback:
 
@@ -244,23 +251,21 @@ Watch for:
 
 - capability endpoint available
 - scorecards available or clearly empty
-- model-routed probing only
-- no targeted worker probe attempts
+- assignment-bound text probing when advertised, otherwise model-routed fallback
+- no arbitrary worker targeting outside a Grid-issued assignment
 - no repeated 401/403 due to key type
 - no route, payout, strike, or slash side effects
 
 Only after internal canaries are quiet should the release be announced to
 external operators.
 
-## Not V0
+## Still Not V0
 
 These require a separate design, tests, and release gate:
 
 - validator role/stake authorization
-- signed assignment endpoint
-- targeted worker probe endpoint
 - self-validation exclusion
-- quorum and dispute rules
+- adversarially proven multi-validator quorum and operator dispute tooling
 - routing impact
 - validator rewards
 - worker slashing from validator evidence

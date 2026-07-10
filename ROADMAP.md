@@ -41,7 +41,7 @@ candidate worker against certified reference output.
 
 ## Phase 0: Preview Audit Runner
 
-Status: in progress.
+Status: evidence path live; public binary distribution still in progress.
 
 Goal: give operators something easy to run while the Grid learns from evidence
 without economic side effects.
@@ -62,13 +62,17 @@ Live or scaffolded in this repo:
 - optional signed attestations with V0 evidence hashes
 - graceful fallback when validator-specific endpoints are missing
 
-Grid-core worktree support:
+Production Grid-core support:
 
 - `GET /v1/validator/capabilities` advertises safe validator feature flags
 - `POST /v1/validator/attest` stores evidence only
 - `GET /v1/validator/scorecards` returns aggregate evidence only
-- `GET /v1/validator/workers` exposes non-targetable inventory only
-- `targeted_probe_enabled=false` until a real targeted probe endpoint exists
+- `GET /v1/validator/workers` exposes targetable inventory to authenticated
+  validator accounts
+- `GET /v1/validator/assignments` issues short-lived text assignments
+- `POST /v1/validator/probe/{assignment_id}` reaches the assigned worker
+- assignment-bound attestations feed scorecards and a non-economic quorum
+  lifecycle
 
 Hard no-go boundaries:
 
@@ -84,8 +88,8 @@ Definition of done:
 - local dashboard shows Grid reachability and mode
 - unit tests pass
 - docs say V0 is evidence-only
-- current Grid core worktree can accept and aggregate attestations without money
-  or routing
+- production Grid core can issue, probe, accept, and aggregate assignment-bound
+  attestations without money or routing effects
 - production rollout uses `RELEASE_V0.md` and requires explicit Alembic migration
   plus endpoint checks
 
@@ -126,6 +130,9 @@ Definition of done:
 
 ## Phase 2: Targeted Assignments
 
+Status: implemented for the evidence-only text lane. Media assignments,
+economic effects, and adversarial multi-validator proving remain open.
+
 Goal: move from "probe a model through the normal router" to "probe this worker
 for this capability."
 
@@ -133,7 +140,7 @@ Grid-core endpoints:
 
 - `GET /v1/validator/capabilities`
 - `GET /v1/validator/assignments`
-- `POST /v1/validator/probe`
+- `POST /v1/validator/probe/{assignment_id}`
 - `POST /v1/validator/attest`
 - worker scorecard APIs
 
@@ -297,12 +304,11 @@ Definition of done:
 
 ## Immediate Next Build Order
 
-1. Keep V0 evidence-only and deploy the attest/inventory endpoints safely.
+1. Keep the deployed assignment/probe/quorum path evidence-only and monitor it.
 2. Package public binaries and a published Docker image.
-3. Add targeted assignment/probe only when core can reach exactly one worker.
-4. Deploy console validator evidence scorecards with "informational only" labels.
-5. Add text capability policies before media/video economic effects.
-6. Add deterministic image workflow certification before any product-level
+3. Prove self-validation exclusion and adversarial multi-validator behavior.
+4. Add text capability policies before media/video economic effects.
+5. Add deterministic image workflow certification before any product-level
    minting or marketplace trust gate depends on validator evidence.
-7. Add validator stake/rewards after evidence, scorecards, and references are
+6. Add validator stake/rewards after evidence, scorecards, and references are
    proven operationally.

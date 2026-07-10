@@ -112,7 +112,8 @@ What a first healthy preview run should prove:
 - aggregate evidence scorecards are visible, or safely reported as unavailable
 - the Grid is reachable
 - visible text models can be listed
-- one model-routed canary round completes
+- one assignment-bound canary round completes, or a model-routed fallback on an
+  older/disabled core
 - optional stake/signature checks are either healthy or clearly skipped
 
 Expected healthy output:
@@ -257,13 +258,16 @@ The node is intentionally defensive around new Grid endpoints:
 | `/v1/validator/capabilities` | reads feature flags; falls back to safe V0 defaults |
 | `/v1/models` | required for model-routed V0 probing |
 | `/v1/chat/completions` | required for model-routed text canaries |
+| `/v1/validator/assignments` | preferred Grid-issued assignment path |
+| `/v1/validator/probe/{assignment_id}` | targeted execution for an assignment |
 | `/v1/validator/attest` | submits evidence when present; skips cleanly when unavailable |
-| `/v1/validator/workers` | reads inventory only; ignores it unless `targeted_probe_enabled=true` |
+| `/v1/validator/workers` | discovers targetable workers; does not replace assignment authorization |
 | `/v1/validator/scorecards` | aggregate evidence view; no routing/reward/slash effect |
-| `/v1/validator/probe` | not assumed live; missing/disabled endpoint must not create failures |
+| `/v1/validator/probe/{assignment_id}` | preferred when advertised; missing/disabled must not create failures |
 
 If every future validator endpoint is missing, the node should still run in V0
-model-routed mode. That is deliberate.
+model-routed mode. That fallback is deliberate but produces preview rather than
+assignment-authoritative evidence.
 
 ## Future Validator Roles
 

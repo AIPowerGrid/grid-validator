@@ -27,25 +27,21 @@ Status: current repo direction.
   scaffolding.
 - Read-only local dashboard on `127.0.0.1:8790`.
 - CPU-only.
-- Model-routed text canaries through normal Grid APIs.
+- Assignment-bound text canaries when production core advertises them, with a
+  model-routed fallback for older cores.
 - Best-effort signed attestations.
-- Core-side `GET /v1/validator/capabilities` is implemented in the current
-  Grid core V0 worktree so nodes can discover safe feature flags.
-- Core-side `POST /v1/validator/attest` evidence storage is implemented in the
-  current Grid core V0 worktree; deployment/use is a rollout step.
-- Core-side `GET /v1/validator/scorecards` aggregate evidence view is
-  implemented in the current Grid core V0 worktree; it is informational only.
-- Core-side `GET /v1/validator/workers` inventory is implemented in the current
-  Grid core V0 worktree, but returns `targeted_probe_enabled=false`.
+- Production core exposes capabilities, worker discovery, assignments,
+  targeted text probes, attestations, scorecards, assignment health, and a
+  non-economic quorum lifecycle.
 - Missing validator endpoints degrade gracefully.
-- No rewards, no slashing, no targeted worker attribution.
+- No rewards, routing effects, strikes, or slashing. Targeted attribution is
+  evidence-only.
 - Outputs inform dashboards and implementation work.
 
-### V1: Routing Signal
+### V1: Routing Signal (Future Economic Authority)
 
-- Grid exposes validator assignments and an attestation sink.
-- Validators receive signed assignments from the Grid.
-- Attestations update worker scorecards.
+- Build on the existing assignment/attestation/scorecard path.
+- Prove multi-validator agreement and self-validation exclusion operationally.
 - Routing begins to use scores cautiously.
 - Still no slashing from public validators.
 
@@ -214,7 +210,7 @@ V0 lifecycle:
    optionally sign it.
 8. Submit the attestation if `/v1/validator/attest` exists.
 
-Future targeted lifecycle:
+Current targeted text lifecycle and future modality extension:
 
 1. Fetch signed assignments from the Grid.
 2. Submit probe to a specific worker through a validator-only endpoint.
@@ -344,15 +340,16 @@ V0 can show aggregate evidence when deployed core exposes:
 
 - `GET /v1/validator/scorecards`
 
-V0 can discover worker inventory when deployed core exposes:
+V0 can discover worker inventory when core exposes:
 
-- `GET /v1/validator/workers` with `targeted_probe_enabled=false`
+- `GET /v1/validator/workers`
 
-Next Grid endpoints:
+Production core also exposes the assignment-bound text lane:
 
-- `POST /v1/validator/probe`
 - `GET /v1/validator/assignments`
-- worker scorecard APIs
+- `POST /v1/validator/probe/{assignment_id}`
+- `GET /v1/validator/assignments/health`
+- worker scorecard and quorum-state APIs
 
 The validator must continue to degrade gracefully when future endpoints are
 missing.
@@ -414,20 +411,20 @@ Going offline should stop rewards, not slash stake.
 - [x] GitHub Actions CI for package/test/CLI/Docker build.
 - [x] GitHub Actions release-binary workflow scaffold.
 - [x] Optional attestation signing.
-- [x] Core-side `GET /v1/validator/capabilities` in current workspace.
-- [x] Core-side `POST /v1/validator/attest` evidence sink in current workspace.
+- [x] Core-side `GET /v1/validator/capabilities` in production.
+- [x] Core-side `POST /v1/validator/attest` evidence sink in production.
 - [x] Core-side `GET /v1/validator/scorecards` aggregate evidence view in
-  current workspace.
-- [x] Core-side `GET /v1/validator/workers` non-targetable inventory in current workspace.
+  production.
+- [x] Core-side `GET /v1/validator/workers` assignment-bound inventory in production.
 - [x] Image/video scoring design.
 - [x] Dev-manager roadmap and go/no-go boundaries.
 - [ ] Public binary packaging.
 - [ ] Publish Docker image on release.
-- [ ] Grid validator assignment endpoint.
-- [ ] Deploy `POST /v1/validator/attest` to production core.
-- [ ] Deploy `GET /v1/validator/workers` to production core.
-- [ ] `POST /v1/validator/probe` targeted worker execution.
-- [ ] Targeted worker probe endpoint.
+- [x] Grid validator assignment endpoint.
+- [x] Deploy `POST /v1/validator/attest` to production core.
+- [x] Deploy `GET /v1/validator/workers` to production core.
+- [x] `POST /v1/validator/probe/{assignment_id}` targeted text execution.
+- [x] Assignment health, scorecards, and non-economic quorum lifecycle.
 - [ ] Media/video probe loop integration.
 - [x] Informational worker/model scorecards in core.
 - [x] Console validator evidence scorecards in current workspace.

@@ -30,15 +30,16 @@ What works now:
 - Small default install: V0 text probing plus signing. Optional `media` and
   `stake` extras install heavier future-lane dependencies.
 - GitHub Actions release workflow scaffold for downloadable binaries.
-- `POST /v1/validator/attest` support in the current Grid core V0 worktree
-  (evidence-only storage; deployment still required).
-- `GET /v1/validator/capabilities` support in the current Grid core V0 worktree
-  so nodes can see which validator features are safe to use.
-- `GET /v1/validator/workers` inventory support in the current Grid core V0
-  worktree. It advertises `targeted_probe_enabled=false` until targeted probing
-  is implemented.
-- `GET /v1/validator/scorecards` support in the current Grid core V0 worktree for
-  aggregate evidence only. It has no routing, reward, strike, or slash effect.
+- Production Grid-issued text assignments with short-lived nonces.
+- Production targeted probe execution at
+  `POST /v1/validator/probe/{assignment_id}`; the core, not the validator,
+  selects the worker.
+- Assignment-bound attestations, aggregate scorecards, assignment-health views,
+  and `pending -> accepted -> disputed -> finalized` quorum state in core.
+- Graceful model-routed fallback when an older core does not advertise
+  assignments.
+- All current validator evidence has `economic_effect: none`: it does not alter
+  routing, rewards, strikes, payouts, or bonds.
 - Graceful fallback when other validator-specific Grid endpoints are not deployed.
 
 What is not live yet:
@@ -47,15 +48,12 @@ What is not live yet:
 - Published Docker image release.
 - Validator rewards.
 - Validator staking/slashing.
-- Targeted per-worker probe assignment.
-- `/v1/validator/probe` targeted worker execution.
 - Media/video probe loop integration.
 - Routing impact.
 - On-chain epoch roots or dispute flow.
 
-This repo already contains design scaffolding for those next phases; do not
-describe them as live operator guarantees until the Grid endpoints and contracts
-exist.
+Production core capability flags are the runtime source of truth. Do not infer
+economic authority merely because assignment and quorum endpoints exist.
 
 ## Download
 
