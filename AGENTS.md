@@ -68,7 +68,8 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   parallel `requirements.txt`; it drifts from release builds.
 - **`Dockerfile` / `docker-compose.yml` / `.dockerignore`** — container packaging and
   local Compose run paths.
-- **`.github/workflows/`** — CI, image-release, and binary-release workflows.
+- **`.github/workflows/`** — CI, checksum-verified secret scanning, image-release,
+  and binary-release workflows.
   Tag pushes publish normal release artifacts. Manual binary releases must set
   `release_tag`; manual Docker publishes must set `image_tag`, with `latest`
   opt-in only.
@@ -134,6 +135,7 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
 - `bash -n scripts/install-binary.sh scripts/install-systemd.sh`
 - `./scripts/smoke-release.sh`
 - `./scripts/install-systemd.sh --dry-run --exec ./.venv/bin/aipg-validator`
+- `gitleaks detect --source . --no-git --config .gitleaks.toml --redact`
 - Release-binary smoke:
   `./.venv/bin/python -m pip install -e '.[release]'` then
   `./.venv/bin/pyinstaller --onefile --name aipg-validator-local`
