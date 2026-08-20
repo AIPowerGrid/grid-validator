@@ -12,6 +12,11 @@ dispute tooling exist.
 For the shortest install path, start with [QUICKSTART.md](QUICKSTART.md). This
 file is the longer operator runbook.
 
+Current rollout gate: assignment-bound Core support is merged but not
+production-live until migration `0020`, immutable deployment, and endpoint
+smoke tests pass. Until then, use `check --no-probe`; do not operate the loop as
+a live validator.
+
 ## System Requirements
 
 | Resource | Minimum | Recommended |

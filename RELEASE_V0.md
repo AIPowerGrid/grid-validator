@@ -15,9 +15,10 @@ or ledger rows.
 - Deploy the Grid API before the console and validator release.
 - Apply Alembic migrations explicitly. Do not rely on `create_all(checkfirst=True)`
   as proof that an existing production database is migrated.
-- Use targeted probing only through a Grid-issued assignment. Production
+- Use targeted probing only through a Grid-issued assignment. The candidate
   `/v1/validator/probe/{assignment_id}` reaches exactly one assigned worker and
-  is covered by core and node tests.
+  is covered by Core and node tests; do not call it production-live before the
+  deployment smoke proves that same behavior.
 - Treat `GET /v1/validator/workers` as discovery, never as authority to invent
   an assignment locally.
 - Require each validator signing wallet to be linked to its Grid account and
@@ -72,8 +73,9 @@ Documentation gate:
 - They must describe `check --no-probe` as the no-canary install/API smoke.
 - They must not imply that public binary releases, published Docker images,
   validator rewards, staking, media validation, routing impact, or slashing are
-  live before the matching core/contracts/release artifacts exist. Targeted
-  text probes are live only as assignment-bound, non-economic evidence.
+  live before the matching Core/contracts/release artifacts exist. Targeted
+  text probes become live only after the Core rollout gate, and remain
+  assignment-bound, non-economic evidence.
 
 The V0 release binary intentionally includes the default dependency set:
 assignment-bound text probing plus signed registration and attestations.

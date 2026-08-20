@@ -29,10 +29,11 @@ Status: current repo direction.
 - CPU-only.
 - Mandatory linked-wallet registration and assignment-bound text canaries.
 - Mandatory signed registration, heartbeat, and attestations.
-- Production core exposes capabilities, worker discovery, assignments,
-  targeted text probes, attestations, scorecards, assignment health, and a
-  non-economic evidence workflow states. Independent shared-challenge quorum is
-  not implemented yet.
+- Candidate Core implements capabilities, worker discovery, assignments,
+  targeted text probes, attestations, scorecards, assignment health, and
+  non-economic evidence workflow states. Production remains gated on migration
+  `0020`, immutable deployment, and endpoint smoke tests. Independent
+  shared-challenge quorum is not implemented yet.
 - Missing required validator endpoints fail closed; read-only metadata may
   degrade gracefully.
 - No rewards, routing effects, strikes, or slashing. Targeted attribution is
@@ -397,18 +398,16 @@ Going offline should stop rewards, not slash stake.
 - [x] GitHub Actions CI for package/test/CLI/Docker build.
 - [x] GitHub Actions release-binary workflow scaffold.
 - [x] Mandatory signed registration and attestations.
-- [x] Core-side `GET /v1/validator/capabilities` in production.
-- [x] Core-side `POST /v1/validator/attest` evidence sink in production.
-- [x] Core-side `GET /v1/validator/scorecards` aggregate evidence view in
-  production.
-- [x] Core-side `GET /v1/validator/workers` assignment-bound inventory in production.
+- [x] Core-side validator capability, attestation, scorecard, worker-inventory,
+  assignment, and targeted-probe implementation with tests.
 - [x] Image/video scoring design.
 - [x] Dev-manager roadmap and go/no-go boundaries.
 - [ ] Public binary packaging.
 - [ ] Publish Docker image on release.
 - [x] Grid validator assignment endpoint.
-- [x] Deploy `POST /v1/validator/attest` to production core.
-- [x] Deploy `GET /v1/validator/workers` to production core.
+- [ ] Deploy migration `0020` and the immutable Core candidate to production.
+- [ ] Prove registration, assignment, targeted-probe, attestation, and scorecard
+  endpoints against production.
 - [x] `POST /v1/validator/probe/{assignment_id}` targeted text execution.
 - [x] Assignment health, scorecards, and non-economic evidence lifecycle.
 - [ ] Shared-challenge independent-validator quorum.

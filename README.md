@@ -16,7 +16,7 @@ reference workers, and Base anchoring.
 
 ## V0 Scope
 
-What works now:
+What is implemented and testable against the candidate Core:
 
 - CPU-only source install.
 - Dockerfile and local Docker Compose.
@@ -31,8 +31,8 @@ What works now:
 - Small default install: V0 text probing plus signing. Optional `media` and
   `stake` extras install heavier future-lane dependencies.
 - GitHub Actions release workflow scaffold for downloadable binaries.
-- Production Grid-issued text assignments with short-lived nonces.
-- Production targeted probe execution at
+- Grid-issued text assignments with short-lived nonces.
+- Targeted probe execution at
   `POST /v1/validator/probe/{assignment_id}`; the core, not the validator,
   selects the worker.
 - Assignment-bound attestations, aggregate scorecards, and assignment-health
@@ -43,8 +43,9 @@ What works now:
 - Fail-closed behavior when registration, assignment, or targeted-probe support
   is unavailable; read-only dashboard metadata may degrade gracefully.
 
-What is not live yet:
+What is not production-live yet:
 
+- Core migration `0020` and the assignment-bound validator API rollout.
 - Public downloadable binary releases.
 - Published Docker image release.
 - Validator rewards.
@@ -53,8 +54,10 @@ What is not live yet:
 - Routing impact.
 - On-chain epoch roots or dispute flow.
 
-Production Core capability flags are the runtime source of truth. Current
-evidence has no economic authority and real shared-challenge quorum is not live.
+Runtime Core capability flags are the source of truth. Until the migration and
+endpoint smoke tests pass in production, operators should use `check --no-probe`
+only; the public release remains closed. Current evidence has no economic
+authority and real shared-challenge quorum is not live.
 
 ## Download
 

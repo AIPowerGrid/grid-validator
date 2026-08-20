@@ -38,11 +38,12 @@ concrete detail in children. Delete stale notes instead of explaining history.
 
 The Grid's validator node. In V0 it is a CPU-only distributed audit runner: it sends
 small canary jobs through the normal Grid path, scores replies (`healthy` / `slow` /
-`failed`), and submits signed attestations when the Grid exposes the sink. The current
-Production Grid core exposes assignment-bound text probes (`GET /v1/validator/assignments`,
-`POST /v1/validator/probe/{assignment_id}`) plus preview scorecards. These assignments
-make evidence attributable, but they are still non-economic: no reward, routing, strike,
-or slashing logic may read them as authority yet. Future phases harden adversarial
+`failed`), and submits signed attestations when the Grid exposes the sink. The
+assignment-bound Core implementation is merged but is not production-live until
+migration `0020` and the matching immutable Core release are deployed. Once enabled,
+`GET /v1/validator/assignments`, `POST /v1/validator/probe/{assignment_id}`, and
+preview scorecards make evidence attributable, but still non-economic: no reward,
+routing, strike, or slashing logic may read it as authority. Future phases harden adversarial
 multi-validator quorum, deterministic media workflow certification, rewards, staking, and
 objective-fraud slashing. Do not describe future economic authority as live until the
 Grid endpoints and contracts exist. Python package: `validator/`. Entry: `validator.main`.

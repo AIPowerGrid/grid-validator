@@ -41,7 +41,8 @@ candidate worker against certified reference output.
 
 ## Phase 0: Preview Audit Runner
 
-Status: evidence path live; public binary distribution still in progress.
+Status: evidence path implemented; production Core rollout and public binary
+distribution are pending.
 
 Goal: give operators something easy to run while the Grid learns from evidence
 without economic side effects.
@@ -62,7 +63,7 @@ Live or scaffolded in this repo:
 - mandatory linked-wallet registration and signed attestations
 - fail-closed behavior when required validator endpoints are missing
 
-Production Grid-core support:
+Candidate Grid-core support (merged, not yet production-live):
 
 - `GET /v1/validator/capabilities` advertises safe validator feature flags
 - `POST /v1/validator/attest` stores evidence only
@@ -88,7 +89,7 @@ Definition of done:
 - local dashboard shows Grid reachability and mode
 - unit tests pass
 - docs say V0 is evidence-only
-- production Grid core can issue, probe, accept, and aggregate assignment-bound
+- deployed Grid Core can issue, probe, accept, and aggregate assignment-bound
   attestations without money or routing effects
 - production rollout uses `RELEASE_V0.md` and requires explicit Alembic migration
   plus endpoint checks
@@ -304,8 +305,9 @@ Definition of done:
 
 ## Immediate Next Build Order
 
-1. Keep the deployed assignment/probe/evidence path evidence-only and monitor it.
-2. Package public binaries and a published Docker image.
+1. Deploy migration `0020` and the immutable Core candidate; smoke every
+   assignment-bound endpoint while keeping the path evidence-only.
+2. Publish the already-scaffolded binaries and Docker image only after that gate.
 3. Prove self-validation exclusion and adversarial multi-validator behavior.
 4. Add text capability policies before media/video economic effects.
 5. Add deterministic image workflow certification before any product-level
