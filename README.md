@@ -45,7 +45,7 @@ What is implemented and testable against the candidate Core:
 
 What is not production-live yet:
 
-- Core migration `0020` and the assignment-bound validator API rollout.
+- Core migrations through `0021` and the assignment-bound validator API rollout.
 - Public downloadable binary releases.
 - Published Docker image release.
 - Validator rewards.

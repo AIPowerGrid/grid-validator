@@ -305,7 +305,7 @@ Definition of done:
 
 ## Immediate Next Build Order
 
-1. Deploy migration `0020` and the immutable Core candidate; smoke every
+1. Deploy migrations through `0021` and the immutable Core candidate; smoke every
    assignment-bound endpoint while keeping the path evidence-only.
 2. Publish the already-scaffolded binaries and Docker image only after that gate.
 3. Prove self-validation exclusion and adversarial multi-validator behavior.

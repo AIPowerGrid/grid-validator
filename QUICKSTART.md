@@ -8,7 +8,7 @@ submit signed evidence when core exposes the attestation endpoint.
 V0 is evidence-only. It does not pay validator rewards, slash workers, change
 routing, or prove exact model weights.
 
-Rollout status: the assignment-bound Core code is merged but migration `0020`
+Rollout status: the assignment-bound Core code is merged but migrations through `0021`
 and the matching production release are still pending. Use `check --no-probe`
 for installation smoke until the public release page opens.
 

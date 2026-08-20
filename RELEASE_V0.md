@@ -34,7 +34,7 @@ Run these before merging the V0 stack.
 In the Grid core repo:
 
 ```bash
-./.venv-test/bin/python -m pytest grid_api/routers/tests/test_validator_attestations.py -q
+./.venv-test/bin/python -m pytest grid_api/routers/tests/test_validator_assignments.py -q
 git diff --check
 ```
 
@@ -96,7 +96,7 @@ surface.
 
 Required code:
 
-- Alembic migrations through `0020_validator_registration`
+- Alembic migrations through `0021_validator_probe_leases`
 - `grid_api/v2/schema.py` validator registration, assignment, and attestation tables
 - `grid_api/services/validators.py`
 - `grid_api/routers/validator.py`

@@ -40,7 +40,7 @@ The Grid's validator node. In V0 it is a CPU-only distributed audit runner: it s
 small canary jobs through the normal Grid path, scores replies (`healthy` / `slow` /
 `failed`), and submits signed attestations when the Grid exposes the sink. The
 assignment-bound Core implementation is merged but is not production-live until
-migration `0020` and the matching immutable Core release are deployed. Once enabled,
+migrations through `0021` and the matching immutable Core release are deployed. Once enabled,
 `GET /v1/validator/assignments`, `POST /v1/validator/probe/{assignment_id}`, and
 preview scorecards make evidence attributable, but still non-economic: no reward,
 routing, strike, or slashing logic may read it as authority. Future phases harden adversarial
@@ -101,6 +101,8 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   dedicated key with exactly the validator scopes, and consume only Grid-issued
   assignments. Missing registration, assignment, or targeted-probe support is
   unavailable, never permission to submit public inference as a probe.
+  Core atomically leases each assignment and permits only a bounded retry
+  budget; the node must reuse issued work rather than invent assignments.
   Assignment-bound evidence includes the Grid assignment id, nonce, and probe
   evidence hash, but remains observation/scoring input with no slash, reward,
   payout, strike, or routing authority.
