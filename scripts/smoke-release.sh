@@ -2,7 +2,7 @@
 # End-to-end local release smoke for the validator operator package.
 #
 # This intentionally uses throwaway config pointing at an offline Grid URL. The
-# expected check result is a clean "Grid models unavailable" failure with no
+# expected check result is a clean registration failure with no
 # traceback/import errors.
 set -euo pipefail
 
@@ -44,6 +44,8 @@ write_offline_env() {
   cat > "$dest" <<EOF
 GRID_API_URL=http://127.0.0.1:1
 VALIDATOR_API_KEY=grid-key
+VALIDATOR_WALLET=0x19e7e376e7c213b7e7e7e46cc70a5dd086daff2a
+VALIDATOR_PRIVATE_KEY=0x1111111111111111111111111111111111111111111111111111111111111111
 VALIDATOR_REQUIRE_STAKE=false
 PROBE_TIMEOUT_S=1
 DASHBOARD_HOST=127.0.0.1
@@ -60,7 +62,7 @@ assert_clean_offline_check() {
   if grep -Ei "Traceback|ModuleNotFoundError|ImportError" "$out"; then
     die "$label had import/traceback output"
   fi
-  grep -F "Grid models unavailable" "$out" >/dev/null || {
+  grep -F "Validator registration failed" "$out" >/dev/null || {
     cat "$out" >&2
     die "$label did not reach the expected Grid-model failure"
   }
@@ -181,9 +183,12 @@ if [ "$SKIP_BINARY" != "1" ]; then
     cd "$tmp/pkg"
     "$PY" -m zipfile -c "$tmp/aipg-validator-install.zip" aipg-validator
   )
+  checksum="$(shasum -a 256 "$tmp/aipg-validator-install.zip" | awk '{print $1}')"
+  printf '%s  %s\n' "$checksum" "aipg-validator-$(uname -s | tr '[:upper:]' '[:lower:]' | sed 's/darwin/macos/')-$(uname -m | sed 's/x86_64/x64/; s/aarch64/arm64/').zip" > "$tmp/SHA256SUMS"
   config_dir="$tmp/config path"
   install_dir="$tmp/bin path"
   AIPG_VALIDATOR_URL="$tmp/aipg-validator-install.zip" \
+    AIPG_VALIDATOR_CHECKSUMS_URL="$tmp/SHA256SUMS" \
     AIPG_VALIDATOR_INSTALL_DIR="$install_dir" \
     AIPG_VALIDATOR_CONFIG_DIR="$config_dir" \
     ./scripts/install-binary.sh > "$tmp/install.out"

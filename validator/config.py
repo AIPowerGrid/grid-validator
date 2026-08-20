@@ -99,7 +99,7 @@ class Settings:
 
     # ── Grid ──
     GRID_API_URL = _env_text("GRID_API_URL", "https://api.aipowergrid.io")
-    # V2 Grid API key. Validator role enforcement is a later core-side gate.
+    # V2 Grid API key carrying the four dedicated validator scopes.
     VALIDATOR_API_KEY = _env_text("VALIDATOR_API_KEY", "")
 
     # ── Identity / on-chain ──
@@ -114,7 +114,7 @@ class Settings:
 
     # Minimum stake (whole AIPG) required to run. Mirrors the on-chain MIN_STAKE.
     MIN_STAKE = _env_int("VALIDATOR_MIN_STAKE", 50000, minimum=0)
-    # V0 preview skips the on-chain gate. Flip this default when validator staking is live.
+    # Preview skips the on-chain gate. Signing and registration are still mandatory.
     REQUIRE_STAKE = _env_bool("VALIDATOR_REQUIRE_STAKE", False)
 
     # ── Probing ──
@@ -146,19 +146,18 @@ class Settings:
             cls.VALIDATOR_STAKING_ADDR,
             "VALIDATOR_STAKING_ADDR",
         )
-        if cls.VALIDATOR_PRIVATE_KEY and not wallet:
+        if not cls.VALIDATOR_PRIVATE_KEY:
             raise RuntimeError(
-                "VALIDATOR_WALLET is required when VALIDATOR_PRIVATE_KEY is set."
+                "VALIDATOR_PRIVATE_KEY is required to register and sign validator evidence."
             )
-        if cls.VALIDATOR_PRIVATE_KEY:
-            derived_wallet = cls._wallet_from_private_key()
-            if derived_wallet != wallet:
-                raise RuntimeError(
-                    "VALIDATOR_WALLET does not match VALIDATOR_PRIVATE_KEY."
-                )
-        if cls.REQUIRE_STAKE and not cls.VALIDATOR_PRIVATE_KEY:
+        if not wallet:
             raise RuntimeError(
-                "VALIDATOR_PRIVATE_KEY is required to sign attestations / prove stake."
+                "VALIDATOR_WALLET is required and must be linked to the Grid account."
+            )
+        derived_wallet = cls._wallet_from_private_key()
+        if derived_wallet != wallet:
+            raise RuntimeError(
+                "VALIDATOR_WALLET does not match VALIDATOR_PRIVATE_KEY."
             )
         if not 1 <= cls.DASHBOARD_PORT <= 65535:
             raise RuntimeError("DASHBOARD_PORT must be between 1 and 65535.")

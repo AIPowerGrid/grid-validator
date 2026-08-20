@@ -57,10 +57,10 @@ Live or scaffolded in this repo:
 - `aipg-validator check`
 - `aipg-validator dashboard`
 - `aipg-validator run`
-- model-routed text canaries through `/v1/chat/completions`
+- assignment-bound text canaries through validator-only endpoints
 - nonce/generated-QA/latency scoring
-- optional signed attestations with V0 evidence hashes
-- graceful fallback when validator-specific endpoints are missing
+- mandatory linked-wallet registration and signed attestations
+- fail-closed behavior when required validator endpoints are missing
 
 Production Grid-core support:
 
@@ -71,8 +71,8 @@ Production Grid-core support:
   validator accounts
 - `GET /v1/validator/assignments` issues short-lived text assignments
 - `POST /v1/validator/probe/{assignment_id}` reaches the assigned worker
-- assignment-bound attestations feed scorecards and a non-economic quorum
-  lifecycle
+- assignment-bound attestations feed scorecards and a non-economic evidence
+  lifecycle; real shared-challenge quorum remains future work
 
 Hard no-go boundaries:
 
@@ -304,7 +304,7 @@ Definition of done:
 
 ## Immediate Next Build Order
 
-1. Keep the deployed assignment/probe/quorum path evidence-only and monitor it.
+1. Keep the deployed assignment/probe/evidence path evidence-only and monitor it.
 2. Package public binaries and a published Docker image.
 3. Prove self-validation exclusion and adversarial multi-validator behavior.
 4. Add text capability policies before media/video economic effects.

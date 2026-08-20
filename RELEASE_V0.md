@@ -20,8 +20,9 @@ or ledger rows.
   is covered by core and node tests.
 - Treat `GET /v1/validator/workers` as discovery, never as authority to invent
   an assignment locally.
-- Accept that V0 signatures verify claimed wallet control, not validator
-  role/stake authorization.
+- Require each validator signing wallet to be linked to its Grid account and
+  registered before assignments are issued. This proves account-bound evidence
+  identity, not stake or future economic authorization.
 - Do not publish raw prompts, outputs, nonces, signatures, account IDs, or
   validator wallet addresses through public or console scorecard views.
 
@@ -75,17 +76,16 @@ Documentation gate:
   text probes are live only as assignment-bound, non-economic evidence.
 
 The V0 release binary intentionally includes the default dependency set:
-assignment-bound text probing (with model-routed fallback) plus signed
-attestations. Optional `media` and `stake`
+assignment-bound text probing plus signed registration and attestations.
+Optional `media` and `stake`
 extras stay source/dev paths until those lanes are live.
 At least one release-binary smoke should run from a separate temp working
 directory with only a local `.env`, so the check proves the binary does not
 depend on the source checkout.
 The `scripts/smoke-release.sh` helper performs that binary smoke plus source,
 Docker, dashboard, and installer checks against throwaway offline config.
-CI/release smoke tests should assert that offline Grid checks fail cleanly with a
-human error such as `Grid models unavailable`, not a Python traceback or import
-error.
+CI/release smoke tests should assert that offline Grid checks fail cleanly with
+`Validator registration failed`, not a Python traceback or import error.
 
 ## Phase 1 - Deploy Grid Core
 
@@ -94,8 +94,8 @@ surface.
 
 Required code:
 
-- Alembic `0006_validator_attestations`
-- `grid_api/v2/schema.py` `grid_validator_attestations`
+- Alembic migrations through `0020_validator_registration`
+- `grid_api/v2/schema.py` validator registration, assignment, and attestation tables
 - `grid_api/services/validators.py`
 - `grid_api/routers/validator.py`
 - `grid_api/main.py` router include
@@ -120,11 +120,14 @@ Must show:
 - `features.assignments: true`
 - `features.targeted_probe: true`
 - `targeted_probe_enabled: true`
-- `features.quorum: true`
+- `features.quorum: false`
 - `features.validator_rewards: false`
 - `features.staking_required: false`
 
-With a v2 Grid API key:
+With an authenticated Console session, create a validator-purpose API key. It
+must contain exactly `validator.assignments`, `validator.probe`,
+`validator.attest`, and `validator.read`. Then register the linked wallet before
+reading assignments.
 
 ```bash
 curl -fsS \
@@ -199,7 +202,7 @@ Public release path:
 2. Create a release tag, or run the binary and Docker workflows manually with
    explicit publish tags:
    - binary workflow: set `release_tag` to the release name, for example
-     `v0.1.0-canary`
+     `v0.1.0-preview`
    - Docker workflow: set `image_tag` to the matching image tag, and enable
      `publish_latest` only when this release should become the default public
      image
@@ -208,8 +211,12 @@ Public release path:
    - `aipg-validator-linux-arm64.zip`
    - `aipg-validator-macos-arm64.zip`
    - `aipg-validator-windows-x64.zip`
-4. Confirm the container image exists at `ghcr.io/aipowergrid/validator`.
-5. Test the installer against the release asset:
+   - `SHA256SUMS`
+   - `aipg-validator-v0.1.0-preview.spdx.json`
+4. Confirm GitHub build provenance attestations exist for release artifacts.
+5. Confirm the container image exists at `ghcr.io/aipowergrid/validator` with
+   registry SBOM and provenance metadata.
+6. Test the checksum-verifying installer against the release asset:
 
 ```bash
 AIPG_VALIDATOR_VERSION=<tag> ./scripts/install-binary.sh
@@ -223,10 +230,8 @@ Operator config:
 
 - keep `VALIDATOR_REQUIRE_STAKE=false` for V0
 - leave `VALIDATOR_STAKING_ADDR` empty
-- signing is optional
-- if `VALIDATOR_PRIVATE_KEY` is set, `VALIDATOR_WALLET` must match it
-- if `VALIDATOR_WALLET` is set without a private key, it still must be a valid
-  20-byte `0x` EVM address; otherwise leave it blank
+- signing is mandatory; `VALIDATOR_WALLET` is derived from
+  `VALIDATOR_PRIVATE_KEY` and must already be linked to the key's Grid account
 - `AIPG_TOKEN_ADDR` and `VALIDATOR_STAKING_ADDR`, when set, must also be valid
   20-byte `0x` EVM addresses and fail as clean startup errors before Web3/RPC
 
@@ -251,7 +256,7 @@ Watch for:
 
 - capability endpoint available
 - scorecards available or clearly empty
-- assignment-bound text probing when advertised, otherwise model-routed fallback
+- active registration and assignment-bound text probing
 - no arbitrary worker targeting outside a Grid-issued assignment
 - no repeated 401/403 due to key type
 - no route, payout, strike, or slash side effects

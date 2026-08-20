@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: "Optional release tag to publish, e.g. v0.1.0-canary. Leave blank to build artifacts only."
+        description: "Optional release tag to publish, e.g. v0.1.0-preview. Leave blank to build artifacts only."
         required: false
         type: string
       prerelease:
@@ -63,6 +63,8 @@ jobs:
           cat > "$tmp/.env" <<'EOF'
           GRID_API_URL=http://127.0.0.1:1
           VALIDATOR_API_KEY=grid-key
+          VALIDATOR_WALLET=0x19e7e376e7c213b7e7e7e46cc70a5dd086daff2a
+          VALIDATOR_PRIVATE_KEY=0x1111111111111111111111111111111111111111111111111111111111111111
           VALIDATOR_REQUIRE_STAKE=false
           PROBE_TIMEOUT_S=1
           EOF
@@ -76,7 +78,7 @@ jobs:
           cat "$tmp/check.out"
           test "$code" -eq 1
           ! grep -Ei "Traceback|ModuleNotFoundError|ImportError" "$tmp/check.out"
-          grep -F "Grid models unavailable" "$tmp/check.out"
+          grep -F "Validator registration failed" "$tmp/check.out"
 
       - name: Package artifact
         shell: bash
@@ -108,6 +110,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
 
     steps:
       - name: Download artifacts
@@ -115,6 +120,25 @@ jobs:
         with:
           path: dist-artifacts
           merge-multiple: true
+
+      - name: Generate release SBOM
+        uses: anchore/sbom-action@v0.24.0
+        with:
+          path: dist-artifacts
+          format: spdx-json
+          output-file: dist-artifacts/aipg-validator-release.spdx.json
+          artifact-name: aipg-validator-release-sbom
+
+      - name: Generate SHA-256 manifest
+        shell: bash
+        run: |
+          cd dist-artifacts
+          sha256sum *.zip *.spdx.json > SHA256SUMS
+
+      - name: Attest release provenance
+        uses: actions/attest@v4
+        with:
+          subject-checksums: dist-artifacts/SHA256SUMS
 
       - name: Resolve release tag
         id: release_tag
@@ -136,6 +160,9 @@ jobs:
         with:
           tag_name: ${{ steps.release_tag.outputs.tag }}
           target_commitish: ${{ github.sha }}
-          prerelease: ${{ github.event_name == 'workflow_dispatch' && inputs.prerelease }}
+          prerelease: ${{ contains(steps.release_tag.outputs.tag, 'preview') || contains(steps.release_tag.outputs.tag, 'rc') || (github.event_name == 'workflow_dispatch' && inputs.prerelease) }}
           generate_release_notes: true
-          files: dist-artifacts/*.zip
+          files: |
+            dist-artifacts/*.zip
+            dist-artifacts/*.spdx.json
+            dist-artifacts/SHA256SUMS

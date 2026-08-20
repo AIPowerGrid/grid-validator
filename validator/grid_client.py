@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 AI Power Grid
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-"""Thin async client for the grid's validator + OpenAI-compatible endpoints."""
+"""Thin async client for the Grid's validator-only endpoints."""
 
 import logging
 
@@ -16,11 +16,13 @@ def _default_capabilities(error: str = "") -> dict:
     return {
         "available": False,
         "validator_api_version": "unknown",
-        "mode": "model_routed_v0",
+        "mode": "unavailable",
         "economic_effect": "none",
         "targeted_probe_enabled": False,
         "features": {
             "attest": False,
+            "registration": False,
+            "heartbeat": False,
             "worker_inventory": False,
             "targeted_probe": False,
             "assignments": False,
@@ -58,9 +60,8 @@ def _default_assignments(error: str = "") -> dict:
 
 class GridClient:
     def __init__(self):
-        # Core accepts both Grid-native `apikey` and OpenAI-compatible bearer
-        # auth. Send both so validator binaries work across the whole Grid
-        # surface and match the operator docs/runbooks.
+        # Core accepts both Grid-native `apikey` and bearer auth. Send both for
+        # transport compatibility; the key itself has validator-only scopes.
         headers = {
             "apikey": Settings.VALIDATOR_API_KEY,
             "Authorization": f"Bearer {Settings.VALIDATOR_API_KEY}",
@@ -71,16 +72,11 @@ class GridClient:
             timeout=Settings.PROBE_TIMEOUT_S + 5,
         )
 
-    async def list_models(self) -> list[str]:
-        r = await self._http.get("/v1/models", timeout=10)
-        r.raise_for_status()
-        return [m["id"] for m in r.json().get("data", [])]
-
     async def validator_capabilities(self) -> dict:
         """Return the grid's advertised validator feature flags.
 
-        Older cores will not expose this endpoint. That is fine: the caller
-        gets conservative defaults and remains in v0 model-routed mode.
+        Older cores will not expose this endpoint. The caller receives
+        conservative defaults and must not probe without assignments.
         """
         try:
             r = await self._http.get("/v1/validator/capabilities", timeout=10)
@@ -135,8 +131,7 @@ class GridClient:
     async def validator_assignments(self, *, limit: int = 5, modality: str = "text") -> list[dict]:
         """Return Grid-issued assignments for authoritative evidence.
 
-        Missing assignment endpoints are normal during rollout; callers fall
-        back to preview/model-routed V0 canaries.
+        Missing assignment endpoints fail closed: callers perform no probe.
         """
         try:
             r = await self._http.get(
@@ -153,26 +148,49 @@ class GridClient:
             logger.info(f"validator assignments unavailable: {e}")
             return []
 
+    async def register_validator(self, envelope: dict) -> dict:
+        """Register this node's wallet and software capabilities with Core."""
+        r = await self._http.post("/v1/validator/register", json=envelope, timeout=10)
+        r.raise_for_status()
+        return r.json()
+
+    async def validator_registration(self) -> dict:
+        """Return this key's active registration, or an unavailable status."""
+        try:
+            r = await self._http.get("/v1/validator/registration", timeout=10)
+            if r.status_code in (403, 404):
+                return {"available": False, "status": "unregistered", "error": r.text}
+            r.raise_for_status()
+            return {"available": True, **r.json()}
+        except httpx.HTTPError as exc:
+            return {"available": False, "status": "unavailable", "error": str(exc)}
+
+    async def heartbeat(self) -> dict:
+        """Refresh the active validator's liveness and software metadata."""
+        from . import __version__
+        from .attest import VALIDATOR_CAPABILITIES
+
+        r = await self._http.post(
+            "/v1/validator/heartbeat",
+            json={
+                "software_version": __version__,
+                "capabilities": VALIDATOR_CAPABILITIES,
+            },
+            timeout=10,
+        )
+        r.raise_for_status()
+        return r.json()
+
     async def list_workers(self) -> list[dict]:
-        """Active (worker, models) pairs. Needs the grid validator endpoint;
-        falls back to an empty list (v0 mode probes by model instead)."""
+        """Return active worker inventory for the local dashboard only."""
         try:
             r = await self._http.get("/v1/validator/workers", timeout=10)
             if r.status_code == 200:
                 data = r.json()
                 if not data.get("targeted_probe_enabled"):
-                    logger.info(
-                        "grid validator worker inventory is available but targeted probing is disabled; "
-                        "using model-routed v0 probes"
-                    )
+                    logger.info("grid validator worker inventory is not targetable")
                     return []
-                if "{assignment_id}" in str(data.get("probe_endpoint") or ""):
-                    logger.info(
-                        "grid validator worker inventory uses assignment-bound probes; "
-                        "using /v1/validator/assignments instead of legacy worker probes"
-                    )
-                    return []
-                return [w for w in data.get("workers", []) if w.get("targetable", True)]
+                return list(data.get("workers", []))
         except httpx.HTTPError:
             pass
         return []
@@ -194,40 +212,6 @@ class GridClient:
         except httpx.HTTPError as e:
             logger.warning(f"probe_assignment failed for {assignment_id}: {e}")
             return None
-
-    async def probe_worker(self, worker_id: str, payload: dict) -> dict | None:
-        """Targeted probe of one worker (Layer 3b). Returns None if the grid
-        doesn't yet expose the endpoint — caller falls back to model-routed."""
-        try:
-            r = await self._http.post(
-                "/v1/validator/probe", json={"worker_id": worker_id, "payload": payload}
-            )
-            if r.status_code in (404, 501, 503):
-                return None
-            r.raise_for_status()
-            return r.json()
-        except httpx.HTTPError as e:
-            logger.warning(f"probe_worker failed for {worker_id}: {e}")
-            return None
-
-    async def chat(self, model: str, prompt: str) -> tuple[str, float]:
-        """v0 model-routed canary via the public chat endpoint. Returns
-        (text, latency_seconds). Non-streaming so we get the whole answer."""
-        import time
-        t0 = time.time()
-        r = await self._http.post(
-            "/v1/chat/completions",
-            json={
-                "model": model,
-                "messages": [{"role": "user", "content": prompt}],
-                "max_tokens": Settings.PROBE_MAX_TOKENS,
-                "stream": False,
-            },
-        )
-        dt = time.time() - t0
-        r.raise_for_status()
-        text = r.json()["choices"][0]["message"].get("content") or ""
-        return text, dt
 
     async def submit_attestation(self, attestation: dict) -> bool:
         """POST a signed attestation. Returns True on accept (200)."""

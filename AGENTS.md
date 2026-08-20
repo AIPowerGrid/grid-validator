@@ -95,14 +95,13 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   `../aipg-documentation/engineering-standards/`
   (core + git + the matching language file). The rules below are
   grid-validator specializations.
-- **Early-stage / v0:** current Grid core work has
-  `GET /v1/validator/capabilities`, `GET /v1/validator/assignments`,
-  `POST /v1/validator/probe/{assignment_id}`, `POST /v1/validator/attest`,
-  `GET /v1/validator/scorecards`, and `GET /v1/validator/workers`. The node
-  prefers Grid-issued assignments; missing/empty assignment endpoints fall back
-  to **v0 model-routed probing**. Assignment-bound evidence must include the
-  Grid assignment id, nonce, and probe evidence hash, but still must be treated
-  as observation/scoring input, not as slash or reward authority.
+- **Early-stage / v0:** the node must register a linked signing wallet, use a
+  dedicated key with exactly the validator scopes, and consume only Grid-issued
+  assignments. Missing registration, assignment, or targeted-probe support is
+  unavailable, never permission to submit public inference as a probe.
+  Assignment-bound evidence includes the Grid assignment id, nonce, and probe
+  evidence hash, but remains observation/scoring input with no slash, reward,
+  payout, strike, or routing authority.
 - **Secrets:** `.env` may hold `VALIDATOR_PRIVATE_KEY` (signs attestations and later controls
   stake) — always chmod 600, never commit. The key never leaves the box; the grid receives only
   signed payloads. If the private key is configured, `VALIDATOR_WALLET` must be the derived
@@ -121,8 +120,8 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
 - Keep heavy deps (web3, Pillow, imagehash) lazily imported and in optional
   extras so default V0 text validators stay small. `eth-account` remains a
   default dependency because signed V0 attestations are part of the preview.
-- New grid-side endpoint dependencies must stay optional with a documented
-  fallback (see Local Contracts).
+- New grid-side endpoint dependencies fail closed when they are required for
+  attributable evidence. Read-only dashboard metadata may degrade gracefully.
 
 ## Verification
 

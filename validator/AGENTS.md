@@ -2,11 +2,11 @@
 
 ## Purpose
 
-The validator implementation: load config, optionally gate on on-chain stake, enumerate
-available Grid targets, fire unpredictable canaries, score replies, sign attestations when
-configured, and POST them in a loop when the Grid exposes the sink. V0 is CPU-only and
-model-routed for text canaries; image/video scoring exists as design/scaffold until the Grid
-adds targeted assignments and modality-aware probe jobs.
+The validator implementation: load config, register a linked signing identity,
+optionally gate on on-chain stake, consume Grid-issued assignments, fire
+unpredictable targeted canaries, score replies, sign attestations, and POST them
+in a loop. V0 is CPU-only and assignment-bound for text; image/video scoring
+exists as design/scaffold until the Grid adds modality-aware probe jobs.
 
 ## Ownership
 
@@ -20,37 +20,28 @@ adds targeted assignments and modality-aware probe jobs.
   tracebacks or downstream Web3 exceptions.
 - **`staking.py`** — on-chain stake gate (`stake_of`, `assert_eligible`). Raises `NotDeployed`
   until `VALIDATOR_STAKING_ADDR` is set; honors `REQUIRE_STAKE=false` for pre-launch/dev.
-- **`grid_client.py`** — async httpx client for grid endpoints: `list_models`,
-  `validator_capabilities`, `validator_scorecards`, `validator_assignments`,
-  `probe_assignment` (assignment-bound targeted), `list_workers`,
-  `probe_worker` (legacy targeted), `chat` (v0 model-routed),
-  `submit_attestation`.
+- **`grid_client.py`** — async httpx client for validator registration,
+  heartbeat, capabilities, scorecards, assignments, assignment-bound targeted
+  probes, worker inventory, and attestation submission.
   Each grid-only endpoint degrades gracefully (conservative capabilities,
   unavailable scorecards, empty list, `None`, or `False`) when not yet deployed.
   It sends both Grid-native `apikey` and OpenAI-compatible `Authorization:
   Bearer` headers with the same validator API key; keep that dual-header
   behavior unless core deliberately drops one auth style.
-  `features.targeted_probe` is only a capability signal; only the explicit
-  `targeted_probe_enabled=true` rollout flag may put the node or dashboard into
-  targeted mode. Assignment-bound targeting is preferred over legacy
-  worker-id targeting; if `/v1/validator/workers` advertises
-  `/v1/validator/probe/{assignment_id}`, `list_workers` must return no legacy
-  targets so `probe_round` uses `validator_assignments` instead.
+  Assignment and probe endpoints fail closed when absent. Worker inventory is
+  dashboard-only and must never become an alternate targeting authority.
 - **`prober.py`** — text canaries (`echo` nonce + generated arithmetic `qa`) and `score()`;
   `is_text_model` heuristic skips media models in v0; `_strip_think` ignores
   reasoning-model chain-of-thought. Do not reintroduce static QA answer lists.
 - **`media_prober.py`** — image/video canaries + scoring across structural, pHash-consensus, and
   video-motion axes. Heavy deps imported lazily; missing dep → skip, never crash.
-- **`attest.py`** — `build()` the canonical attestation body + `sign()` (EIP-191 over sorted-key
+- **`attest.py`** — build canonical registration/attestation bodies + `sign()` (EIP-191 over sorted-key
   compact JSON). Text V0 attestations include `modality`, `capability`,
   `assignment_id`, `epoch`, prompt/response hashes, an `evidence_hash`, and a
-  coarse score for scorecard aggregation. Unsigned (`signature=None`) only when
-  no key is configured (dev). V0 assignment ids are validator-generated and
-  marked `assignment_source=validator_v0`; V1 economic use must require
-  Grid-issued assignment ids/nonces.
-- **`main.py`** — entrypoint: `run()` (optional stake gate → probe loop), `probe_round`
-  (Grid-issued assignments first, legacy targeted workers second, else v0
-  model-routed), `_probe_assignment` / `_probe_worker` / `_probe_model`.
+  coarse score for scorecard aggregation. Runtime registration and evidence are
+  always signed; low-level unsigned helpers exist only for isolated tests.
+- **`main.py`** — entrypoint: `run()` (signed registration, optional stake gate,
+  heartbeat, then assignment loop) and assignment-only `probe_round`.
   `probe_round` returns the number of canaries actually
   attempted; one-shot checks use this to reject green-looking no-op probes.
   If `VALIDATOR_REQUIRE_STAKE=true`, missing stake config/deployment must raise
@@ -106,11 +97,9 @@ adds targeted assignments and modality-aware probe jobs.
   nondeterminism).
 - **A skipped check must not penalize a worker** — a missing optional dep returns ok/skip, not
   `failed`.
-- **V0 fairness:** never send a text canary to a media model — gate model-routed probing
-  through `prober.is_text_model` and targeted inventory through the worker's
-  `job_types`, `api_formats`, and model-name hints. Missing targeted metadata is
-  not text-capable by default. If targeted inventory has no text-capable workers,
-  fall back to model-routed V0 probes instead of creating media-worker failures.
+- **V0 fairness:** only execute the modality and capability in the Grid-issued
+  assignment. Missing or unsupported assignment metadata is a skip, never a
+  worker failure and never a reason to invent another target.
 - **No false targeted failures:** if a targeted probe endpoint is missing, disabled, or
   returns no text, skip attestation instead of recording `failed`.
 - **No green no-op checks:** `aipg-validator check` must fail clearly when no

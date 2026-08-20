@@ -36,7 +36,7 @@ class DashboardTests(unittest.TestCase):
 
 
 class DashboardGridSnapshotTests(unittest.IsolatedAsyncioTestCase):
-    async def test_grid_snapshot_preserves_capabilities_on_model_error(self):
+    async def test_grid_snapshot_preserves_capabilities_on_inventory_error(self):
         class FakeGrid:
             async def validator_capabilities(self):
                 return {"available": True, "mode": "evidence_only"}
@@ -44,8 +44,11 @@ class DashboardGridSnapshotTests(unittest.IsolatedAsyncioTestCase):
             async def validator_scorecards(self, **_kwargs):
                 return {"available": True, "items": [{"subject_id": "worker-1"}]}
 
-            async def list_models(self):
-                raise RuntimeError("models down")
+            async def validator_registration(self):
+                return {"available": True, "validator_id": "val_test", "status": "active"}
+
+            async def list_workers(self):
+                raise RuntimeError("workers down")
 
             async def aclose(self):
                 return None
@@ -56,7 +59,7 @@ class DashboardGridSnapshotTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(data["ok"])
         self.assertEqual(data["capabilities"]["mode"], "evidence_only")
         self.assertTrue(data["scorecards"]["available"])
-        self.assertIn("models down", data["error"])
+        self.assertIn("workers down", data["error"])
 
     async def test_grid_snapshot_collects_scorecards(self):
         class FakeGrid:
@@ -70,11 +73,11 @@ class DashboardGridSnapshotTests(unittest.IsolatedAsyncioTestCase):
                     "items": [{"subject_id": "worker-1", "total": 2}],
                 }
 
-            async def list_models(self):
-                return ["qwen3-27b"]
+            async def validator_registration(self):
+                return {"available": True, "validator_id": "val_test", "status": "active"}
 
             async def list_workers(self):
-                return []
+                return [{"worker_id": "w1", "models": ["qwen3-27b"]}]
 
             async def aclose(self):
                 return None
@@ -85,6 +88,7 @@ class DashboardGridSnapshotTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(data["ok"])
         self.assertEqual(data["scorecards"]["count"], 1)
         self.assertEqual(data["scorecards"]["items"][0]["subject_id"], "worker-1")
+        self.assertEqual(data["models"], ["qwen3-27b"])
 
 
 if __name__ == "__main__":

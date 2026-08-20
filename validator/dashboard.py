@@ -39,15 +39,18 @@ def _version() -> str:
 async def _grid_snapshot() -> dict[str, Any]:
     grid = GridClient()
     capabilities: dict[str, Any] = {}
+    registration: dict[str, Any] = {}
     scorecards: dict[str, Any] = {}
     try:
         capabilities = await grid.validator_capabilities()
+        registration = await grid.validator_registration()
         scorecards = await grid.validator_scorecards(limit=10, since_hours=24)
-        models = await grid.list_models()
         workers = await grid.list_workers()
+        models = sorted({model for worker in workers for model in (worker.get("models") or [])})
         return {
             "ok": True,
             "capabilities": capabilities,
+            "registration": registration,
             "scorecards": scorecards,
             "models": models,
             "model_count": len(models),
@@ -59,6 +62,7 @@ async def _grid_snapshot() -> dict[str, Any]:
         return {
             "ok": False,
             "capabilities": capabilities,
+            "registration": registration,
             "scorecards": scorecards,
             "models": [],
             "model_count": 0,
@@ -96,6 +100,7 @@ def collect_status() -> dict[str, Any]:
         "grid": {
             "ok": False,
             "capabilities": {},
+            "registration": {},
             "scorecards": {},
             "models": [],
             "model_count": 0,

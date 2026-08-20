@@ -15,6 +15,7 @@ import hashlib
 from datetime import datetime, timezone
 
 from .config import Settings
+from . import __version__
 
 logger = logging.getLogger("validator.attest")
 
@@ -24,6 +25,8 @@ VERDICT_SCORE = {
     "slow": 0.75,
     "failed": 0.0,
 }
+
+VALIDATOR_CAPABILITIES = ["text.basic.v1"]
 
 
 def _canonical(payload: dict) -> str:
@@ -40,6 +43,17 @@ def _hash_obj(obj: dict) -> str:
 
 def _epoch_from_ts(ts: int) -> str:
     return datetime.fromtimestamp(ts, timezone.utc).strftime("%Y%m%d%H")
+
+
+def build_registration(ts: int) -> dict:
+    """Build the wallet-signed registration payload expected by Grid Core."""
+    return {
+        "registration_schema": "aipg.validator.registration.v1",
+        "validator": Settings.VALIDATOR_WALLET,
+        "software_version": __version__,
+        "capabilities": VALIDATOR_CAPABILITIES,
+        "ts": ts,
+    }
 
 
 def _assignment_id(model: str, canary: dict, ts: int, explicit: str | None) -> str:

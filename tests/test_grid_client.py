@@ -110,7 +110,7 @@ class GridClientTests(unittest.IsolatedAsyncioTestCase):
         caps = await client.validator_capabilities()
 
         self.assertFalse(caps["available"])
-        self.assertEqual(caps["mode"], "model_routed_v0")
+        self.assertEqual(caps["mode"], "unavailable")
         self.assertFalse(caps["features"]["targeted_probe"])
         self.assertFalse(caps["targeted_probe_enabled"])
 
@@ -149,30 +149,36 @@ class GridClientTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(await client.list_workers(), [])
 
-    async def test_list_workers_returns_targetable_workers_when_enabled(self):
+    async def test_list_workers_returns_inventory_when_assignment_targeting_enabled(self):
         client = GridClient.__new__(GridClient)
         client._http = _HTTP(_Response(data={
             "targeted_probe_enabled": True,
             "workers": [
-                {"worker_id": "w1", "models": ["qwen3-27b"], "targetable": True},
-                {"worker_id": "w2", "models": ["qwen3-27b"], "targetable": False},
+                {"worker_id": "w1", "models": ["qwen3-27b"], "direct_targetable": False},
+                {"worker_id": "w2", "models": ["qwen3-27b"], "direct_targetable": False},
             ],
         }))
 
         self.assertEqual(
             await client.list_workers(),
-            [{"worker_id": "w1", "models": ["qwen3-27b"], "targetable": True}],
+            [
+                {"worker_id": "w1", "models": ["qwen3-27b"], "direct_targetable": False},
+                {"worker_id": "w2", "models": ["qwen3-27b"], "direct_targetable": False},
+            ],
         )
 
-    async def test_list_workers_ignores_assignment_bound_inventory(self):
+    async def test_list_workers_is_dashboard_inventory_only(self):
         client = GridClient.__new__(GridClient)
         client._http = _HTTP(_Response(data={
             "targeted_probe_enabled": True,
             "probe_endpoint": "/v1/validator/probe/{assignment_id}",
-            "workers": [{"worker_id": "w1", "models": ["qwen3-27b"], "targetable": True}],
+            "workers": [{"worker_id": "w1", "models": ["qwen3-27b"], "direct_targetable": False}],
         }))
 
-        self.assertEqual(await client.list_workers(), [])
+        self.assertEqual(
+            await client.list_workers(),
+            [{"worker_id": "w1", "models": ["qwen3-27b"], "direct_targetable": False}],
+        )
 
     async def test_validator_assignments_returns_grid_issued_assignments(self):
         client = GridClient.__new__(GridClient)
@@ -194,13 +200,6 @@ class GridClientTests(unittest.IsolatedAsyncioTestCase):
         client._http = _HTTP(_Response(status_code=504, data={"detail": "timeout"}))
 
         self.assertIsNone(await client.probe_assignment("asg_1"))
-
-    async def test_probe_worker_returns_none_for_unavailable_endpoint(self):
-        client = GridClient.__new__(GridClient)
-        client._http = _HTTP(_Response(status_code=503, data={"detail": "not ready"}))
-
-        self.assertIsNone(await client.probe_worker("w1", {"prompt": "hi"}))
-
 
 if __name__ == "__main__":
     unittest.main()

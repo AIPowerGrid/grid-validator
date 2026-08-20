@@ -13,6 +13,7 @@ VERSION="${AIPG_VALIDATOR_VERSION:-latest}"
 INSTALL_DIR="${AIPG_VALIDATOR_INSTALL_DIR:-$HOME/.local/bin}"
 BINARY_NAME="${AIPG_VALIDATOR_BINARY_NAME:-aipg-validator}"
 ASSET_URL="${AIPG_VALIDATOR_URL:-}"
+CHECKSUMS_URL="${AIPG_VALIDATOR_CHECKSUMS_URL:-}"
 CONFIG_DIR="${AIPG_VALIDATOR_CONFIG_DIR:-$HOME/.aipg-validator}"
 
 die() {
@@ -86,15 +87,32 @@ extract_zip() {
   die "unzip or python3 is required"
 }
 
+sha256_file() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$1" | awk '{print $1}'
+    return
+  fi
+  if command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 "$1" | awk '{print $1}'
+    return
+  fi
+  die "sha256sum or shasum is required to verify the release"
+}
+
 platform="$(detect_platform)"
 asset="aipg-validator-${platform}.zip"
 if [ "$VERSION" = "latest" ]; then
   url="https://github.com/${REPO}/releases/latest/download/${asset}"
+  checksums_url="https://github.com/${REPO}/releases/latest/download/SHA256SUMS"
 else
   url="https://github.com/${REPO}/releases/download/${VERSION}/${asset}"
+  checksums_url="https://github.com/${REPO}/releases/download/${VERSION}/SHA256SUMS"
 fi
 if [ -n "$ASSET_URL" ]; then
   url="$ASSET_URL"
+fi
+if [ -n "$CHECKSUMS_URL" ]; then
+  checksums_url="$CHECKSUMS_URL"
 fi
 
 tmp="$(mktemp -d)"
@@ -102,6 +120,12 @@ trap 'rm -rf "$tmp"' EXIT
 
 echo "Installing AIPG validator (${platform}) from ${REPO} ${VERSION}..."
 download "$url" "$tmp/$asset"
+download "$checksums_url" "$tmp/SHA256SUMS"
+expected="$(awk -v asset="$asset" '$2 == asset || $2 == "*" asset {print $1; exit}' "$tmp/SHA256SUMS")"
+[ -n "$expected" ] || die "SHA256SUMS does not contain $asset"
+actual="$(sha256_file "$tmp/$asset")"
+[ "$actual" = "$expected" ] || die "checksum mismatch for $asset"
+echo "Verified SHA-256: $actual"
 extract_zip "$tmp/$asset" "$tmp/extract"
 
 binary="$tmp/extract/aipg-validator"

@@ -13,6 +13,7 @@ routing, or prove exact model weights.
 - A machine that can stay online.
 - Python 3.10+ for the source preview.
 - A Grid API key.
+- A dedicated validator signing wallet linked to the same Grid account.
 - No GPU.
 - No Base stake requirement during the V0 preview.
 
@@ -21,6 +22,8 @@ Minimal V0 config:
 ```ini
 GRID_API_URL=https://api.aipowergrid.io
 VALIDATOR_API_KEY=your-grid-api-key
+VALIDATOR_WALLET=0xYourLinkedWallet
+VALIDATOR_PRIVATE_KEY=0xYourLocalSigningKey
 VALIDATOR_REQUIRE_STAKE=false
 ```
 
@@ -30,12 +33,11 @@ For preview installs, keep:
 VALIDATOR_REQUIRE_STAKE=false
 ```
 
-`VALIDATOR_PRIVATE_KEY` is optional in V0. If you set it, the node signs
-attestations locally and sends only the signed payload to the Grid. The
-configured `VALIDATOR_WALLET` must match the private key. `aipg-validator init`
-can sign V0 attestations while `VALIDATOR_REQUIRE_STAKE=false`; it derives the
-wallet from the key when no wallet is entered. If you enter a wallet manually,
-it must be a valid `0x` EVM address.
+`VALIDATOR_PRIVATE_KEY` is required and stays on the node. It signs registration
+and attestations locally; Core receives only signatures and the public wallet.
+The wallet must already be linked to the account that issued the dedicated
+validator key. `aipg-validator init` derives `VALIDATOR_WALLET` from the key.
+This evidence identity is mandatory even while `VALIDATOR_REQUIRE_STAKE=false`.
 
 ## Source Preview
 
@@ -146,14 +148,14 @@ A healthy V0 node should show:
 - config loaded
 - Grid reachable
 - validator capability flags visible, or safely reported as unavailable
-- at least one text model visible for canary probes
-- `check` reports at least one submitted canary job
+- registration is active for the configured wallet
+- `check` reports at least one submitted assignment, or clearly says none are available
 - dashboard reachable on localhost
 - scorecards visible when core exposes `/v1/validator/scorecards`
 
-If `/v1/validator/attest`, `/v1/validator/workers`, or
-`/v1/validator/scorecards` are missing, the node should keep running in safe V0
-mode. Missing future validator endpoints are not worker failures.
+Missing read-only scorecards are non-fatal. Missing registration, assignments,
+targeted probing, or attestation support makes the validator unavailable; the
+node must not substitute ordinary user inference or invent a worker target.
 
 If only image/video models are visible, `check` exits non-zero because it did not
 submit a text canary. That is expected; use `check --no-probe` for a pure install
@@ -165,14 +167,15 @@ V0 validator nodes rely on these Grid paths:
 
 | Endpoint | Required | Effect |
 |---|---:|---|
-| `GET /v1/models` | fallback | find text models when assignments are unavailable |
-| `POST /v1/chat/completions` | yes | send V0 text canaries |
 | `GET /v1/validator/capabilities` | no | discover safe validator features |
-| `GET /v1/validator/assignments` | preferred | receive Grid-issued text assignments |
-| `POST /v1/validator/probe/{assignment_id}` | preferred | execute an assignment against its bound worker |
-| `POST /v1/validator/attest` | no | store signed evidence only |
+| `POST /v1/validator/register` | yes | register the linked signing identity |
+| `GET /v1/validator/registration` | yes | inspect registration state |
+| `POST /v1/validator/heartbeat` | yes | refresh node liveness |
+| `GET /v1/validator/assignments` | yes | receive Grid-issued text assignments |
+| `POST /v1/validator/probe/{assignment_id}` | yes | execute an assignment against its bound worker |
+| `POST /v1/validator/attest` | yes | store signed assignment evidence |
 | `GET /v1/validator/workers` | no | discovery; targeting still requires an assignment |
-| `GET /v1/validator/scorecards` | no | aggregate evidence only |
+| `GET /v1/validator/scorecards` | no | aggregate evidence workflow states only |
 
 `GET /v1/validator/workers` must be treated as inventory unless core returns
 `targeted_probe_enabled=true`. Do not create targeted failures from inventory.

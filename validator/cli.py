@@ -15,6 +15,7 @@ import getpass
 import os
 import stat
 import sys
+import time
 from pathlib import Path
 
 
@@ -24,7 +25,7 @@ def _enabled(value: object) -> str:
 
 def _capability_lines(capabilities: dict) -> list[str]:
     features = capabilities.get("features") or {}
-    mode = capabilities.get("mode") or "model_routed_v0"
+    mode = capabilities.get("mode") or "unavailable"
     version = capabilities.get("validator_api_version") or "unknown"
     available = capabilities.get("available")
     endpoint = "available" if available else "not deployed"
@@ -38,7 +39,7 @@ def _capability_lines(capabilities: dict) -> list[str]:
         f"stake_required={_enabled(features.get('staking_required'))}",
     ]
     if not capabilities.get("targeted_probe_enabled"):
-        lines.append("   probing mode: model-routed V0 (no targeted worker penalties)")
+        lines.append("   probing mode: unavailable (no assignment means no probe)")
     else:
         lines.append("   probing mode: targeted worker probes enabled")
     if capabilities.get("economic_effect") and capabilities.get("economic_effect") != "none":
@@ -109,7 +110,7 @@ def _cmd_init(args) -> int:
         if not api_key:
             print("❌ Validator grid API key is required.")
             return 1
-        wallet = input("Validator wallet address 0x… (for stake/rewards, optional pre-launch): ").strip()
+        wallet = input("Validator wallet address 0x… (must be linked to your Grid account): ").strip()
         if wallet:
             try:
                 wallet = normalize_wallet(wallet)
@@ -117,26 +118,23 @@ def _cmd_init(args) -> int:
                 print(f"❌ {exc}")
                 return 1
         staked = input("Run with on-chain stake required? [y/N] ").lower() == "y"
-        pk = ""
-        signing = staked or input("Sign V0 attestations now? [y/N] ").lower() == "y"
-        if signing:
-            pk = getpass.getpass("Validator private key (kept local, chmod 600): ").strip()
-            if not pk:
-                print("❌ Validator private key is required when signing/stake is enabled.")
-                return 1
-            try:
-                derived_wallet = wallet_from_private_key(pk)
-            except RuntimeError as exc:
-                print(f"❌ {exc}")
-                return 1
-            if wallet and wallet.lower() != derived_wallet:
-                print("❌ Validator wallet does not match the private key.")
-                print(f"   Configured wallet: {wallet}")
-                print(f"   Key wallet:        {derived_wallet}")
-                return 1
-            if not wallet:
-                wallet = derived_wallet
-                print(f"Derived validator wallet: {wallet}")
+        pk = getpass.getpass("Validator private key (kept local, chmod 600): ").strip()
+        if not pk:
+            print("❌ Validator private key is required for registration and evidence signing.")
+            return 1
+        try:
+            derived_wallet = wallet_from_private_key(pk)
+        except RuntimeError as exc:
+            print(f"❌ {exc}")
+            return 1
+        if wallet and wallet.lower() != derived_wallet:
+            print("❌ Validator wallet does not match the private key.")
+            print(f"   Configured wallet: {wallet}")
+            print(f"   Key wallet:        {derived_wallet}")
+            return 1
+        if not wallet:
+            wallet = derived_wallet
+            print(f"Derived validator wallet: {wallet}")
     except EOFError:
         print("❌ Interactive setup requires a terminal.")
         print("   Run `aipg-validator init` from a shell, or create `.env` from `.env.template`.")
@@ -189,18 +187,26 @@ def _cmd_check(args) -> int:
     async def _go():
         grid = GridClient()
         try:
+            from . import attest
+
+            try:
+                registration = await grid.register_validator(
+                    attest.sign(attest.build_registration(int(time.time())))
+                )
+            except Exception as exc:
+                print(f"❌ Validator registration failed: {exc}")
+                return False
+            print(
+                f"✅ Validator registered: {registration.get('validator_id', 'unknown')} "
+                f"({registration.get('status', 'active')})"
+            )
             capabilities = await grid.validator_capabilities()
             for line in _capability_lines(capabilities):
                 print(line)
             scorecards = await grid.validator_scorecards(limit=3, since_hours=24)
             for line in _scorecard_lines(scorecards):
                 print(line)
-            try:
-                models = await grid.list_models()
-            except Exception as exc:
-                print(f"❌ Grid models unavailable: {exc}")
-                return False
-            print(f"✅ Grid reachable — models: {', '.join(models) or '(none)'}")
+            print("✅ Grid reachable — validator registration and API available")
             if args.no_probe:
                 print("ℹ️  Probe skipped (--no-probe).")
                 return True
@@ -211,7 +217,7 @@ def _cmd_check(args) -> int:
                 print(f"❌ Probe round failed: {exc}")
                 return False
             if attempted <= 0:
-                print("❌ Probe round found no compatible text targets; no canary was submitted.")
+                print("❌ No Grid assignment was available; no canary was submitted.")
                 return False
             print(f"✅ Probe round submitted {attempted} canary job(s).")
             return True

@@ -27,13 +27,14 @@ Status: current repo direction.
   scaffolding.
 - Read-only local dashboard on `127.0.0.1:8790`.
 - CPU-only.
-- Assignment-bound text canaries when production core advertises them, with a
-  model-routed fallback for older cores.
-- Best-effort signed attestations.
+- Mandatory linked-wallet registration and assignment-bound text canaries.
+- Mandatory signed registration, heartbeat, and attestations.
 - Production core exposes capabilities, worker discovery, assignments,
   targeted text probes, attestations, scorecards, assignment health, and a
-  non-economic quorum lifecycle.
-- Missing validator endpoints degrade gracefully.
+  non-economic evidence workflow states. Independent shared-challenge quorum is
+  not implemented yet.
+- Missing required validator endpoints fail closed; read-only metadata may
+  degrade gracefully.
 - No rewards, routing effects, strikes, or slashing. Targeted attribution is
   evidence-only.
 - Outputs inform dashboards and implementation work.
@@ -64,11 +65,11 @@ Status: current repo direction.
 
 ## Validator Data Flow
 
-This is the target flow for validators once the Grid supports assignments and
-targeted probes. V0 only runs the left edge of this flow as evidence-only,
-model-routed canaries; anything that affects routing, rewards, or slashing must
-wait for Grid-issued assignments, targeted worker execution, evidence hashes,
-and quorum.
+This is the target flow. V0 implements registration, Grid-issued assignments,
+targeted worker execution, signed evidence, and evidence-only scorecards.
+Anything that affects routing, rewards, or slashing must additionally wait for
+independently operated validators to receive a shared challenge, quorum, and a
+dispute process.
 
 ```mermaid
 flowchart TD
@@ -198,26 +199,20 @@ objective verifiers first and reference answers only as supporting evidence.
 
 ## Probe Lifecycle
 
-V0 lifecycle:
+Current V0 lifecycle:
 
 1. Load config from `.env`.
-2. Optionally check local stake configuration.
-3. List models from `/v1/models`.
-4. Filter out names that look like media models.
-5. Submit text canaries through `/v1/chat/completions`.
-6. Score response as `healthy`, `slow`, or `failed`.
-7. Build an attestation with assignment metadata, epoch, and evidence hashes;
-   optionally sign it.
-8. Submit the attestation if `/v1/validator/attest` exists.
+2. Register the linked signing wallet and advertised capabilities.
+3. Optionally check local stake configuration; preview requires no stake.
+4. Fetch assignments from the Grid.
+5. Submit the assignment through the validator-only targeted endpoint.
+6. Score the result as `healthy`, `slow`, or `failed`.
+7. Sign the assignment id, Grid nonce, evidence hash, and verdict.
+8. Submit the attestation; heartbeat between rounds.
+9. Core stores non-economic evidence and updates scorecards.
 
-Current targeted text lifecycle and future modality extension:
-
-1. Fetch signed assignments from the Grid.
-2. Submit probe to a specific worker through a validator-only endpoint.
-3. Score the result using the assigned modality scorer.
-4. Sign the attestation.
-5. Grid stores evidence and updates worker scorecards.
-6. Epoch scoring computes validator rewards and public roots.
+Future shared-challenge quorum must assign the same challenge family to multiple
+independent registered validators before evidence can influence routing or money.
 
 ## Text Validation
 
@@ -323,36 +318,27 @@ versioned and rotated from the Grid side.
 
 ## Grid Dependencies
 
-V0 can run probes with only:
-
-- `GET /v1/models`
-- `POST /v1/chat/completions`
-
-V0 can discover Grid validator feature flags when deployed core exposes:
+V0 discovers Grid validator feature flags through:
 
 - `GET /v1/validator/capabilities`
 
-V0 can submit evidence when deployed core exposes:
+Required identity and assignment endpoints are:
 
-- `POST /v1/validator/attest`
-
-V0 can show aggregate evidence when deployed core exposes:
-
-- `GET /v1/validator/scorecards`
-
-V0 can discover worker inventory when core exposes:
-
-- `GET /v1/validator/workers`
-
-Production core also exposes the assignment-bound text lane:
-
+- `POST /v1/validator/register`
+- `GET /v1/validator/registration`
+- `POST /v1/validator/heartbeat`
 - `GET /v1/validator/assignments`
 - `POST /v1/validator/probe/{assignment_id}`
-- `GET /v1/validator/assignments/health`
-- worker scorecard and quorum-state APIs
+- `POST /v1/validator/attest`
 
-The validator must continue to degrade gracefully when future endpoints are
-missing.
+Read-only operator endpoints are:
+
+- `GET /v1/validator/scorecards`
+- `GET /v1/validator/workers`
+- `GET /v1/validator/assignments/health`
+
+Required endpoint failure is an unavailable validator round, never a public
+inference fallback and never a worker failure.
 
 ## On-Chain Path
 
@@ -410,7 +396,7 @@ Going offline should stop rewards, not slash stake.
 - [x] Local Dockerfile and Compose packaging.
 - [x] GitHub Actions CI for package/test/CLI/Docker build.
 - [x] GitHub Actions release-binary workflow scaffold.
-- [x] Optional attestation signing.
+- [x] Mandatory signed registration and attestations.
 - [x] Core-side `GET /v1/validator/capabilities` in production.
 - [x] Core-side `POST /v1/validator/attest` evidence sink in production.
 - [x] Core-side `GET /v1/validator/scorecards` aggregate evidence view in
@@ -424,7 +410,8 @@ Going offline should stop rewards, not slash stake.
 - [x] Deploy `POST /v1/validator/attest` to production core.
 - [x] Deploy `GET /v1/validator/workers` to production core.
 - [x] `POST /v1/validator/probe/{assignment_id}` targeted text execution.
-- [x] Assignment health, scorecards, and non-economic quorum lifecycle.
+- [x] Assignment health, scorecards, and non-economic evidence lifecycle.
+- [ ] Shared-challenge independent-validator quorum.
 - [ ] Media/video probe loop integration.
 - [x] Informational worker/model scorecards in core.
 - [x] Console validator evidence scorecards in current workspace.

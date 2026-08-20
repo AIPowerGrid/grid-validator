@@ -51,7 +51,10 @@ jobs:
             cd "$tmp/pkg"
             python -m zipfile -c "$tmp/aipg-validator-local.zip" aipg-validator
           )
+          digest="$(sha256sum "$tmp/aipg-validator-local.zip" | awk '{print $1}')"
+          printf '%s  %s\n' "$digest" "aipg-validator-linux-x64.zip" > "$tmp/SHA256SUMS"
           AIPG_VALIDATOR_URL="$tmp/aipg-validator-local.zip" \
+            AIPG_VALIDATOR_CHECKSUMS_URL="$tmp/SHA256SUMS" \
             AIPG_VALIDATOR_INSTALL_DIR="$tmp/bin" \
             AIPG_VALIDATOR_CONFIG_DIR="$tmp/config" \
             ./scripts/install-binary.sh
@@ -76,6 +79,8 @@ jobs:
           cat > "$tmp/.env" <<'EOF'
           GRID_API_URL=http://127.0.0.1:1
           VALIDATOR_API_KEY=grid-key
+          VALIDATOR_WALLET=0x19e7e376e7c213b7e7e7e46cc70a5dd086daff2a
+          VALIDATOR_PRIVATE_KEY=0x1111111111111111111111111111111111111111111111111111111111111111
           VALIDATOR_REQUIRE_STAKE=false
           PROBE_TIMEOUT_S=1
           EOF
@@ -88,4 +93,4 @@ jobs:
           cat "$tmp/check.out"
           test "$code" -eq 1
           ! grep -Ei "Traceback|ModuleNotFoundError|ImportError" "$tmp/check.out"
-          grep -F "Grid models unavailable" "$tmp/check.out"
+          grep -F "Validator registration failed" "$tmp/check.out"

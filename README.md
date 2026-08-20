@@ -24,9 +24,10 @@ What works now:
 - Editable package install with the `aipg-validator` console command.
 - Module entrypoint for `python -m validator`.
 - Read-only local dashboard on `127.0.0.1:8790`.
-- Model-routed text canaries through `/v1/chat/completions`.
+- Assignment-bound text canaries through validator-only Core endpoints.
 - Basic text scoring: exact nonce echo, generated arithmetic QA, latency budget.
-- Best-effort signed attestations when a validator private key is configured.
+- Mandatory signed registration, heartbeat, and attestations from a wallet
+  linked to the validator's Grid account.
 - Small default install: V0 text probing plus signing. Optional `media` and
   `stake` extras install heavier future-lane dependencies.
 - GitHub Actions release workflow scaffold for downloadable binaries.
@@ -34,13 +35,13 @@ What works now:
 - Production targeted probe execution at
   `POST /v1/validator/probe/{assignment_id}`; the core, not the validator,
   selects the worker.
-- Assignment-bound attestations, aggregate scorecards, assignment-health views,
-  and `pending -> accepted -> disputed -> finalized` quorum state in core.
-- Graceful model-routed fallback when an older core does not advertise
-  assignments.
+- Assignment-bound attestations, aggregate scorecards, and assignment-health
+  views in Core. The state labels are evidence workflow states, not proof of
+  independent multi-validator quorum.
 - All current validator evidence has `economic_effect: none`: it does not alter
   routing, rewards, strikes, payouts, or bonds.
-- Graceful fallback when other validator-specific Grid endpoints are not deployed.
+- Fail-closed behavior when registration, assignment, or targeted-probe support
+  is unavailable; read-only dashboard metadata may degrade gracefully.
 
 What is not live yet:
 
@@ -52,8 +53,8 @@ What is not live yet:
 - Routing impact.
 - On-chain epoch roots or dispute flow.
 
-Production core capability flags are the runtime source of truth. Do not infer
-economic authority merely because assignment and quorum endpoints exist.
+Production Core capability flags are the runtime source of truth. Current
+evidence has no economic authority and real shared-challenge quorum is not live.
 
 ## Download
 
@@ -103,18 +104,20 @@ from an interactive terminal and `.env` does not exist, it also launches
 run `./.venv/bin/aipg-validator init` yourself, or create `.env` from
 `.env.template`.
 
-Minimal safe V0 config:
+Required V0 identity config:
 
 ```ini
 GRID_API_URL=https://api.aipowergrid.io
 VALIDATOR_API_KEY=your-grid-api-key
+VALIDATOR_WALLET=0xYourLinkedWallet
+VALIDATOR_PRIVATE_KEY=0xYourLocalSigningKey
 VALIDATOR_REQUIRE_STAKE=false
 ```
 
-`check` validates config, connects to the Grid, prints validator capability
-flags, shows aggregate scorecard availability, lists available models, runs one
-probe round, and prints the canary count. If no compatible text target is
-available, it fails clearly instead of reporting a green no-op. Use
+`check` validates config, registers the node, prints validator capability flags,
+shows aggregate scorecard availability, runs one assigned probe round, and
+prints the accepted attestation count. If no assignment is available, it fails
+clearly instead of reporting a green no-op. Use
 `check --no-probe` for an install/API smoke test that does not submit canary
 traffic.
 
@@ -125,7 +128,7 @@ First-run command meanings:
 | `aipg-validator init` | no | write local `.env` with `chmod 600` |
 | `aipg-validator check --no-probe` | no | config, Grid, capability, and scorecard smoke |
 | `aipg-validator dashboard` | no | local read-only status page |
-| `aipg-validator check` | yes | one V0 model-routed text probe round |
+| `aipg-validator check` | yes | register and run one assigned text probe round |
 | `aipg-validator run` | yes | continuous V0 probe loop |
 
 Optional future-lane dependencies can be added from source when you are testing
@@ -154,20 +157,20 @@ After a GitHub release exists, the same installer can be run from a checkout:
 ```
 
 `dashboard` starts a read-only local status page at
-`http://127.0.0.1:8790/`. It shows config health, Grid reachability, visible
-models, validator capability flags, aggregate evidence scorecards, and whether
-staking/signing is configured. It never renders secrets.
+`http://127.0.0.1:8790/`. It shows config health, registration, Grid
+reachability, validator-visible worker/model inventory, capability flags,
+aggregate evidence scorecards, and stake mode. It never renders secrets.
 
-During the V0 preview, answer `no` when setup asks whether on-chain stake is
-required. That writes:
+During the V0 preview, use a dedicated validator signing wallet linked to the
+same Grid account that issued the validator key. The private key stays local.
+Answer `no` when setup asks whether on-chain stake is required. That writes:
 
 ```ini
 VALIDATOR_REQUIRE_STAKE=false
 ```
 
-You can still choose to sign V0 attestations without enabling the stake gate.
-If you enter a private key, `init` derives the wallet address and refuses to
-write a mismatched wallet/key pair.
+Signing is required independently of the future stake gate. `init` derives the
+wallet address from the required private key and refuses mismatched identity.
 
 ## Docker
 

@@ -75,11 +75,10 @@ For the V0 preview:
 - use your validator Grid API key
 - set `VALIDATOR_REQUIRE_STAKE=false`
 - leave `VALIDATOR_STAKING_ADDR` empty
-- leave `VALIDATOR_PRIVATE_KEY` empty unless you are testing signed attestations;
-  if you set it, `VALIDATOR_WALLET` must match the key. The init command derives
-  the wallet when you leave the wallet prompt blank.
-- if you set `VALIDATOR_WALLET`, use a valid `0x` EVM address even in unsigned
-  preview mode
+- use a dedicated `VALIDATOR_PRIVATE_KEY`; signing registration and evidence is
+  required. The init command derives `VALIDATOR_WALLET` from it.
+- link that wallet to the Grid account before issuing the validator-purpose API
+  key; Core rejects a different or unlinked signing identity.
 - if you set `AIPG_TOKEN_ADDR` or `VALIDATOR_STAKING_ADDR`, use valid 20-byte
   `0x` EVM addresses; malformed addresses fail startup before any RPC call
 
@@ -88,6 +87,8 @@ Minimal V0 `.env`:
 ```ini
 GRID_API_URL=https://api.aipowergrid.io
 VALIDATOR_API_KEY=your-grid-api-key
+VALIDATOR_WALLET=0xYourLinkedWallet
+VALIDATOR_PRIVATE_KEY=0xYourLocalSigningKey
 VALIDATOR_REQUIRE_STAKE=false
 ```
 
@@ -111,10 +112,10 @@ What a first healthy preview run should prove:
 - core validator capability flags are visible, or safely reported as unavailable
 - aggregate evidence scorecards are visible, or safely reported as unavailable
 - the Grid is reachable
-- visible text models can be listed
-- one assignment-bound canary round completes, or a model-routed fallback on an
-  older/disabled core
-- optional stake/signature checks are either healthy or clearly skipped
+- signed registration succeeds
+- one assignment-bound canary round completes, or the node clearly reports that
+  no assignment is currently available
+- the stake check is either healthy or explicitly skipped in preview mode
 
 Expected healthy output:
 
@@ -155,8 +156,9 @@ Start the local dashboard:
 ```
 
 Open `http://127.0.0.1:8790/`. The dashboard is read-only and localhost-bound by
-default. It shows config health, Grid reachability, visible models, aggregate
-evidence scorecards, and staking mode without printing API keys or private keys.
+default. It shows config health, validator registration, Grid reachability,
+registered worker inventory, aggregate evidence scorecards, and staking mode
+without printing API keys or private keys.
 
 Override the bind address only when you know the machine/network boundary:
 
@@ -225,9 +227,8 @@ sudo systemctl disable --now aipg-validator
 
 ## What The Node Checks In V0
 
-The current node probes text models only when running through the public model
-list. It avoids names that look like image/video models because V0 model metadata
-does not reliably expose modality.
+The current node probes only text assignments issued by Core. It does not infer
+targets from the public model list.
 
 Checks:
 
@@ -235,8 +236,8 @@ Checks:
   instruction rather than echoing the whole prompt
 - generated arithmetic QA: catches broken backends or wildly wrong model routing
 - latency budget: classifies correct but slow responses as `slow`
-- optional signature: signs the attestation payload, including prompt/response
-  hashes and a compact evidence hash, when a private key is present
+- mandatory signature: signs registration and the attestation payload,
+  including prompt/response hashes and a compact evidence hash
 
 The result is one of:
 
@@ -255,19 +256,19 @@ The node is intentionally defensive around new Grid endpoints:
 
 | Core capability | Node behavior |
 |---|---|
-| `/v1/validator/capabilities` | reads feature flags; falls back to safe V0 defaults |
-| `/v1/models` | required for model-routed V0 probing |
-| `/v1/chat/completions` | required for model-routed text canaries |
-| `/v1/validator/assignments` | preferred Grid-issued assignment path |
+| `/v1/validator/capabilities` | reads non-economic feature flags |
+| `/v1/validator/register` | registers the linked signing wallet and capabilities |
+| `/v1/validator/registration` | reports current registration state |
+| `/v1/validator/heartbeat` | refreshes node liveness |
+| `/v1/validator/assignments` | supplies the only valid probe targets |
 | `/v1/validator/probe/{assignment_id}` | targeted execution for an assignment |
-| `/v1/validator/attest` | submits evidence when present; skips cleanly when unavailable |
-| `/v1/validator/workers` | discovers targetable workers; does not replace assignment authorization |
+| `/v1/validator/attest` | accepts signed assignment evidence |
+| `/v1/validator/workers` | read-only inventory; never targeting authority |
 | `/v1/validator/scorecards` | aggregate evidence view; no routing/reward/slash effect |
-| `/v1/validator/probe/{assignment_id}` | preferred when advertised; missing/disabled must not create failures |
 
-If every future validator endpoint is missing, the node should still run in V0
-model-routed mode. That fallback is deliberate but produces preview rather than
-assignment-authoritative evidence.
+Missing read-only scorecards are non-fatal. Missing registration, assignments,
+targeted probing, or attestation support makes the validator unavailable. It
+must not substitute ordinary inference or invent a worker target.
 
 ## Future Validator Roles
 
@@ -309,10 +310,9 @@ assignments, then rewards/staking after the evidence loop is boring.
 | `GRID_API_URL must be an http(s) URL` | Include the scheme, for example `https://api.aipowergrid.io`, not just the hostname |
 | `Config: PROBE_INTERVAL_S must be an integer` | Fix the named value in `.env`; numeric env vars reject typos instead of guessing |
 | `dashboard port must be between 1 and 65535` | Pick a valid free TCP port, usually `8790` |
-| `Grid reachable - models: (none)` | No compatible models are online or visible |
-| `no compatible text targets` | `check` found no text model to probe; use `check --no-probe` for install smoke |
-| every model shows `failed` | Check API key, Grid URL, and local network |
-| `VALIDATOR_PRIVATE_KEY is required` | Set `VALIDATOR_REQUIRE_STAKE=false` for V0 preview |
+| `No Grid assignment was available` | No eligible third-party text assignment is currently available; retry later |
+| registration fails with 403 | Confirm the key purpose is validator and the signing wallet is linked to the same Grid account |
+| `VALIDATOR_PRIVATE_KEY is required` | Generate or choose a dedicated local signing key, then link its wallet before setup |
 | `Interactive setup requires a terminal` | Run `aipg-validator init` from a shell, or create `.env` from `.env.template` |
 | `web3 not installed` | Install stake extras with `./.venv/bin/python -m pip install -e '.[stake]'`, or keep `VALIDATOR_REQUIRE_STAKE=false` for V0 preview |
 | `Stake contract not deployed and REQUIRE_STAKE=true` | Expected in V0; set `VALIDATOR_REQUIRE_STAKE=false` unless you are testing the future stake gate |

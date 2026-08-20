@@ -14,6 +14,11 @@ from validator import cli
 from validator.config import Settings
 
 
+class _RegisteredFakeGrid:
+    async def register_validator(self, _envelope):
+        return {"validator_id": "val_test", "status": "active"}
+
+
 class CliCapabilityTests(unittest.TestCase):
     def test_capability_lines_are_conservative_when_targeting_disabled(self):
         lines = cli._capability_lines({
@@ -37,7 +42,7 @@ class CliCapabilityTests(unittest.TestCase):
         self.assertIn("attest=yes", text)
         self.assertIn("targeted=no", text)
         self.assertIn("rewards=no", text)
-        self.assertIn("model-routed V0", text)
+        self.assertIn("no assignment means no probe", text)
 
     def test_scorecard_lines_are_explicitly_informational(self):
         lines = cli._scorecard_lines({
@@ -78,7 +83,7 @@ class CliCheckTests(unittest.TestCase):
     def test_check_no_probe_reports_capabilities_without_probe_round(self):
         calls = {"probe": 0}
 
-        class FakeGrid:
+        class FakeGrid(_RegisteredFakeGrid):
             async def validator_capabilities(self):
                 return {
                     "available": True,
@@ -128,8 +133,8 @@ class CliCheckTests(unittest.TestCase):
         self.assertIn("Probe skipped", out)
         self.assertIn("qwen3-27b", out)
 
-    def test_check_no_probe_reports_model_endpoint_failure_without_traceback(self):
-        class FakeGrid:
+    def test_check_no_probe_does_not_require_public_model_scope(self):
+        class FakeGrid(_RegisteredFakeGrid):
             async def validator_capabilities(self):
                 return {
                     "available": False,
@@ -142,7 +147,7 @@ class CliCheckTests(unittest.TestCase):
                 return {"available": False, "error": "not deployed"}
 
             async def list_models(self):
-                raise RuntimeError("models down")
+                raise AssertionError("validator health must not call the public model API")
 
             async def aclose(self):
                 return None
@@ -157,10 +162,9 @@ class CliCheckTests(unittest.TestCase):
             with redirect_stdout(buf):
                 code = cli._cmd_check(argparse.Namespace(no_probe=True))
 
-        self.assertEqual(code, 1)
+        self.assertEqual(code, 0)
         out = buf.getvalue()
-        self.assertIn("Grid models unavailable", out)
-        self.assertIn("models down", out)
+        self.assertIn("validator registration and API available", out)
         self.assertNotIn("Traceback", out)
 
     def test_check_reports_invalid_numeric_env_without_import_traceback(self):
@@ -328,7 +332,7 @@ class CliCheckTests(unittest.TestCase):
         self.assertNotIn("Traceback", result.stdout)
 
     def test_check_probe_fails_when_no_canary_was_submitted(self):
-        class FakeGrid:
+        class FakeGrid(_RegisteredFakeGrid):
             async def validator_capabilities(self):
                 return {
                     "available": True,
@@ -362,11 +366,11 @@ class CliCheckTests(unittest.TestCase):
 
         self.assertEqual(code, 1)
         out = buf.getvalue()
-        self.assertIn("no compatible text targets", out)
+        self.assertIn("No Grid assignment was available", out)
         self.assertNotIn("Traceback", out)
 
     def test_check_probe_reports_canary_count(self):
-        class FakeGrid:
+        class FakeGrid(_RegisteredFakeGrid):
             async def validator_capabilities(self):
                 return {
                     "available": True,
