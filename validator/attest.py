@@ -45,6 +45,10 @@ VALIDATOR_CAPABILITIES = TEXT_VALIDATOR_CAPABILITIES
 def runtime_capabilities() -> list[str]:
     """Return only scorers this process can execute safely right now."""
     capabilities = list(TEXT_VALIDATOR_CAPABILITIES)
+    from .prober import token_limit_available
+
+    if token_limit_available():
+        capabilities.append("text.token_limit.v1")
     from .media_prober import media_dependencies_available
 
     if Settings.MEDIA_ALLOWED_ORIGINS and media_dependencies_available():

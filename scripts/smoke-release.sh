@@ -66,6 +66,10 @@ assert_clean_offline_check() {
     cat "$out" >&2
     die "$label did not reach the expected Grid-model failure"
   }
+  grep -F "text.token_limit.v1" "$out" >/dev/null || {
+    cat "$out" >&2
+    die "$label did not load the packaged token-limit scorer"
+  }
 }
 
 stat_mode() {

@@ -162,7 +162,7 @@ def _cmd_init(args) -> int:
 
 def _cmd_check(args) -> int:
     """One-shot health check so an operator knows it works before running 24/7."""
-    from . import staking
+    from . import attest, staking
     from .config import Settings
     from .grid_client import GridClient
     from .main import probe_round
@@ -184,11 +184,12 @@ def _cmd_check(args) -> int:
     else:
         print("INFO Stake: gate disabled (V0 preview)")
 
+    local_capabilities = attest.runtime_capabilities()
+    print(f"OK Local scorers: {', '.join(local_capabilities)}")
+
     async def _go():
         grid = GridClient()
         try:
-            from . import attest
-
             try:
                 registration = await grid.register_validator(
                     attest.sign(attest.build_registration(int(time.time())))

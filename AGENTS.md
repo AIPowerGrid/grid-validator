@@ -105,8 +105,9 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   secrets in `.env`, not in the unit file.
 - **`scripts/smoke-release.sh`** — full local release smoke: unit tests, CLI,
   dashboard, Docker, release binary, and binary installer using throwaway
-  offline config. Use `SKIP_DOCKER=1` or `SKIP_BINARY=1` only when the local
-  machine genuinely cannot run that lane.
+  offline config. The Docker and frozen-binary checks must both prove the
+  packaged token-limit scorer loads. Use `SKIP_DOCKER=1` or `SKIP_BINARY=1`
+  only when the local machine genuinely cannot run that lane.
 - **`scripts/verify-release-assets.sh`** — publication gate for the exact four
   platform archives, checksum-covered installer, SPDX JSON SBOM, and
   `SHA256SUMS`. It verifies archive contents and rejects missing, extra, or
@@ -139,8 +140,10 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
 - V0 text scorer capabilities are exact instruction following, generated
   arithmetic, strict JSON, context retrieval, generated multistep logic, and
   one exact randomized function call, a two-stage randomized tool chain, and
-  randomized stop-sequence compliance. Token-budget honesty remains future
-  work.
+  randomized stop-sequence compliance, plus gross output-budget compliance.
+  The token-limit lane independently counts visible and reasoning output with
+  `o200k_base` and a cross-tokenizer tolerance; it does not claim exact native
+  tokenizer equivalence.
   They are usefulness samples, not proof of a model family or parameter count.
 - The media witness fetch/verifier and independent `image.fidelity.v1` scorer
   are wired to assignment polling but remain Core-gated: exact

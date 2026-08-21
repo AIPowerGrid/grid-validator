@@ -7,6 +7,13 @@ from validator import prober
 
 
 class ProberTests(unittest.TestCase):
+    @staticmethod
+    def _repeat_to_tokens(token: str, minimum: int) -> str:
+        pieces = []
+        while prober._count_tokens(" ".join(pieces)) < minimum:
+            pieces.append(token)
+        return " ".join(pieces)
+
     def test_score_failed_on_empty_answer(self):
         canary = {"expect": "42"}
         self.assertEqual(prober.score(canary, "", 0.1), "failed")
@@ -182,6 +189,99 @@ class ProberTests(unittest.TestCase):
                 prober.score_committed(canary, "ABC123<STOP_XYZ>TAIL", 0.1),
                 "failed",
             )
+
+    def test_score_committed_token_limit_requires_cutoff_and_bounded_grid_count(self):
+        token = "repeat_marker"
+        max_tokens = 192
+        canary = {
+            "kind": "token.limit",
+            "max_tokens": max_tokens,
+            "expected_hash": hashlib.sha256(token.encode()).hexdigest(),
+        }
+        healthy = self._repeat_to_tokens(token, max_tokens // 2)
+        too_short = healthy.rsplit(" ", 1)[0]
+        too_long = self._repeat_to_tokens(token, ((max_tokens * 5) + 3) // 4 + 9)
+        with patch.object(prober.Settings, "LATENCY_BUDGET_S", 30):
+            self.assertEqual(
+                prober.score_committed(
+                    canary, healthy, 0.1, finish_reason="length"
+                ),
+                "healthy",
+            )
+            self.assertEqual(
+                prober.score_committed(canary, healthy, 0.1, finish_reason="stop"),
+                "failed",
+            )
+            self.assertEqual(
+                prober.score_committed(
+                    canary, too_short, 0.1, finish_reason="length"
+                ),
+                "failed",
+            )
+            self.assertEqual(
+                prober.score_committed(
+                    canary,
+                    healthy + " WRONG",
+                    0.1,
+                    finish_reason="length",
+                ),
+                "failed",
+            )
+            self.assertEqual(
+                prober.score_committed(
+                    canary, too_long, 0.1, finish_reason="length"
+                ),
+                "failed",
+            )
+
+    def test_score_committed_token_limit_counts_reasoning_output(self):
+        token = "visible_marker"
+        max_tokens = 160
+        visible = self._repeat_to_tokens(token, max_tokens // 2)
+        reasoning = self._repeat_to_tokens("reasoning_marker", max_tokens)
+        canary = {
+            "kind": "token.limit",
+            "max_tokens": max_tokens,
+            "expected_hash": hashlib.sha256(token.encode()).hexdigest(),
+        }
+        self.assertEqual(
+            prober.score_committed(
+                canary,
+                visible,
+                0.1,
+                reasoning_text=reasoning,
+                finish_reason="length",
+            ),
+            "failed",
+        )
+
+    def test_token_limit_capability_fails_closed_when_encoding_cannot_load(self):
+        canary = {
+            "kind": "token.limit",
+            "max_tokens": 64,
+            "expected_hash": hashlib.sha256(b"repeat_marker").hexdigest(),
+        }
+        with (
+            patch.object(prober, "_TOKEN_ENCODING", None),
+            patch.object(
+                prober.tiktoken,
+                "get_encoding",
+                side_effect=ValueError("plugin unavailable"),
+            ),
+            patch.object(
+                prober._tiktoken_openai_public,
+                "o200k_base",
+                side_effect=OSError("encoding unavailable"),
+            ),
+        ):
+            self.assertFalse(prober.token_limit_available())
+            with self.assertRaises(prober.ScorerUnavailable):
+                prober.score_committed(
+                    canary,
+                    "repeat_marker repeat_marker",
+                    0.1,
+                    finish_reason="length",
+                )
 
     def test_score_committed_unknown_kind_fails_closed(self):
         canary = {

@@ -37,6 +37,10 @@ video scoring remains design/scaffold.
 - **`prober.py`** — independent text scoring for randomized exact-instruction,
   arithmetic, strict-JSON, context-retrieval, multistep-logic, and exact
   single-function-call, two-stage tool-chain, and stop-sequence commitments;
+  its token-limit scorer independently counts visible plus reasoning output
+  with `o200k_base`, requires a length-style finish, and applies the same
+  cross-tokenizer tolerance as Core. Runtime registration withholds that
+  capability when the local encoding cannot be loaded;
   legacy local canary helpers remain for isolated tests. `is_text_model`
   heuristic skips media models in v0; `_strip_think` ignores reasoning-model
   chain-of-thought. Do not reintroduce static QA answer lists.
@@ -72,7 +76,8 @@ video scoring remains design/scaffold.
   startup errors and exit nonzero, not traceback.
 - **`cli.py`** — `aipg-validator init | check | dashboard | run` (interactive
   `.env` at chmod 600; capability/scorecard-aware health check with
-  `--no-probe`; stake-disabled preview check reports an explicit skip, while
+  `--no-probe`; check reports the locally usable scorer set before registration;
+  stake-disabled preview check reports an explicit skip, while
   stake-required check fails closed on missing stake deps/config; startup
   config errors print one operator-facing line instead of tracebacks; the loop;
   local dashboard command).

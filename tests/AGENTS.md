@@ -23,6 +23,13 @@ installer generation.
 
 - Tests use generated challenges and synthetic credentials; never commit live
   prompts, answer keys, pHashes, validator keys, or production API keys.
+- Token-limit tests must prove early-stop, wrong-token, oversized, and hidden
+  reasoning output fail closed, and that the signed response commitment binds
+  visible text, reasoning text, and finish reason.
+- Frozen-binary coverage must prove the dynamically packaged tokenizer is
+  usable; registration must withhold the capability if it is unavailable.
+- CLI checks must expose the local scorer set so release smokes can distinguish
+  a usable frozen scorer from a silently withheld capability.
 - Preserve the no-economic-effect boundary: assignment success/failure must not
   imply payout, routing, strike, or slash authority.
 - Prove missing registration, assignments, and probe support do not fall back

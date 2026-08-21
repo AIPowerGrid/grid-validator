@@ -45,6 +45,12 @@ def _response_commitment_text(assignment: dict, result: dict) -> str:
         return _canonical({"text": text, "tool_calls": result.get("tool_calls")})
     if kind == "tool.chain":
         return _canonical({"steps": result.get("tool_chain")})
+    if kind == "token.limit":
+        return _canonical({
+            "text": text,
+            "reasoning": str(result.get("reasoning_text") or ""),
+            "finish_reason": result.get("finish_reason"),
+        })
     return text
 
 
@@ -154,6 +160,7 @@ def _assignment_canary(assignment: dict) -> dict | None:
         "prompt": str(prompt),
         "expected_hash": str(expected_hash),
         "steps": challenge.get("steps"),
+        "max_tokens": challenge.get("max_tokens"),
     }
 
 
@@ -224,6 +231,8 @@ async def _probe_assignment(
     text = str(res.get("output_text") or res.get("text") or "")
     tool_calls = res.get("tool_calls")
     tool_chain = res.get("tool_chain")
+    reasoning_text = str(res.get("reasoning_text") or "")
+    finish_reason = res.get("finish_reason")
     probe_failed = bool((res.get("grid") or {}).get("probe_failed"))
     if not text and not tool_calls and not tool_chain and not probe_failed:
         logger.info(f"[{str(worker_id)[:8]} {model}] assignment probe returned no text; skipping")
@@ -242,9 +251,11 @@ async def _probe_assignment(
             },
             text,
             latency,
+            reasoning_text=reasoning_text,
+            finish_reason=finish_reason,
         )
-    except ValueError:
-        logger.warning("assignment has an invalid scoring commitment; skipping")
+    except (ValueError, prober.ScorerUnavailable):
+        logger.warning("assignment scorer is unavailable or invalid; skipping")
         return 0
     if verdict not in attest.VALID_VERDICTS:
         logger.info(

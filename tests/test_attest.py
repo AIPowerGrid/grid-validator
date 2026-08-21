@@ -10,7 +10,10 @@ from validator.config import Settings
 
 class AttestationTests(unittest.TestCase):
     def test_registration_advertises_only_implemented_text_scorers(self):
-        with patch.object(Settings, "VALIDATOR_WALLET", "0x" + "12" * 20):
+        with (
+            patch.object(Settings, "VALIDATOR_WALLET", "0x" + "12" * 20),
+            patch("validator.prober.token_limit_available", return_value=True),
+        ):
             payload = attest.build_registration(123456)
 
         self.assertEqual(
@@ -24,8 +27,18 @@ class AttestationTests(unittest.TestCase):
                 "text.tool_call.v1",
                 "text.tool_chain.v1",
                 "text.stop_sequence.v1",
+                "text.token_limit.v1",
             ],
         )
+
+    def test_registration_withholds_token_limit_when_encoder_is_unavailable(self):
+        with (
+            patch.object(Settings, "VALIDATOR_WALLET", "0x" + "12" * 20),
+            patch("validator.prober.token_limit_available", return_value=False),
+        ):
+            payload = attest.build_registration(123456)
+
+        self.assertNotIn("text.token_limit.v1", payload["capabilities"])
 
     def test_registration_advertises_image_only_when_runtime_is_ready(self):
         with (

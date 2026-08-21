@@ -139,6 +139,10 @@ class CliCheckTests(unittest.TestCase):
             patch("validator.config.Settings.validate", return_value=None),
             patch.object(Settings, "REQUIRE_STAKE", False),
             patch("validator.staking.assert_eligible", return_value=None),
+            patch(
+                "validator.attest.runtime_capabilities",
+                return_value=["text.instruction.v1", "text.token_limit.v1"],
+            ),
             patch("validator.main.probe_round", fake_probe_round),
             patch("validator.grid_client.GridClient", FakeGrid),
         ):
@@ -151,6 +155,7 @@ class CliCheckTests(unittest.TestCase):
         out = buf.getvalue()
         self.assertIn("Validator API: available", out)
         self.assertIn("Stake: gate disabled", out)
+        self.assertIn("Local scorers: text.instruction.v1, text.token_limit.v1", out)
         self.assertIn("Scorecards: 1 subject", out)
         self.assertIn("economic_effect=none", out)
         self.assertIn("Probe skipped", out)

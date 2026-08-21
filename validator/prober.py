@@ -6,7 +6,7 @@
 Legacy local canaries retain echo and generated arithmetic for isolated tests.
 Grid-issued shared probes additionally support strict JSON, randomized context
 retrieval, generated multistep logic, exact function calls, two-stage tool
-chains, and stop-sequence compliance. Expected
+chains, stop-sequence compliance, and gross output-budget compliance. Expected
 answers remain one-way
 commitments; this node normalizes and hashes the worker response independently.
 
@@ -18,7 +18,47 @@ import json
 import secrets
 import re
 
+import tiktoken
+from tiktoken_ext import openai_public as _tiktoken_openai_public
+
 from .config import Settings
+
+
+_TOKEN_ENCODING = None
+
+
+class ScorerUnavailable(RuntimeError):
+    """The node cannot execute a scorer without risking false evidence."""
+
+
+def _token_encoding():
+    global _TOKEN_ENCODING
+    if _TOKEN_ENCODING is not None:
+        return _TOKEN_ENCODING
+    try:
+        _TOKEN_ENCODING = tiktoken.get_encoding("o200k_base")
+    except ValueError:
+        # PyInstaller cannot discover tiktoken's namespace plugin reliably.
+        # The explicit import above keeps it in the binary; this constructor
+        # preserves the exact same encoding without relying on plugin scanning.
+        try:
+            _TOKEN_ENCODING = tiktoken.Encoding(
+                **_tiktoken_openai_public.o200k_base()
+            )
+        except Exception as exc:
+            raise ScorerUnavailable("o200k_base tokenizer is unavailable") from exc
+    except Exception as exc:
+        raise ScorerUnavailable("o200k_base tokenizer is unavailable") from exc
+    return _TOKEN_ENCODING
+
+
+def token_limit_available() -> bool:
+    """Advertise the scorer only after its local tokenizer loads successfully."""
+    try:
+        _token_encoding()
+    except ScorerUnavailable:
+        return False
+    return True
 
 
 # v0 runs against /v1/models, which doesn't carry modality, so we can't send a
@@ -143,7 +183,14 @@ def score(canary: dict, text: str, latency_s: float) -> str:
     return "healthy"
 
 
-def score_committed(canary: dict, text: str, latency_s: float) -> str:
+def score_committed(
+    canary: dict,
+    text: str,
+    latency_s: float,
+    *,
+    reasoning_text: str = "",
+    finish_reason: str | None = None,
+) -> str:
     """Grade against Core's one-way expected-answer commitment.
 
     This keeps the answer itself out of the assignment response while allowing
@@ -152,9 +199,16 @@ def score_committed(canary: dict, text: str, latency_s: float) -> str:
     expected_hash = str(canary.get("expected_hash") or "")
     if not re.fullmatch(r"[0-9a-f]{64}", expected_hash):
         raise ValueError("canary expected_hash must be a lowercase SHA-256 digest")
-    candidate = _normalized_committed_answer(
-        str(canary.get("kind") or ""), text, canary.get("tool_calls")
-    )
+    kind = str(canary.get("kind") or "")
+    if kind == "token.limit":
+        candidate = _normalized_token_limit_answer(
+            canary,
+            text,
+            reasoning_text,
+            finish_reason,
+        )
+    else:
+        candidate = _normalized_committed_answer(kind, text, canary.get("tool_calls"))
     if candidate is None:
         return "failed"
     actual_hash = hashlib.sha256(candidate.encode("utf-8")).hexdigest()
@@ -205,6 +259,39 @@ def _normalized_tool_chain(tool_chain) -> str | None:
             return None
         normalized.append(json.loads(call))
     return json.dumps(normalized, sort_keys=True, separators=(",", ":"))
+
+
+def _count_tokens(text: str) -> int:
+    if not text:
+        return 0
+    return len(_token_encoding().encode(text, disallowed_special=()))
+
+
+def _normalized_token_limit_answer(
+    canary: dict,
+    text: str,
+    reasoning_text: str,
+    finish_reason: str | None,
+) -> str | None:
+    """Verify the same model-agnostic gross token budget used by Core."""
+    try:
+        max_tokens = int(canary.get("max_tokens") or 0)
+    except (TypeError, ValueError):
+        return None
+    if max_tokens < 32 or finish_reason not in {"length", "max_tokens"}:
+        return None
+
+    answer = _strip_think(text)
+    pieces = answer.split()
+    if len(pieces) < 2 or any(piece != pieces[0] for piece in pieces):
+        return None
+
+    observed = _count_tokens(text) + _count_tokens(reasoning_text)
+    minimum = max(1, max_tokens // 2)
+    maximum = ((max_tokens * 5) + 3) // 4 + 8
+    if observed < minimum or observed > maximum:
+        return None
+    return pieces[0]
 
 
 def _normalized_committed_answer(kind: str, text: str, tool_calls=None) -> str | None:
