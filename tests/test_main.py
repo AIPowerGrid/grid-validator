@@ -611,6 +611,83 @@ class ProbeRoundTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(payload["response_hash"], response_hash)
         self.assertEqual(main._assignment_canary(assignment)["max_tokens"], max_tokens)
 
+    async def test_reasoning_only_token_limit_is_failed_evidence_not_a_skip(self):
+        token = "visible_marker"
+        assignment = {
+            **self._assignment(),
+            "capability": "text.token_limit.v1",
+            "canary_kind": "token.limit",
+        }
+        assignment["challenge"] = {
+            "kind": "token.limit",
+            "prompt": f"Repeat {token} until the generation limit stops you.",
+            "expected_hash": hashlib.sha256(token.encode()).hexdigest(),
+            "max_tokens": 192,
+        }
+        result = {
+            "status": "completed",
+            "output_text": "",
+            "reasoning_text": "hidden reasoning consumed the output budget",
+            "finish_reason": "length",
+            "assignment_id": assignment["assignment_id"],
+            "probe_group_id": assignment["probe_group_id"],
+            "grid_nonce": assignment["grid_nonce"],
+            "target_worker_id": assignment["target_worker_id"],
+            "model": assignment["model"],
+            "modality": assignment["modality"],
+            "capability": assignment["capability"],
+            "canary_kind": assignment["canary_kind"],
+        }
+        response_commitment = main._response_commitment_text(assignment, result)
+        prompt_hash = hashlib.sha256(
+            main._prompt_commitment_text(assignment).encode()
+        ).hexdigest()
+        response_hash = hashlib.sha256(response_commitment.encode()).hexdigest()
+        evidence = {
+            "assignment_id": assignment["assignment_id"],
+            "probe_group_id": assignment["probe_group_id"],
+            "grid_nonce": assignment["grid_nonce"],
+            "worker_id": assignment["target_worker_id"],
+            "model": assignment["model"],
+            "modality": assignment["modality"],
+            "capability": assignment["capability"],
+            "canary_kind": assignment["canary_kind"],
+            "prompt_hash": prompt_hash,
+            "response_hash": response_hash,
+        }
+        result.update(
+            {
+                "prompt_hash": prompt_hash,
+                "response_hash": response_hash,
+                "evidence_hash": hashlib.sha256(
+                    json.dumps(evidence, sort_keys=True, separators=(",", ":")).encode()
+                ).hexdigest(),
+            }
+        )
+
+        class FakeGrid:
+            def __init__(self):
+                self.submitted = []
+
+            async def validator_assignments(self, **_kwargs):
+                return [assignment]
+
+            async def probe_assignment(self, _assignment_id):
+                return result
+
+            async def submit_attestation(self, envelope):
+                self.submitted.append(envelope)
+                return True
+
+        grid = FakeGrid()
+        with (
+            patch.object(Settings, "VALIDATOR_WALLET", TEST_ACCOUNT.address.lower()),
+            patch.object(Settings, "VALIDATOR_PRIVATE_KEY", TEST_ACCOUNT.key.hex()),
+        ):
+            self.assertEqual(await main.probe_round(grid, 0, self.outbox), 1)
+
+        self.assertEqual(grid.submitted[0]["payload"]["verdict"], "failed")
+
     def test_assignment_canary_preserves_code_hidden_inputs_for_local_scoring(self):
         assignment = {
             **self._assignment(),

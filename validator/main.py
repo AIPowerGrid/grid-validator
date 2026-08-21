@@ -238,8 +238,16 @@ async def _probe_assignment(
     reasoning_text = str(res.get("reasoning_text") or "")
     finish_reason = res.get("finish_reason")
     probe_failed = bool((res.get("grid") or {}).get("probe_failed"))
-    if not text and not tool_calls and not tool_chain and not probe_failed:
-        logger.info(f"[{str(worker_id)[:8]} {model}] assignment probe returned no text; skipping")
+    if (
+        not text
+        and not reasoning_text
+        and not tool_calls
+        and not tool_chain
+        and not probe_failed
+    ):
+        logger.info(
+            f"[{str(worker_id)[:8]} {model}] assignment probe returned no committed output; skipping"
+        )
         return 0
 
     response_commitment = _response_commitment_text(assignment, res)

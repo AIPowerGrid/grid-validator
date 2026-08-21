@@ -19,6 +19,8 @@ independent-reference and rollout gates pass.
   `Settings.validate()` enforces required fields, rejects malformed Grid URLs,
   rejects malformed EVM addresses for wallet/token/staking fields, validates the
   local dashboard port, and rejects a wallet/private-key mismatch.
+  The default targeted-probe timeout covers Core's complete 180-second text
+  probe window; do not shorten the client below the server-side deadline.
   All env reads live here. Malformed numeric/boolean/URL/address env values must be reported
   through `Settings.validate()` as operator-facing config errors, not import-time
   tracebacks or downstream Web3 exceptions.
@@ -167,8 +169,10 @@ independent-reference and rollout gates pass.
   canonical probe evidence hash; and score the returned output locally against
   Core's one-way expected-answer commitment. A binding mismatch is a skip. Core
   does not return its private verdict.
-- **No false targeted failures:** if a targeted probe endpoint is missing, disabled, or
-  returns no text, skip attestation instead of recording `failed`.
+- **No false targeted failures:** if a targeted probe endpoint is missing,
+  disabled, or returns no committed output at all, skip attestation instead of
+  recording `failed`. A verified token-limit result containing reasoning but no
+  required visible output is still independently scorable failed evidence.
 - **No green no-op checks:** `aipg-validator check` must fail clearly when no
   compatible text target exists and therefore no V0 canary was submitted.
 - **Persist before send:** an attestation must enter the outbox before the HTTP
