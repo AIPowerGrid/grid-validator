@@ -233,6 +233,8 @@ Current V0 checks:
 - strict JSON object compliance
 - randomized context retrieval at calibrated 4K, 16K, and 32K tiers
 - generated multistep integer logic
+- Python function synthesis interpreted over a bounded arithmetic AST against
+  assignment-only hidden inputs; worker code is never executed
 - exact randomized single-function calls
 - exact randomized two-stage tool-call chains
 - randomized stop-sequence compliance
@@ -241,11 +243,9 @@ Current V0 checks:
 Planned checks:
 
 - richer JSON Schema constraints
-- hidden code tests
 - code and logic capability tiers
 - larger 64K+ long-context retrieval tiers
 - longer tool-call chains
-- max-token compliance
 - streaming integrity
 
 Prefer objective checks. Use LLM-as-judge only as a supporting signal.
@@ -440,8 +440,9 @@ Going offline should stop rewards, not slash stake.
 - [x] Node scaffold.
 - [x] V0 text prober.
 - [x] Capability-gated exact instruction, arithmetic, strict JSON, context
-  retrieval, multistep logic, single-function-call, two-stage tool-chain, and
-  stop-sequence scorers.
+  retrieval, multistep logic, restricted-AST code synthesis,
+  single-function-call, two-stage tool-chain, stop-sequence, and gross
+  token-limit scorers.
 - [x] Operator CLI.
 - [x] Release binary installer scaffold.
 - [x] Linux systemd installer scaffold.

@@ -611,6 +611,25 @@ class ProbeRoundTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(payload["response_hash"], response_hash)
         self.assertEqual(main._assignment_canary(assignment)["max_tokens"], max_tokens)
 
+    def test_assignment_canary_preserves_code_hidden_inputs_for_local_scoring(self):
+        assignment = {
+            **self._assignment(),
+            "capability": "text.code.v1",
+            "canary_kind": "code.function",
+        }
+        assignment["challenge"] = {
+            "kind": "code.function",
+            "prompt": "Write the requested function.",
+            "expected_hash": "a" * 64,
+            "function_name": "transform_a1b2c3d4",
+            "test_inputs": [-2, 0, 7],
+        }
+
+        canary = main._assignment_canary(assignment)
+
+        self.assertEqual(canary["function_name"], "transform_a1b2c3d4")
+        self.assertEqual(canary["test_inputs"], [-2, 0, 7])
+
     def test_token_limit_commitment_binds_reasoning_and_finish_reason(self):
         assignment = {
             "canary_kind": "token.limit",

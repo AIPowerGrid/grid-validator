@@ -34,6 +34,7 @@ TEXT_VALIDATOR_CAPABILITIES = [
     "text.context.16k.v1",
     "text.context.32k.v1",
     "text.reasoning.multistep.v1",
+    "text.code.v1",
     "text.tool_call.v1",
     "text.tool_chain.v1",
     "text.stop_sequence.v1",

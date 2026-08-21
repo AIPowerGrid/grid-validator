@@ -13,6 +13,7 @@ commitments; this node normalizes and hashes the worker response independently.
 Verdicts: "healthy" | "slow" | "failed".
 """
 
+import ast
 import hashlib
 import json
 import secrets
@@ -207,6 +208,8 @@ def score_committed(
             reasoning_text,
             finish_reason,
         )
+    elif kind == "code.function":
+        candidate = _normalized_code_answer(canary, text)
     else:
         candidate = _normalized_committed_answer(kind, text, canary.get("tool_calls"))
     if candidate is None:
@@ -259,6 +262,90 @@ def _normalized_tool_chain(tool_chain) -> str | None:
             return None
         normalized.append(json.loads(call))
     return json.dumps(normalized, sort_keys=True, separators=(",", ":"))
+
+
+_CODE_BINARY_OPERATORS = {
+    ast.Add: lambda left, right: left + right,
+    ast.Sub: lambda left, right: left - right,
+    ast.Mult: lambda left, right: left * right,
+    ast.FloorDiv: lambda left, right: left // right,
+    ast.Mod: lambda left, right: left % right,
+}
+_CODE_VALUE_LIMIT = 10**12
+
+
+def _evaluate_code_expression(node: ast.AST, x: int) -> int:
+    if isinstance(node, ast.Name) and node.id == "x":
+        return x
+    if isinstance(node, ast.Constant) and type(node.value) is int:
+        if abs(node.value) > 1_000_000:
+            raise ValueError("integer literal is out of bounds")
+        return node.value
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.UAdd, ast.USub)):
+        value = _evaluate_code_expression(node.operand, x)
+        result = value if isinstance(node.op, ast.UAdd) else -value
+    elif isinstance(node, ast.BinOp) and type(node.op) in _CODE_BINARY_OPERATORS:
+        left = _evaluate_code_expression(node.left, x)
+        right = _evaluate_code_expression(node.right, x)
+        if isinstance(node.op, (ast.FloorDiv, ast.Mod)) and right == 0:
+            raise ValueError("division by zero")
+        result = _CODE_BINARY_OPERATORS[type(node.op)](left, right)
+    else:
+        raise ValueError("unsupported code expression")
+    if abs(result) > _CODE_VALUE_LIMIT:
+        raise ValueError("code result is out of bounds")
+    return result
+
+
+def _normalized_code_answer(canary: dict, text: str) -> str | None:
+    """Interpret a tiny arithmetic Python subset; never execute worker code."""
+    answer = _strip_think(text)
+    if not answer or len(answer.encode("utf-8")) > 4_096:
+        return None
+    function_name = canary.get("function_name")
+    test_inputs = canary.get("test_inputs")
+    if (
+        not isinstance(function_name, str)
+        or not re.fullmatch(r"transform_[0-9a-f]{8}", function_name)
+        or not isinstance(test_inputs, list)
+        or not 3 <= len(test_inputs) <= 16
+        or any(type(value) is not int or abs(value) > 1_000_000 for value in test_inputs)
+    ):
+        return None
+    try:
+        tree = ast.parse(answer, mode="exec")
+    except (SyntaxError, TypeError, ValueError):
+        return None
+    if len(list(ast.walk(tree))) > 64 or len(tree.body) != 1:
+        return None
+    function = tree.body[0]
+    if not isinstance(function, ast.FunctionDef) or function.name != function_name:
+        return None
+    args = function.args
+    if (
+        function.decorator_list
+        or function.returns is not None
+        or args.posonlyargs
+        or len(args.args) != 1
+        or args.args[0].arg != "x"
+        or args.args[0].annotation is not None
+        or args.vararg is not None
+        or args.kwonlyargs
+        or args.kwarg is not None
+        or args.defaults
+        or args.kw_defaults
+        or len(function.body) != 1
+        or not isinstance(function.body[0], ast.Return)
+    ):
+        return None
+    try:
+        outputs = [
+            _evaluate_code_expression(function.body[0].value, value)
+            for value in test_inputs
+        ]
+    except (ArithmeticError, TypeError, ValueError):
+        return None
+    return json.dumps(outputs, separators=(",", ":"))
 
 
 def _count_tokens(text: str) -> int:

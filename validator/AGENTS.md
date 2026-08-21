@@ -36,7 +36,10 @@ independent-reference and rollout gates pass.
   dashboard-only and must never become an alternate targeting authority.
 - **`prober.py`** — independent text scoring for randomized exact-instruction,
   arithmetic, strict-JSON, exact 4K/16K/32K context-retrieval, multistep-logic,
-  exact single-function-call, two-stage tool-chain, and stop-sequence commitments;
+  restricted-AST Python functions against assignment-only hidden inputs, exact
+  single-function-call, two-stage tool-chain, and stop-sequence commitments. The
+  code scorer parses and interprets one bounded integer expression; it must never
+  `exec`, import, call, or otherwise run worker-supplied code;
   its token-limit scorer independently counts visible plus reasoning output
   with `o200k_base`, requires a length-style finish, and applies the same
   cross-tokenizer tolerance as Core. Runtime registration withholds that
