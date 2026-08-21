@@ -90,11 +90,13 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   Ordinary CI installs from the frozen `uv.lock` and audits the complete locked
   graph, including every optional dependency lane; it must not resolve the
   broad `pyproject.toml` ranges independently with pip.
-  Tag pushes publish normal release artifacts. Manual binary releases must set
-  `release_tag`; manual Docker publishes must set `image_tag`, with `latest`
-  allowed only for stable tags. Preview/alpha/beta/RC images must never replace
-  `latest`. A build-only binary dispatch still assembles and verifies the full
-  payload, but skips provenance attestation, tag creation, and publication. A
+  Pull requests and `master` pushes assemble and verify the exact four-platform
+  binary payload without publishing it. Tag pushes publish normal release
+  artifacts. Manual binary releases must set `release_tag`; manual Docker
+  publishes must set `image_tag`, with `latest` allowed only for stable tags.
+  Preview/alpha/beta/RC images must never replace `latest`. A build-only binary
+  dispatch still assembles and verifies the full payload, but skips provenance
+  attestation, tag creation, and publication. A
   manual Docker dispatch defaults to multi-architecture build-only validation;
   `publish_image` must be explicit before login, push, or attestation.
   GitHub immutable releases must remain enabled. After a release is published,
@@ -117,8 +119,10 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   only when the local machine genuinely cannot run that lane.
 - **`scripts/verify-release-assets.sh`** — publication gate for the exact four
   platform archives, checksum-covered installer, SPDX JSON SBOM, and
-  `SHA256SUMS`. It verifies archive contents and rejects missing, extra, or
-  mismatched manifest entries before provenance is attested.
+  `validator-release.json` plus `SHA256SUMS`. The manifest binds version, tag,
+  source commit, exact asset names, sizes, and hashes; the aggregate checksum
+  covers the manifest. The verifier checks archive contents and rejects missing,
+  extra, or mismatched entries before provenance is attested.
 - **`scripts/classify-release-tag.sh`** — shared binary/Docker tag policy.
   Only stable `vX.Y.Z` tags may publish `latest`; bounded prerelease tags such
   as `v0.1.0-preview` remain explicitly versioned.

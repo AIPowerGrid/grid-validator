@@ -4,7 +4,9 @@ permissions:
   contents: read
 
 on:
+  pull_request:
   push:
+    branches: [master]
     tags: ["v*", "[0-9]+.[0-9]+.[0-9]+"]
   workflow_dispatch:
     inputs:
@@ -142,6 +144,7 @@ jobs:
           if-no-files-found: error
 
   bundle:
+    name: Assemble verified release payload
     needs: [validate, build]
     runs-on: ubuntu-latest
     permissions:
@@ -168,12 +171,69 @@ jobs:
         shell: bash
         run: install -m 0755 scripts/install-binary.sh dist-artifacts/install-validator.sh
 
-      - name: Generate SHA-256 manifest
+      - name: Generate release identity and SHA-256 manifest
         shell: bash
+        env:
+          RELEASE_TAG: ${{ needs.validate.outputs.tag }}
+          RELEASE_COMMIT: ${{ github.sha }}
         run: |
-          cd dist-artifacts
-          files=( *.zip *.spdx.json install-validator.sh )
-          sha256sum -- "${files[@]}" > SHA256SUMS
+          python - <<'PY'
+          import hashlib
+          import json
+          import os
+          import pathlib
+          import re
+          import tomllib
+
+          root = pathlib.Path("dist-artifacts")
+          names = [
+              "aipg-validator-linux-x64.zip",
+              "aipg-validator-linux-arm64.zip",
+              "aipg-validator-macos-arm64.zip",
+              "aipg-validator-windows-x64.zip",
+              "aipg-validator-release.spdx.json",
+              "install-validator.sh",
+          ]
+          project = tomllib.loads(
+              pathlib.Path("pyproject.toml").read_text(encoding="utf-8")
+          )["project"]
+          version = project["version"]
+          tag = os.environ["RELEASE_TAG"]
+          if tag and not re.fullmatch(
+              rf"v{re.escape(version)}(?:-(?:preview|alpha|beta|rc)(?:\.[0-9]+)?)?",
+              tag,
+          ):
+              raise SystemExit("release tag does not match project version")
+
+          assets = []
+          for name in names:
+              path = root / name
+              assets.append({
+                  "name": name,
+                  "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                  "bytes": path.stat().st_size,
+              })
+          manifest = {
+              "schema": "aipg-validator-release-v1",
+              "tag": tag,
+              "version": version,
+              "commit": os.environ["RELEASE_COMMIT"],
+              "assets": assets,
+          }
+          (root / "validator-release.json").write_text(
+              json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          checksummed = [*names, "validator-release.json"]
+          lines = [
+              f"{hashlib.sha256((root / name).read_bytes()).hexdigest()}  {name}"
+              for name in checksummed
+          ]
+          (root / "SHA256SUMS").write_text(
+              "\n".join(lines) + "\n",
+              encoding="ascii",
+          )
+          PY
 
       - name: Verify complete release payload
         run: ./scripts/verify-release-assets.sh dist-artifacts
@@ -218,5 +278,6 @@ jobs:
           files: |
             dist-artifacts/*.zip
             dist-artifacts/*.spdx.json
+            dist-artifacts/validator-release.json
             dist-artifacts/install-validator.sh
             dist-artifacts/SHA256SUMS
