@@ -143,6 +143,85 @@ class ProbeRoundTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(await main.probe_round(grid, 0, self.outbox), 0)
         self.assertEqual(grid.submitted, [])
 
+    async def test_assignment_probe_scores_and_signs_witnessed_tool_call(self):
+        assignment = {
+            **self._assignment(),
+            "capability": "text.tool_call.v1",
+            "canary_kind": "tool.call",
+        }
+        tool_calls = [{
+            "id": "call_opaque", "type": "function",
+            "function": {
+                "name": "record_c", "arguments": '{"token_b":"A1","count_a":7}',
+            },
+        }]
+        expected = json.dumps(
+            {"arguments": {"count_a": 7, "token_b": "A1"}, "name": "record_c"},
+            sort_keys=True, separators=(",", ":"),
+        )
+        assignment["challenge"] = {
+            "kind": "tool.call",
+            "prompt": "Call record_c exactly once.",
+            "expected_hash": hashlib.sha256(expected.encode()).hexdigest(),
+        }
+        response_commitment = json.dumps(
+            {"text": "", "tool_calls": tool_calls},
+            sort_keys=True, separators=(",", ":"),
+        )
+        prompt_hash = hashlib.sha256(assignment["challenge"]["prompt"].encode()).hexdigest()
+        response_hash = hashlib.sha256(response_commitment.encode()).hexdigest()
+        evidence = {
+            "assignment_id": assignment["assignment_id"],
+            "probe_group_id": assignment["probe_group_id"],
+            "grid_nonce": assignment["grid_nonce"],
+            "worker_id": assignment["target_worker_id"],
+            "model": assignment["model"],
+            "modality": assignment["modality"],
+            "capability": assignment["capability"],
+            "canary_kind": assignment["canary_kind"],
+            "prompt_hash": prompt_hash,
+            "response_hash": response_hash,
+        }
+        result = {
+            "status": "completed", "output_text": "", "tool_calls": tool_calls,
+            "assignment_id": assignment["assignment_id"],
+            "probe_group_id": assignment["probe_group_id"],
+            "grid_nonce": assignment["grid_nonce"],
+            "target_worker_id": assignment["target_worker_id"],
+            "model": assignment["model"], "modality": assignment["modality"],
+            "capability": assignment["capability"], "canary_kind": assignment["canary_kind"],
+            "prompt_hash": prompt_hash, "response_hash": response_hash,
+            "evidence_hash": hashlib.sha256(
+                json.dumps(evidence, sort_keys=True, separators=(",", ":")).encode()
+            ).hexdigest(),
+        }
+
+        class FakeGrid:
+            def __init__(self):
+                self.submitted = []
+
+            async def validator_assignments(self, **_kwargs):
+                return [assignment]
+
+            async def probe_assignment(self, _assignment_id):
+                return result
+
+            async def submit_attestation(self, envelope):
+                self.submitted.append(envelope)
+                return True
+
+        grid = FakeGrid()
+        with (
+            patch.object(Settings, "VALIDATOR_WALLET", TEST_ACCOUNT.address.lower()),
+            patch.object(Settings, "VALIDATOR_PRIVATE_KEY", TEST_ACCOUNT.key.hex()),
+        ):
+            self.assertEqual(await main.probe_round(grid, 0, self.outbox), 1)
+
+        payload = grid.submitted[0]["payload"]
+        self.assertEqual(payload["capability"], "text.tool_call.v1")
+        self.assertEqual(payload["verdict"], "healthy")
+        self.assertEqual(payload["response_hash"], response_hash)
+
     async def test_assignment_probe_rejects_wrong_target_binding(self):
         class FakeGrid:
             def __init__(self):

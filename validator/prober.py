@@ -5,7 +5,8 @@
 
 Legacy local canaries retain echo and generated arithmetic for isolated tests.
 Grid-issued shared probes additionally support strict JSON, randomized context
-retrieval, and generated multistep logic. Expected answers remain one-way
+retrieval, generated multistep logic, and exact function calls. Expected
+answers remain one-way
 commitments; this node normalizes and hashes the worker response independently.
 
 Verdicts: "healthy" | "slow" | "failed".
@@ -150,7 +151,9 @@ def score_committed(canary: dict, text: str, latency_s: float) -> str:
     expected_hash = str(canary.get("expected_hash") or "")
     if not re.fullmatch(r"[0-9a-f]{64}", expected_hash):
         raise ValueError("canary expected_hash must be a lowercase SHA-256 digest")
-    candidate = _normalized_committed_answer(str(canary.get("kind") or ""), text)
+    candidate = _normalized_committed_answer(
+        str(canary.get("kind") or ""), text, canary.get("tool_calls")
+    )
     if candidate is None:
         return "failed"
     actual_hash = hashlib.sha256(candidate.encode("utf-8")).hexdigest()
@@ -161,8 +164,36 @@ def score_committed(canary: dict, text: str, latency_s: float) -> str:
     return "healthy"
 
 
-def _normalized_committed_answer(kind: str, text: str) -> str | None:
+def _normalized_tool_call(tool_calls) -> str | None:
+    if not isinstance(tool_calls, list) or len(tool_calls) != 1:
+        return None
+    call = tool_calls[0]
+    if not isinstance(call, dict):
+        return None
+    function = call.get("function")
+    if not isinstance(function, dict) or not isinstance(function.get("name"), str):
+        return None
+    arguments = function.get("arguments")
+    if isinstance(arguments, str):
+        try:
+            arguments = json.loads(arguments)
+        except (TypeError, ValueError):
+            return None
+    if not isinstance(arguments, dict):
+        return None
+    return json.dumps(
+        {"name": function["name"], "arguments": arguments},
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def _normalized_committed_answer(kind: str, text: str, tool_calls=None) -> str | None:
     answer = _strip_think(text)
+    if kind == "tool.call":
+        if answer:
+            return None
+        return _normalized_tool_call(tool_calls)
     if not answer:
         return None
     if kind in ("echo", "context.retrieve"):

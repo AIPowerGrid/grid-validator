@@ -31,7 +31,8 @@ exists as design/scaffold until the Grid adds modality-aware probe jobs.
   Assignment and probe endpoints fail closed when absent. Worker inventory is
   dashboard-only and must never become an alternate targeting authority.
 - **`prober.py`** — independent text scoring for randomized exact-instruction,
-  arithmetic, strict-JSON, context-retrieval, and multistep-logic commitments;
+  arithmetic, strict-JSON, context-retrieval, multistep-logic, and exact
+  function-call commitments;
   legacy local canary helpers remain for isolated tests. `is_text_model`
   heuristic skips media models in v0; `_strip_think` ignores reasoning-model
   chain-of-thought. Do not reintroduce static QA answer lists.

@@ -229,6 +229,7 @@ Current V0 checks:
 - strict JSON object compliance
 - randomized context retrieval
 - generated multistep integer logic
+- exact randomized single-function calls
 - latency classification
 
 Planned checks:
@@ -237,7 +238,7 @@ Planned checks:
 - hidden code tests
 - code and logic capability tiers
 - larger long-context retrieval tiers
-- tool-call chains
+- multi-turn tool-call chains
 - max-token and stop-sequence compliance
 - streaming integrity
 
@@ -397,7 +398,7 @@ Going offline should stop rewards, not slash stake.
 - [x] Node scaffold.
 - [x] V0 text prober.
 - [x] Capability-gated exact instruction, arithmetic, strict JSON, context
-  retrieval, and multistep logic scorers.
+  retrieval, multistep logic, and single-function-call scorers.
 - [x] Operator CLI.
 - [x] Release binary installer scaffold.
 - [x] Linux systemd installer scaffold.

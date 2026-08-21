@@ -34,6 +34,18 @@ def _sha256_text(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
+def _response_commitment_text(assignment: dict, result: dict) -> str:
+    text = str(result.get("output_text") or result.get("text") or "")
+    kind = str(
+        assignment.get("canary_kind")
+        or (assignment.get("challenge") or {}).get("kind")
+        or ""
+    )
+    if kind == "tool.call":
+        return _canonical({"text": text, "tool_calls": result.get("tool_calls")})
+    return text
+
+
 def _verified_probe_evidence(
     assignment: dict,
     result: dict,
@@ -165,17 +177,19 @@ async def _probe_assignment(
         logger.info(f"[{str(worker_id)[:8]} {model}] assignment probe unavailable; skipping")
         return 0
 
-    text = res.get("output_text") or res.get("text") or ""
-    if not text:
+    text = str(res.get("output_text") or res.get("text") or "")
+    tool_calls = res.get("tool_calls")
+    if not text and not tool_calls:
         logger.info(f"[{str(worker_id)[:8]} {model}] assignment probe returned no text; skipping")
         return 0
 
-    commitments = _verified_probe_evidence(assignment, res, text)
+    response_commitment = _response_commitment_text(assignment, res)
+    commitments = _verified_probe_evidence(assignment, res, response_commitment)
     if commitments is None:
         return 0
 
     try:
-        verdict = prober.score_committed(canary, text, latency)
+        verdict = prober.score_committed({**canary, "tool_calls": tool_calls}, text, latency)
     except ValueError:
         logger.warning("assignment has an invalid scoring commitment; skipping")
         return 0
@@ -197,7 +211,7 @@ async def _probe_assignment(
         ts=int(time.time()),
         modality=str(assignment.get("modality") or "text"),
         capability=str(assignment.get("capability") or "text.basic.v1"),
-        response_text=text,
+        response_text=response_commitment,
         assignment_id=str(assignment_id),
         probe_group_id=str(assignment.get("probe_group_id") or ""),
         grid_nonce=str(grid_nonce),

@@ -187,13 +187,14 @@ Capability lanes:
 - strict JSON/schema output
 - code generation with hidden tests
 - math and logic tasks with generated answers
-- tool-call chains
+- single-function calls, then multi-turn tool-call chains
 - long-context retrieval
 - max-token, stop-sequence, and streaming honesty
 
 Implemented in the preview: exact instruction, generated arithmetic, strict
-JSON object output, randomized context retrieval, and generated multistep
-integer logic. Code execution, tool-call chains, larger context tiers, and
+JSON object output, randomized context retrieval, generated multistep
+integer logic, and exact single-function calls. Code execution, multi-turn
+tool-call chains, larger context tiers, and
 transport-limit compliance remain future lanes.
 
 Scoring:

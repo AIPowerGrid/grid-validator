@@ -110,6 +110,30 @@ class ProberTests(unittest.TestCase):
             )
             self.assertEqual(prober.score_committed(canary, "41 or 42", 0.1), "failed")
 
+    def test_score_committed_tool_call_requires_one_exact_call_and_no_text(self):
+        expected = json.dumps(
+            {"arguments": {"count_a": 7, "token_b": "A1"}, "name": "record_c"},
+            sort_keys=True, separators=(",", ":"),
+        )
+        correct = [{
+            "id": "call_opaque", "type": "function",
+            "function": {
+                "name": "record_c", "arguments": '{"token_b":"A1","count_a":7}',
+            },
+        }]
+        canary = {
+            "kind": "tool.call",
+            "expected_hash": hashlib.sha256(expected.encode()).hexdigest(),
+            "tool_calls": correct,
+        }
+        with patch.object(prober.Settings, "LATENCY_BUDGET_S", 30):
+            self.assertEqual(prober.score_committed(canary, "", 0.1), "healthy")
+            self.assertEqual(prober.score_committed(canary, "I called it.", 0.1), "failed")
+            self.assertEqual(
+                prober.score_committed({**canary, "tool_calls": correct + correct}, "", 0.1),
+                "failed",
+            )
+
     def test_score_committed_unknown_kind_fails_closed(self):
         canary = {
             "kind": "unknown",
