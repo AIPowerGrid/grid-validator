@@ -223,6 +223,7 @@ Public release path:
    - `aipg-validator-linux-arm64.zip`
    - `aipg-validator-macos-arm64.zip`
    - `aipg-validator-windows-x64.zip`
+   - `validator-release.json`
    - `SHA256SUMS`
    - `aipg-validator-release.spdx.json`
    - `install-validator.sh`
@@ -237,8 +238,10 @@ gh attestation verify aipg-validator-linux-x64.zip \
 ```
 
    Repeat for the other platform archives, installer, and release SBOM. The
-   installer verifies `SHA256SUMS`; the attestation check proves the artifacts
-   were produced by this repository's GitHub Actions workflow.
+   installer verifies `SHA256SUMS`; the release manifest binds the exact tag,
+   version, source commit, asset sizes, and asset hashes; and the attestation
+   check proves the artifacts were produced by this repository's GitHub Actions
+   workflow.
 5. Confirm the container image exists at `ghcr.io/aipowergrid/validator` with
    registry SBOM and provenance metadata.
 6. Test the checksum-verifying installer against the release asset:
