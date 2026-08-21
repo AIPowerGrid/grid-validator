@@ -141,9 +141,10 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   and never trusts Core's private verdict. Evidence remains input with no slash, reward,
   payout, strike, or routing authority.
 - V0 text scorer capabilities are exact instruction following, generated
-  arithmetic, strict JSON, context retrieval, generated multistep logic, and
-  one exact randomized function call, a two-stage randomized tool chain, and
-  randomized stop-sequence compliance, plus gross output-budget compliance.
+  arithmetic, strict JSON, calibrated 4K/16K context retrieval, generated
+  multistep logic, one exact randomized function call, a two-stage randomized
+  tool chain, randomized stop-sequence compliance, and gross output-budget
+  compliance.
   The token-limit lane independently counts visible and reasoning output with
   `o200k_base` and a cross-tokenizer tolerance; it does not claim exact native
   tokenizer equivalence.

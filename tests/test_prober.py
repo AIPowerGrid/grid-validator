@@ -105,6 +105,21 @@ class ProberTests(unittest.TestCase):
                 "failed",
             )
 
+    def test_score_committed_16k_context_uses_the_same_exact_contract(self):
+        canary = {
+            "kind": "context.retrieve.16k",
+            "expected_hash": hashlib.sha256(b"A1B2C3D4").hexdigest(),
+        }
+        with patch.object(prober.Settings, "LATENCY_BUDGET_S", 30):
+            self.assertEqual(
+                prober.score_committed(canary, "`A1B2C3D4`", 0.1),
+                "healthy",
+            )
+            self.assertEqual(
+                prober.score_committed(canary, "A1B2C3D4 extra", 0.1),
+                "failed",
+            )
+
     def test_score_committed_multistep_rejects_ambiguous_numbers(self):
         canary = {
             "kind": "logic.steps",

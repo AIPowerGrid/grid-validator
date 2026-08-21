@@ -231,7 +231,7 @@ Current V0 checks:
 - exact nonce echo
 - generated arithmetic QA
 - strict JSON object compliance
-- randomized context retrieval
+- randomized context retrieval at calibrated 4K and 16K tiers
 - generated multistep integer logic
 - exact randomized single-function calls
 - exact randomized two-stage tool-call chains
@@ -243,7 +243,7 @@ Planned checks:
 - richer JSON Schema constraints
 - hidden code tests
 - code and logic capability tiers
-- larger long-context retrieval tiers
+- larger 32K+ long-context retrieval tiers
 - longer tool-call chains
 - max-token compliance
 - streaming integrity
