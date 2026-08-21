@@ -118,6 +118,7 @@ def build(
     score: float | None = None,
     response_text: str = "",
     assignment_id: str | None = None,
+    probe_group_id: str | None = None,
     epoch: str | None = None,
     grid_nonce: str | None = None,
 ) -> dict:
@@ -140,6 +141,7 @@ def build(
         "validator": Settings.VALIDATOR_WALLET,
         "attestation_schema": "aipg.validator.attestation.v0",
         "assignment_id": assignment,
+        "probe_group_id": probe_group_id or "",
         "assignment_source": "grid" if grid_nonce else "validator_v0",
         "grid_nonce": grid_nonce or "",
         "epoch": epoch or _epoch_from_ts(ts),

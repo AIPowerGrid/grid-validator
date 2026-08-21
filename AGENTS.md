@@ -39,12 +39,12 @@ concrete detail in children. Delete stale notes instead of explaining history.
 The Grid's validator node. In V0 it is a CPU-only distributed audit runner: it sends
 small canary jobs through the normal Grid path, scores replies (`healthy` / `slow` /
 `failed`), and submits signed attestations when the Grid exposes the sink. The
-assignment-bound Core implementation is merged but is not production-live until
-migrations through `0021` and the matching immutable Core release are deployed. Once enabled,
+shared-quorum Core implementation is merged but is not production-live until
+migrations through `0022` and the matching immutable Core release are deployed. Once enabled,
 `GET /v1/validator/assignments`, `POST /v1/validator/probe/{assignment_id}`, and
-preview scorecards make evidence attributable, but still non-economic: no reward,
+preview scorecards and distinct-validator 3-of-5 probe groups make evidence attributable, but still non-economic: no reward,
 routing, strike, or slashing logic may read it as authority. Future phases harden adversarial
-multi-validator quorum, deterministic media workflow certification, rewards, staking, and
+independent-operator proof, deterministic media workflow certification, rewards, staking, and
 objective-fraud slashing. Do not describe future economic authority as live until the
 Grid endpoints and contracts exist. Python package: `validator/`. Entry: `validator.main`.
 
@@ -123,8 +123,12 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   Core atomically leases each assignment and permits only a bounded retry
   budget; the node must reuse issued work rather than invent assignments.
   Assignment-bound evidence includes the Grid assignment id, nonce, and probe
-  evidence hash, but remains observation/scoring input with no slash, reward,
+  group id/evidence hash. The node scores against an expected-answer commitment
+  and never trusts Core's private verdict. Evidence remains input with no slash, reward,
   payout, strike, or routing authority.
+- **Evidence delivery is durable:** persist the signed public envelope before
+  HTTP submission, replay pending evidence before new work, and remove it only
+  after Core accepts it. Never persist the private key in validator state.
 - **Secrets:** `.env` may hold `VALIDATOR_PRIVATE_KEY` (signs attestations and later controls
   stake) — always chmod 600, never commit. The key never leaves the box; the grid receives only
   signed payloads. If the private key is configured, `VALIDATOR_WALLET` must be the derived

@@ -128,6 +128,15 @@ class Settings:
     # Latency budget: a correct-but-slower-than-this answer scores `slow`.
     LATENCY_BUDGET_S = _env_float("LATENCY_BUDGET_S", 30, minimum=0)
 
+    # Durable signed-evidence delivery. The database contains public signed
+    # envelopes, never the signing key.
+    STATE_DB_PATH = _env_text(
+        "VALIDATOR_STATE_DB",
+        str(Path.home() / ".aipg-validator" / "state.sqlite3"),
+    )
+    OUTBOX_MAX_ATTEMPTS = _env_int("VALIDATOR_OUTBOX_MAX_ATTEMPTS", 20, minimum=1)
+    OUTBOX_MAX_AGE_S = _env_int("VALIDATOR_OUTBOX_MAX_AGE_S", 1800, minimum=60)
+
     # ── Local dashboard ──
     DASHBOARD_HOST = _env_text("DASHBOARD_HOST", "127.0.0.1")
     DASHBOARD_PORT = _env_int("DASHBOARD_PORT", 8790, minimum=1)
@@ -161,6 +170,8 @@ class Settings:
             )
         if not 1 <= cls.DASHBOARD_PORT <= 65535:
             raise RuntimeError("DASHBOARD_PORT must be between 1 and 65535.")
+        if not cls.STATE_DB_PATH:
+            raise RuntimeError("VALIDATOR_STATE_DB must not be empty.")
 
     @classmethod
     def _wallet_from_private_key(cls) -> str:

@@ -97,7 +97,7 @@ surface.
 
 Required code:
 
-- Alembic migrations through `0021_validator_probe_leases`
+- Alembic migrations through `0022_validator_probe_groups`
 - `grid_api/v2/schema.py` validator registration, assignment, and attestation tables
 - `grid_api/services/validators.py`
 - `grid_api/routers/validator.py`
@@ -118,12 +118,15 @@ curl -fsS https://api.aipowergrid.io/v1/validator/capabilities
 
 Must show:
 
-- `mode: "assignment_bound_evidence"`
+- `mode: "shared_quorum_preview"`
 - `economic_effect: "none"`
 - `features.assignments: true`
 - `features.targeted_probe: true`
 - `targeted_probe_enabled: true`
-- `features.quorum: false`
+- `features.quorum: true`
+- `quorum_policy.threshold: 3`
+- `quorum_policy.target_validators: 5`
+- `quorum_policy.operator_independence_proven: false`
 - `features.validator_rewards: false`
 - `features.staking_required: false`
 

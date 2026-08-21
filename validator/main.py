@@ -17,6 +17,7 @@ import time
 from . import attest, prober, staking
 from .config import Settings
 from .grid_client import GridClient
+from .outbox import AttestationOutbox
 
 logging.basicConfig(
     level=logging.INFO,
@@ -46,6 +47,7 @@ def _verified_probe_evidence(
     """
     expected_result = {
         "assignment_id": str(assignment.get("assignment_id") or ""),
+        "probe_group_id": str(assignment.get("probe_group_id") or ""),
         "grid_nonce": str(assignment.get("grid_nonce") or ""),
         "target_worker_id": str(assignment.get("target_worker_id") or ""),
         "model": str(assignment.get("model") or ""),
@@ -66,6 +68,7 @@ def _verified_probe_evidence(
     response_hash = _sha256_text(response_text)
     evidence = {
         "assignment_id": expected_result["assignment_id"],
+        "probe_group_id": expected_result["probe_group_id"],
         "grid_nonce": expected_result["grid_nonce"],
         "worker_id": expected_result["target_worker_id"],
         "model": expected_result["model"],
@@ -92,19 +95,53 @@ def _verified_probe_evidence(
 def _assignment_canary(assignment: dict) -> dict | None:
     challenge = assignment.get("challenge") or {}
     prompt = challenge.get("prompt")
-    expect = challenge.get("expected") or challenge.get("expect")
+    expected_hash = challenge.get("expected_hash")
     kind = assignment.get("canary_kind") or challenge.get("kind")
-    if not prompt or not expect or not kind:
+    if not prompt or not expected_hash or not kind:
         return None
     return {
         "kind": str(kind),
         "nonce": str(assignment.get("grid_nonce") or ""),
         "prompt": str(prompt),
-        "expect": str(expect),
+        "expected_hash": str(expected_hash),
     }
 
 
-async def _probe_assignment(grid: GridClient, assignment: dict) -> int:
+async def _submit_outbox_item(
+    grid: GridClient,
+    outbox: AttestationOutbox,
+    item: dict,
+) -> bool:
+    submitted = await grid.submit_attestation(item["envelope"])
+    if submitted:
+        outbox.delivered(item["id"])
+        return True
+    dead = outbox.failed(
+        item["id"],
+        max_attempts=Settings.OUTBOX_MAX_ATTEMPTS,
+        max_age_seconds=Settings.OUTBOX_MAX_AGE_S,
+    )
+    if dead:
+        logger.error(
+            "attestation %s exhausted delivery policy and was dead-lettered",
+            item["id"][:12],
+        )
+    return False
+
+
+async def _flush_outbox(grid: GridClient, outbox: AttestationOutbox) -> int:
+    delivered = 0
+    for item in outbox.pending():
+        if await _submit_outbox_item(grid, outbox, item):
+            delivered += 1
+    return delivered
+
+
+async def _probe_assignment(
+    grid: GridClient,
+    assignment: dict,
+    outbox: AttestationOutbox,
+) -> int:
     """Assignment-bound targeted probe.
 
     This is the first path whose evidence can be called authoritative by core:
@@ -137,21 +174,16 @@ async def _probe_assignment(grid: GridClient, assignment: dict) -> int:
     if commitments is None:
         return 0
 
-    verdict = prober.score(canary, text, latency)
+    try:
+        verdict = prober.score_committed(canary, text, latency)
+    except ValueError:
+        logger.warning("assignment has an invalid scoring commitment; skipping")
+        return 0
     if verdict not in attest.VALID_VERDICTS:
         logger.info(
             f"[{str(worker_id)[:8]} {model}] local probe scorer returned invalid verdict; skipping"
         )
         return 0
-    core_verdict = str(res.get("probe_verdict") or "")
-    if core_verdict and core_verdict != verdict:
-        logger.warning(
-            "[%s %s] local verdict %s disagrees with Core verdict %s",
-            str(worker_id)[:8],
-            model,
-            verdict,
-            core_verdict,
-        )
     logger.info(
         f"[{str(worker_id)[:8]} {model}] assignment {canary['kind']} -> {verdict} "
         f"({latency:.1f}s)"
@@ -167,23 +199,43 @@ async def _probe_assignment(grid: GridClient, assignment: dict) -> int:
         capability=str(assignment.get("capability") or "text.basic.v1"),
         response_text=text,
         assignment_id=str(assignment_id),
+        probe_group_id=str(assignment.get("probe_group_id") or ""),
         grid_nonce=str(grid_nonce),
     )
     # Echo only the commitment this node independently recomputed and matched
     # against Core's response.
     att.update(commitments)
-    submitted = await grid.submit_attestation(attest.sign(att))
-    return 1 if submitted else 0
+    item_id = outbox.enqueue(attest.sign(att))
+    item = outbox.get_pending(item_id)
+    if item is None:
+        # A duplicate envelope may already have been delivered or dead-lettered.
+        return 0
+    return 1 if await _submit_outbox_item(grid, outbox, item) else 0
 
 
-async def probe_round(grid: GridClient, round_index: int) -> int:
+async def probe_round(
+    grid: GridClient,
+    round_index: int,
+    outbox: AttestationOutbox | None = None,
+) -> int:
     """Run one probe round and return the number of attestations accepted by Core."""
+    del round_index
+    outbox = outbox or AttestationOutbox(Settings.STATE_DB_PATH)
+    queued_assignments = outbox.pending_assignment_ids()
+    accepted = await _flush_outbox(grid, outbox)
     assignments = await grid.validator_assignments(limit=5, modality="text")
     if not assignments:
         logger.info("no Grid-issued assignments available; fail-closed round performed no probe")
-        return 0
-    results = await asyncio.gather(*(_probe_assignment(grid, a) for a in assignments))
-    return sum(results)
+        return accepted
+    fresh_assignments = [
+        assignment
+        for assignment in assignments
+        if str(assignment.get("assignment_id") or "") not in queued_assignments
+    ]
+    results = await asyncio.gather(
+        *(_probe_assignment(grid, assignment, outbox) for assignment in fresh_assignments)
+    )
+    return accepted + sum(results)
 
 
 async def run() -> None:
@@ -209,12 +261,13 @@ async def run() -> None:
         f"Validator {registered.get('validator_id', 'unknown')} online -> {Settings.GRID_API_URL} "
         f"(probe every {Settings.PROBE_INTERVAL_S}s)"
     )
+    outbox = AttestationOutbox(Settings.STATE_DB_PATH)
     round_index = 0
     try:
         while True:
             try:
                 await grid.heartbeat()
-                await probe_round(grid, round_index)
+                await probe_round(grid, round_index, outbox)
             except Exception as e:
                 logger.error(f"probe round failed: {e}", exc_info=True)
             round_index += 1

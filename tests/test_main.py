@@ -11,15 +11,24 @@ from eth_account import Account
 
 from validator import main
 from validator.config import Settings
+from validator.outbox import AttestationOutbox
 
 TEST_ACCOUNT = Account.from_key("0x" + "11" * 32)
 
 
 class ProbeRoundTests(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.outbox = AttestationOutbox(os.path.join(self.tmp.name, "state.sqlite3"))
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
     @staticmethod
     def _assignment():
         return {
             "assignment_id": "asg_1",
+            "probe_group_id": "prg_1",
             "grid_nonce": "grid-nonce-1",
             "target_worker_id": "worker-1",
             "model": "qwen3-32b",
@@ -29,7 +38,7 @@ class ProbeRoundTests(unittest.IsolatedAsyncioTestCase):
             "challenge": {
                 "kind": "math.add",
                 "prompt": "What is 19 + 23? Reply with only the number.",
-                "expected": "42",
+                "expected_hash": hashlib.sha256(b"42").hexdigest(),
             },
         }
 
@@ -42,6 +51,7 @@ class ProbeRoundTests(unittest.IsolatedAsyncioTestCase):
         response_hash = hashlib.sha256(b"42").hexdigest()
         evidence = {
             "assignment_id": assignment["assignment_id"],
+            "probe_group_id": assignment["probe_group_id"],
             "grid_nonce": assignment["grid_nonce"],
             "worker_id": assignment["target_worker_id"],
             "model": assignment["model"],
@@ -57,8 +67,8 @@ class ProbeRoundTests(unittest.IsolatedAsyncioTestCase):
         result = {
             "status": "completed",
             "output_text": "42",
-            "probe_verdict": "slow",
             "assignment_id": assignment["assignment_id"],
+            "probe_group_id": assignment["probe_group_id"],
             "grid_nonce": assignment["grid_nonce"],
             "target_worker_id": assignment["target_worker_id"],
             "model": assignment["model"],
@@ -97,13 +107,14 @@ class ProbeRoundTests(unittest.IsolatedAsyncioTestCase):
             patch.object(Settings, "VALIDATOR_WALLET", TEST_ACCOUNT.address.lower()),
             patch.object(Settings, "VALIDATOR_PRIVATE_KEY", TEST_ACCOUNT.key.hex()),
         ):
-            attempted = await main.probe_round(grid, 0)
+            attempted = await main.probe_round(grid, 0, self.outbox)
 
         self.assertEqual(attempted, 1)
         self.assertEqual(grid.probed, ["asg_1"])
         payload = grid.submitted[0]["payload"]
         self.assertEqual(payload["assignment_source"], "grid")
         self.assertEqual(payload["assignment_id"], "asg_1")
+        self.assertEqual(payload["probe_group_id"], "prg_1")
         self.assertEqual(payload["grid_nonce"], "grid-nonce-1")
         self.assertEqual(payload["worker_id"], "worker-1")
         self.assertEqual(payload["capability"], "text.basic.v1")
@@ -129,7 +140,7 @@ class ProbeRoundTests(unittest.IsolatedAsyncioTestCase):
                 return True
 
         grid = FakeGrid()
-        self.assertEqual(await main.probe_round(grid, 0), 0)
+        self.assertEqual(await main.probe_round(grid, 0, self.outbox), 0)
         self.assertEqual(grid.submitted, [])
 
     async def test_assignment_probe_rejects_wrong_target_binding(self):
@@ -148,7 +159,7 @@ class ProbeRoundTests(unittest.IsolatedAsyncioTestCase):
                 return True
 
         grid = FakeGrid()
-        self.assertEqual(await main.probe_round(grid, 0), 0)
+        self.assertEqual(await main.probe_round(grid, 0, self.outbox), 0)
         self.assertEqual(grid.submitted, [])
 
     async def test_no_assignment_fails_closed_without_inventory_or_model_fallback(self):
@@ -156,7 +167,37 @@ class ProbeRoundTests(unittest.IsolatedAsyncioTestCase):
             async def validator_assignments(self, **_kwargs):
                 return []
 
-        self.assertEqual(await main.probe_round(FakeGrid(), 0), 0)
+        self.assertEqual(await main.probe_round(FakeGrid(), 0, self.outbox), 0)
+
+    async def test_failed_delivery_is_replayed_without_reprobing(self):
+        class FakeGrid:
+            def __init__(self):
+                self.probes = 0
+                self.submissions = 0
+
+            async def validator_assignments(self, **_kwargs):
+                return [ProbeRoundTests._assignment()] if self.probes == 0 else []
+
+            async def probe_assignment(self, _assignment_id):
+                self.probes += 1
+                return ProbeRoundTests._result()
+
+            async def submit_attestation(self, _envelope):
+                self.submissions += 1
+                return self.submissions > 1
+
+        grid = FakeGrid()
+        with (
+            patch.object(Settings, "VALIDATOR_WALLET", TEST_ACCOUNT.address.lower()),
+            patch.object(Settings, "VALIDATOR_PRIVATE_KEY", TEST_ACCOUNT.key.hex()),
+        ):
+            self.assertEqual(await main.probe_round(grid, 0, self.outbox), 0)
+            self.assertEqual(self.outbox.counts(), {"pending": 1, "dead": 0})
+            self.assertEqual(await main.probe_round(grid, 1, self.outbox), 1)
+
+        self.assertEqual(grid.probes, 1)
+        self.assertEqual(grid.submissions, 2)
+        self.assertEqual(self.outbox.counts(), {"pending": 0, "dead": 0})
 
 
 class RunStartupTests(unittest.IsolatedAsyncioTestCase):

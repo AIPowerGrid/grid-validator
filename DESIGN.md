@@ -31,9 +31,9 @@ Status: current repo direction.
 - Mandatory signed registration, heartbeat, and attestations.
 - Candidate Core implements capabilities, worker discovery, assignments,
   targeted text probes, attestations, scorecards, assignment health, and
-  non-economic evidence workflow states. Production remains gated on migration
-  `0021`, immutable deployment, and endpoint smoke tests. Independent
-  shared-challenge quorum is not implemented yet.
+  non-economic shared 3-of-5 quorum states. Production remains gated on migration
+  `0022`, immutable deployment, and endpoint smoke tests. Independent operator
+  control is not proven by registration alone.
 - Missing required validator endpoints fail closed; read-only metadata may
   degrade gracefully.
 - No rewards, routing effects, strikes, or slashing. Targeted attribution is
@@ -66,11 +66,10 @@ Status: current repo direction.
 
 ## Validator Data Flow
 
-This is the target flow. V0 implements registration, Grid-issued assignments,
-targeted worker execution, signed evidence, and evidence-only scorecards.
+This is the target flow. V0 implements registration, shared Grid-issued probe
+groups, targeted worker execution, signed evidence, and evidence-only 3-of-5 quorum.
 Anything that affects routing, rewards, or slashing must additionally wait for
-independently operated validators to receive a shared challenge, quorum, and a
-dispute process.
+independently operated validators and a dispute process.
 
 ```mermaid
 flowchart TD
@@ -209,14 +208,17 @@ Current V0 lifecycle:
 5. Submit the assignment through the validator-only targeted endpoint.
 6. Match the returned assignment, worker, model, nonce, and capability; then
    recompute the prompt, response, and canonical evidence hashes.
-7. Score the result locally as `healthy`, `slow`, or `failed`. Preserve a
-   disagreement with Core's observed verdict instead of copying it.
-8. Sign the assignment id, Grid nonce, verified evidence hash, and local verdict.
-9. Submit the attestation; heartbeat between rounds.
-10. Core stores non-economic evidence and updates scorecards.
+7. Score the result locally as `healthy`, `slow`, or `failed` against Core's
+   expected-answer commitment. Core does not return its private verdict.
+8. Sign the probe group, assignment id, Grid nonce, verified evidence hash, and local verdict.
+9. Persist the signed envelope in the private local outbox, then submit it.
+   Retry delivery before new work and delete only after Core accepts it.
+10. Heartbeat between rounds.
+11. Core stores non-economic evidence and updates shared 3-of-5 quorum scorecards.
 
-Future shared-challenge quorum must assign the same challenge family to multiple
-independent registered validators before evidence can influence routing or money.
+The shared-quorum protocol assigns one challenge family to multiple registered
+validators. Evidence still cannot influence routing or money until those nodes
+are proven independently operated and a dispute process exists.
 
 ## Text Validation
 
@@ -408,7 +410,7 @@ Going offline should stop rewards, not slash stake.
 - [ ] Public binary packaging.
 - [ ] Publish Docker image on release.
 - [x] Grid validator assignment endpoint.
-- [ ] Deploy migrations through `0021` and the immutable Core candidate to production.
+- [ ] Deploy migrations through `0022` and the immutable Core candidate to production.
 - [ ] Prove registration, assignment, targeted-probe, attestation, and scorecard
   endpoints against production.
 - [x] `POST /v1/validator/probe/{assignment_id}` targeted text execution.

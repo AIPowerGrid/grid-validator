@@ -1,4 +1,5 @@
 import unittest
+import hashlib
 from unittest.mock import patch
 
 from validator import prober
@@ -38,6 +39,35 @@ class ProberTests(unittest.TestCase):
         canary = {"expect": "42"}
         with patch.object(prober.Settings, "LATENCY_BUDGET_S", 1):
             self.assertEqual(prober.score(canary, "42", 2), "slow")
+
+    def test_score_committed_grades_without_plaintext_answer(self):
+        canary = {
+            "kind": "math.add",
+            "expected_hash": hashlib.sha256(b"42").hexdigest(),
+        }
+        with patch.object(prober.Settings, "LATENCY_BUDGET_S", 30):
+            self.assertEqual(
+                prober.score_committed(canary, "The answer is 42.", 0.1),
+                "healthy",
+            )
+            self.assertEqual(prober.score_committed(canary, "420", 0.1), "failed")
+            self.assertEqual(prober.score_committed(canary, "41 or 42", 0.1), "failed")
+
+    def test_score_committed_echo_remains_exact(self):
+        canary = {
+            "kind": "echo",
+            "expected_hash": hashlib.sha256(b"ABC123EF").hexdigest(),
+        }
+        with patch.object(prober.Settings, "LATENCY_BUDGET_S", 30):
+            self.assertEqual(prober.score_committed(canary, "`ABC123EF`", 0.1), "healthy")
+            self.assertEqual(
+                prober.score_committed(canary, "token ABC123EF", 0.1),
+                "failed",
+            )
+
+    def test_score_committed_rejects_malformed_commitment(self):
+        with self.assertRaisesRegex(ValueError, "expected_hash"):
+            prober.score_committed({"kind": "echo", "expected_hash": "bad"}, "x", 0.1)
 
     def test_make_canary_generates_unpredictable_math_qa(self):
         with (

@@ -10,6 +10,7 @@ Two canary families, mixed per round so a worker can't special-case them:
 Verdicts: "healthy" | "slow" | "failed".
 """
 
+import hashlib
 import secrets
 import re
 
@@ -132,6 +133,33 @@ def score(canary: dict, text: str, latency_s: float) -> str:
     else:
         correct = _qa_contains_expected(answer.lower(), expect.lower())
     if not correct:
+        return "failed"
+    if latency_s > Settings.LATENCY_BUDGET_S:
+        return "slow"
+    return "healthy"
+
+
+def score_committed(canary: dict, text: str, latency_s: float) -> str:
+    """Grade against Core's one-way expected-answer commitment.
+
+    This keeps the answer itself out of the assignment response while allowing
+    the validator to judge the worker output without trusting Core's verdict.
+    """
+    expected_hash = str(canary.get("expected_hash") or "")
+    if not re.fullmatch(r"[0-9a-f]{64}", expected_hash):
+        raise ValueError("canary expected_hash must be a lowercase SHA-256 digest")
+    answer = _strip_think(text)
+    if not answer:
+        return "failed"
+    if canary.get("kind") == "echo":
+        candidate = _strip_wrapping_quotes(answer)
+    else:
+        numbers = re.findall(r"(?<![a-z0-9-])-?\d+(?![a-z0-9])", answer.lower())
+        if len(numbers) != 1:
+            return "failed"
+        candidate = numbers[0]
+    actual_hash = hashlib.sha256(candidate.encode("utf-8")).hexdigest()
+    if not secrets.compare_digest(actual_hash, expected_hash):
         return "failed"
     if latency_s > Settings.LATENCY_BUDGET_S:
         return "slow"

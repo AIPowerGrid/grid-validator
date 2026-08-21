@@ -69,6 +69,9 @@ exists as design/scaffold until the Grid adds modality-aware probe jobs.
   matches the one signed. Do not change the field set or serialization without the grid side.
   Never sign raw prompts, expected answers, or raw responses in V0; sign compact
   hashes so scorecards can stay private while evidence is still committed.
+- **`outbox.py`** — private local SQLite delivery queue for signed public
+  envelopes. It deduplicates by assignment, survives restarts, retries before
+  new probes, and dead-letters after the configured attempt/age bounds.
   Assignment-bound attestations must echo the Grid's returned probe
   `evidence_hash`; do not let the node invent a different hash after a targeted
   probe.
@@ -102,14 +105,17 @@ exists as design/scaffold until the Grid adds modality-aware probe jobs.
   worker failure and never a reason to invent another target.
 - **Independent evidence verification:** before signing, the node must match
   assignment ID, Grid nonce, worker, model, modality, capability, and canary
-  kind; recompute prompt/response hashes and the canonical probe evidence hash;
-  and score the returned output locally. A binding mismatch is a skip. A local
-  verdict that differs from Core's verdict is signed as an honest disagreement,
-  allowing the evidence state to become disputed.
+  kind plus shared probe group; recompute prompt/response hashes and the
+  canonical probe evidence hash; and score the returned output locally against
+  Core's one-way expected-answer commitment. A binding mismatch is a skip. Core
+  does not return its private verdict.
 - **No false targeted failures:** if a targeted probe endpoint is missing, disabled, or
   returns no text, skip attestation instead of recording `failed`.
 - **No green no-op checks:** `aipg-validator check` must fail clearly when no
   compatible text target exists and therefore no V0 canary was submitted.
+- **Persist before send:** an attestation must enter the outbox before the HTTP
+  request. Core acceptance deletes it; delivery failure keeps it for replay.
+  A queued assignment must not be probed again while its envelope is pending.
 
 ## Work Guidance
 

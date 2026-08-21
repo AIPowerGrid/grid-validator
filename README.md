@@ -37,11 +37,11 @@ What is implemented and testable against the candidate Core:
   selects the worker.
 - Independent result binding and scoring: the node matches every returned
   assignment field, recomputes the prompt/response/evidence hashes, and applies
-  its local scorer before signing. A mismatch is skipped; a verdict disagreement
-  is preserved as disputed evidence.
-- Assignment-bound attestations, aggregate scorecards, and assignment-health
-  views in Core. The state labels are evidence workflow states, not proof of
-  independent multi-validator quorum.
+  its local scorer against an expected-answer hash before signing. Core does not
+  return its private answer or verdict; a mismatch is skipped.
+- Shared probe groups target five distinct registered validator accounts and
+  require three matching votes. This proves distinct evidence identities, not
+  independently controlled operators.
 - All current validator evidence has `economic_effect: none`: it does not alter
   routing, rewards, strikes, payouts, or bonds.
 - Fail-closed behavior when registration, assignment, or targeted-probe support
@@ -49,7 +49,7 @@ What is implemented and testable against the candidate Core:
 
 What is not production-live yet:
 
-- Core migrations through `0021` and the assignment-bound validator API rollout.
+- Core migrations through `0022` and the shared-quorum validator API rollout.
 - Public downloadable binary releases.
 - Published Docker image release.
 - Validator rewards.
@@ -61,7 +61,7 @@ What is not production-live yet:
 Runtime Core capability flags are the source of truth. Until the migration and
 endpoint smoke tests pass in production, operators should use `check --no-probe`
 only; the public release remains closed. Current evidence has no economic
-authority and real shared-challenge quorum is not live.
+authority; independent operator operation is not yet proven.
 
 ## Download
 
@@ -132,6 +132,11 @@ VALIDATOR_WALLET=0xYourLinkedWallet
 VALIDATOR_PRIVATE_KEY=0xYourLocalSigningKey
 VALIDATOR_REQUIRE_STAKE=false
 ```
+
+Signed attestations are persisted before delivery in
+`~/.aipg-validator/state.sqlite3`. A temporary Core or network failure is
+retried on later rounds without re-running the assignment. The database stores
+only public signed envelopes, never the validator private key.
 
 `check` validates config, registers the node, prints validator capability flags,
 shows aggregate scorecard availability, runs one assigned probe round, and

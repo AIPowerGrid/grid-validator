@@ -73,8 +73,8 @@ Candidate Grid-core support (merged, not yet production-live):
   validator accounts
 - `GET /v1/validator/assignments` issues short-lived text assignments
 - `POST /v1/validator/probe/{assignment_id}` reaches the assigned worker
-- assignment-bound attestations feed scorecards and a non-economic evidence
-  lifecycle; real shared-challenge quorum remains future work
+- assignment-bound attestations feed scorecards and a non-economic shared
+  3-of-5 quorum lifecycle; independent operator proof remains rollout work
 
 Hard no-go boundaries:
 
@@ -310,7 +310,7 @@ Definition of done:
 
 ## Immediate Next Build Order
 
-1. Deploy migrations through `0021` and the immutable Core candidate; smoke every
+1. Deploy migrations through `0022` and the immutable Core candidate; smoke every
    assignment-bound endpoint while keeping the path evidence-only.
 2. Publish the already-scaffolded binaries and Docker image only after that gate.
 3. Prove self-validation exclusion and adversarial multi-validator behavior.

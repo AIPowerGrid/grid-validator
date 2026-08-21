@@ -13,7 +13,7 @@ For the shortest install path, start with [QUICKSTART.md](QUICKSTART.md). This
 file is the longer operator runbook.
 
 Current rollout gate: assignment-bound Core support is merged but not
-production-live until migrations through `0021`, immutable deployment, and endpoint
+production-live until migrations through `0022`, immutable deployment, and endpoint
 smoke tests pass. Until then, use `check --no-probe`; do not operate the loop as
 a live validator.
 
@@ -283,6 +283,15 @@ Missing read-only scorecards are non-fatal. Missing registration, assignments,
 targeted probing, or attestation support makes the validator unavailable. It
 must not substitute ordinary inference or invent a worker target.
 
+## Durable Evidence Delivery
+
+The node writes each signed attestation to the private local SQLite outbox at
+`VALIDATOR_STATE_DB` before submitting it. Failed submissions are replayed
+before new work, and the row is removed only after Core accepts it. Evidence
+that exceeds `VALIDATOR_OUTBOX_MAX_ATTEMPTS` or
+`VALIDATOR_OUTBOX_MAX_AGE_S` is retained as a dead letter for operator review.
+The outbox contains signed public payloads, not `VALIDATOR_PRIVATE_KEY`.
+
 ## Future Validator Roles
 
 The public product should grow into three operator-friendly roles:
@@ -324,6 +333,8 @@ assignments, then rewards/staking after the evidence loop is boring.
 | `Config: PROBE_INTERVAL_S must be an integer` | Fix the named value in `.env`; numeric env vars reject typos instead of guessing |
 | `dashboard port must be between 1 and 65535` | Pick a valid free TCP port, usually `8790` |
 | `No Grid assignment was available` | No eligible third-party text assignment is currently available; retry later |
+| attestations remain pending | Check Core reachability; the node retries the durable local outbox automatically |
+| outbox reports dead letters | Stop and inspect Core rejection logs before removing the local state database |
 | registration fails with 403 | Confirm the key purpose is validator and the signing wallet is linked to the same Grid account |
 | `VALIDATOR_PRIVATE_KEY is required` | Generate or choose a dedicated local signing key, then link its wallet before setup |
 | `Interactive setup requires a terminal` | Run `aipg-validator init` from a shell, or create `.env` from `.env.template` |
