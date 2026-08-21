@@ -352,13 +352,13 @@ and installer behavior without touching your live `.env`.
 
 ## Security
 
+- Report suspected vulnerabilities privately using [SECURITY.md](SECURITY.md).
 - Keep `.env` private: `chmod 600 .env`.
 - Prefer mounting `.env` read-only in Docker instead of passing secrets with
   `--env-file`.
-- `VALIDATOR_PRIVATE_KEY` is optional in V0 preview mode, but required once
-  signed attestations, staking, or rewards are enforced. If it is set,
-  `VALIDATOR_WALLET` must be the wallet derived from that key. If
-  `VALIDATOR_WALLET` is set at all, it must be a valid `0x` EVM address.
+- `VALIDATOR_PRIVATE_KEY` is required in V0 because registration and evidence
+  are signed even though staking and rewards are disabled. `VALIDATOR_WALLET`
+  must be the wallet derived from that key and a valid `0x` EVM address.
 - Do not commit static challenge answers, golden pHashes, private prompts, live
   scoring secrets, or private policy thresholds into this public repo.
 - One validator should not validate its own worker once targeted assignment

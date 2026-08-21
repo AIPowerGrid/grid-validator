@@ -24,7 +24,6 @@ jobs:
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ matrix.python-version }}
-          cache: pip
 
       - name: Set up uv
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
@@ -35,19 +34,19 @@ jobs:
       - name: Verify release dependency lock
         run: uv lock --check
 
-      - name: Install package
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e '.[media]'
+      - name: Install locked test dependencies
+        env:
+          UV_PYTHON: ${{ matrix.python-version }}
+        run: uv sync --frozen --extra media
 
       - name: Compile package
-        run: python -m compileall validator
+        run: uv run --frozen --extra media python -m compileall validator
 
       - name: Validate shell scripts
         run: bash -n install.sh scripts/classify-release-tag.sh scripts/install-binary.sh scripts/install-systemd.sh scripts/smoke-release.sh scripts/verify-release-assets.sh
 
       - name: Systemd helper dry-run
-        run: ./scripts/install-systemd.sh --dry-run --exec "$(command -v aipg-validator)"
+        run: ./scripts/install-systemd.sh --dry-run --exec "$PWD/.venv/bin/aipg-validator"
 
       - name: Source/dashboard smoke
         run: SKIP_DOCKER=1 SKIP_BINARY=1 ./scripts/smoke-release.sh
@@ -58,7 +57,7 @@ jobs:
           tmp="$(mktemp -d)"
           trap 'rm -rf "$tmp"' EXIT
           mkdir -p "$tmp/pkg" "$tmp/bin"
-          cp "$(command -v aipg-validator)" "$tmp/pkg/aipg-validator"
+          cp .venv/bin/aipg-validator "$tmp/pkg/aipg-validator"
           (
             cd "$tmp/pkg"
             python -m zipfile -c "$tmp/aipg-validator-local.zip" aipg-validator
@@ -73,6 +72,27 @@ jobs:
           "$tmp/bin/aipg-validator" --help
           test -d "$tmp/config"
           test "$(stat -c '%a' "$tmp/config")" = "700"
+
+  dependency-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.5"
+          enable-cache: false
+
+      - name: Export the complete locked dependency graph
+        run: >-
+          uv export --frozen --all-extras --no-dev --no-emit-project
+          --format requirements-txt --output-file /tmp/validator-all-deps.txt
+
+      - name: Audit locked dependencies
+        run: >-
+          uvx --from pip-audit==2.9.0 pip-audit
+          -r /tmp/validator-all-deps.txt --require-hashes --disable-pip
 
   docker:
     runs-on: ubuntu-latest

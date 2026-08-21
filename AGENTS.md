@@ -68,6 +68,8 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
 - **`PREVIEW_COHORT.md`** — public recruitment and qualification contract for
   5-10 independent preview operators, including safe reporting and the
   distinction between node count and independently controlled quorum weight.
+- **`SECURITY.md`** — private vulnerability disclosure process and the
+  validator-specific evidence, identity, and release-supply-chain scope.
 - **`pyproject.toml`** — package metadata and `aipg-validator` console script.
   Default dependencies cover V0 text probing plus signing; heavier future-lane
   dependencies live under `media` and `stake` extras. Do not reintroduce a
@@ -81,6 +83,9 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   carry the UV build tool.
 - **`.github/workflows/`** — CI, checksum-verified secret scanning, image-release,
   and binary-release workflows.
+  Ordinary CI installs from the frozen `uv.lock` and audits the complete locked
+  graph, including every optional dependency lane; it must not resolve the
+  broad `pyproject.toml` ranges independently with pip.
   Tag pushes publish normal release artifacts. Manual binary releases must set
   `release_tag`; manual Docker publishes must set `image_tag`, with `latest`
   allowed only for stable tags. Preview/alpha/beta/RC images must never replace
@@ -182,6 +187,10 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
 - `./scripts/smoke-release.sh`
 - `./scripts/install-systemd.sh --dry-run --exec ./.venv/bin/aipg-validator`
 - `gitleaks detect --source . --no-git --config .gitleaks.toml --redact`
+- `uv export --frozen --all-extras --no-dev --no-emit-project
+  --format requirements-txt --output-file /tmp/validator-all-deps.txt` then
+  `uvx --from pip-audit==2.9.0 pip-audit -r /tmp/validator-all-deps.txt
+  --require-hashes --disable-pip`
 - Release-binary smoke:
   `./.venv/bin/python -m pip install -e '.[release]'` then
   `./.venv/bin/pyinstaller --onefile --name aipg-validator-local`
