@@ -81,8 +81,10 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   local Compose run paths. The image uses a digest-pinned Python base and the
   same frozen `uv.lock` as release binaries; the final non-root stage does not
   carry the UV build tool.
-- **`.github/workflows/`** — CI, checksum-verified secret scanning, image-release,
-  and binary-release workflows.
+- **`.github/workflows/`**, `.gitleaks.toml`, and `.gitleaksignore` — CI,
+  checksum-verified tracked-tree and complete reachable-history scanning,
+  image-release, and binary-release workflows. Historical scan exceptions are
+  exact reviewed fingerprints only.
   Ordinary CI installs from the frozen `uv.lock` and audits the complete locked
   graph, including every optional dependency lane; it must not resolve the
   broad `pyproject.toml` ranges independently with pip.
@@ -195,7 +197,9 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   scripts/verify-release-assets.sh`
 - `./scripts/smoke-release.sh`
 - `./scripts/install-systemd.sh --dry-run --exec ./.venv/bin/aipg-validator`
-- `gitleaks detect --source . --no-git --config .gitleaks.toml --redact`
+- `gitleaks detect --source . --no-git --config .gitleaks.toml --redact`, then
+  `gitleaks git . --log-opts=HEAD --config .gitleaks.toml --redact` from a full
+  clone.
 - `uv export --frozen --all-extras --no-dev --no-emit-project
   --format requirements-txt --output-file /tmp/validator-all-deps.txt` then
   `uvx --from pip-audit==2.9.0 pip-audit -r /tmp/validator-all-deps.txt
