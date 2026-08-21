@@ -7,18 +7,8 @@ on:
   pull_request:
   push:
     branches: [master]
-    tags: ["v*", "[0-9]+.[0-9]+.[0-9]+"]
+    tags: ["v*"]
   workflow_dispatch:
-    inputs:
-      release_tag:
-        description: "Optional release tag to publish, e.g. v0.1.0-preview. Leave blank to build artifacts only."
-        required: false
-        type: string
-      prerelease:
-        description: "Mark manually published release as a prerelease."
-        required: true
-        default: true
-        type: boolean
 
 jobs:
   validate:
@@ -29,24 +19,35 @@ jobs:
       tag: ${{ steps.release.outputs.tag }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
 
       - name: Validate and classify release tag
         id: release
         shell: bash
         env:
-          INPUT_TAG: ${{ inputs.release_tag }}
-          INPUT_PRERELEASE: ${{ inputs.prerelease }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           args=(--allow-empty)
           if [[ "$GITHUB_REF" == refs/tags/* ]]; then
             tag="$GITHUB_REF_NAME"
           else
-            tag="$INPUT_TAG"
+            tag=""
           fi
-          if [[ -n "$tag" && "$INPUT_PRERELEASE" == "true" ]]; then
-            args+=(--force-prerelease)
+          classification="$(./scripts/classify-release-tag.sh "${args[@]}" "$tag")"
+          publish="$(awk -F= '$1 == "publish" {print $2}' <<< "$classification")"
+          if [[ "$publish" == "true" ]]; then
+            if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/master; then
+              echo "error: release commit must be reachable from reviewed master" >&2
+              exit 1
+            fi
+            if [[ "$EVENT_NAME" != "push" || "$GITHUB_REF" != refs/tags/v* ]]; then
+              echo "error: binary publication requires a protected v* tag push" >&2
+              exit 1
+            fi
           fi
-          ./scripts/classify-release-tag.sh "${args[@]}" "$tag" >> "$GITHUB_OUTPUT"
+          printf '%s\n' "$classification" >> "$GITHUB_OUTPUT"
 
   build:
     name: Build ${{ matrix.asset }}
@@ -249,6 +250,9 @@ jobs:
           PY
 
       - name: Verify complete release payload
+        env:
+          EXPECTED_RELEASE_COMMIT: ${{ github.sha }}
+          EXPECTED_RELEASE_TAG: ${{ needs.validate.outputs.tag }}
         run: ./scripts/verify-release-assets.sh dist-artifacts
 
       - name: Upload verified release payload
@@ -263,6 +267,7 @@ jobs:
     if: ${{ needs.validate.outputs.publish == 'true' }}
     needs: [validate, bundle]
     runs-on: ubuntu-latest
+    environment: validator-release
     permissions:
       contents: write
       id-token: write
@@ -270,11 +275,21 @@ jobs:
       artifact-metadata: write
 
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
       - name: Download verified release payload
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: aipg-validator-release-payload
           path: dist-artifacts
+
+      - name: Reverify release identity and payload
+        env:
+          EXPECTED_RELEASE_COMMIT: ${{ github.sha }}
+          EXPECTED_RELEASE_TAG: ${{ needs.validate.outputs.tag }}
+        run: ./scripts/verify-release-assets.sh dist-artifacts
 
       - name: Require verified platform signing
         shell: bash

@@ -91,17 +91,25 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   graph, including every optional dependency lane; it must not resolve the
   broad `pyproject.toml` ranges independently with pip.
   Pull requests and `master` pushes assemble and verify the exact four-platform
-  binary payload without publishing it. Tag pushes publish normal release
-  artifacts. Manual binary releases must set `release_tag`; manual Docker
-  publishes must set `image_tag`, with `latest` allowed only for stable tags.
+  binary payload without publishing it. Protected `v*` tag pushes are the only
+  binary and container publication path; manual binary and Docker dispatches
+  are build-only. `latest` is allowed only for stable tags.
   Preview/alpha/beta/RC images must never replace `latest`. A build-only binary
   dispatch still assembles and verifies the full payload, but skips provenance
   attestation, tag creation, and publication. A
-  manual Docker dispatch defaults to multi-architecture build-only validation;
-  `publish_image` must be explicit before login, push, or attestation.
+  manual Docker dispatch performs multi-architecture build-only validation with
+  read-only credentials. GHCR write and attestation permissions exist only in
+  the protected tag-publish job.
   GitHub immutable releases must remain enabled. After a release is published,
   its tag and assets are permanent; corrections publish a new version instead
   of replacing an operator-visible artifact.
+  Binary publication must use an owner-created protected `v*` tag on a commit
+  reachable from reviewed `master`, pass the protected `validator-release`
+  environment, and reverify the downloaded
+  payload against the workflow tag and source commit. Repository settings must
+  restrict that environment to the `master` branch and `v*` tags with an
+  explicit reviewer, and restrict creation, update, and deletion of `v*` tags
+  to the release owner.
   Third-party actions are commit-SHA pinned.
 - **`scripts/install-binary.sh`** — GitHub Release binary installer intended to
   back the hosted `get.aipowergrid.io/validator` path. It installs the binary
@@ -122,8 +130,9 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   `validator-release.json` plus `SHA256SUMS`. The manifest binds version, tag,
   source commit, exact asset names, sizes, hashes, and platform-signing state;
   the aggregate checksum covers the manifest. The verifier checks archive
-  contents and rejects missing, extra, or mismatched entries before provenance
-  is attested. Publication must fail unless the manifest records verified macOS
+  contents and rejects missing, extra, mismatched, non-regular, encrypted, or
+  path-bearing archive entries before provenance is attested. Publication must
+  fail unless the manifest records verified macOS
   Developer ID/notarization and Windows Authenticode identities.
 - **`scripts/classify-release-tag.sh`** — shared binary/Docker tag policy.
   Only stable `vX.Y.Z` tags may publish `latest`; bounded prerelease tags such
