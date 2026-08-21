@@ -177,7 +177,9 @@ class Settings:
     VIDEO_DECODE_TIMEOUT_S = _env_float("VALIDATOR_VIDEO_DECODE_TIMEOUT_S", 15, minimum=0.1)
 
     PROBE_INTERVAL_S = _env_int("PROBE_INTERVAL_S", 60, minimum=1)
-    PROBE_TIMEOUT_S = _env_int("PROBE_TIMEOUT_S", 45, minimum=1)
+    # Core permits a targeted text stage to run for 180 seconds. The node's
+    # HTTP timeout must cover that full server-side window plus transport slack.
+    PROBE_TIMEOUT_S = _env_int("PROBE_TIMEOUT_S", 180, minimum=1)
     PROBE_MAX_TOKENS = _env_int("PROBE_MAX_TOKENS", 256, minimum=1)
     # Latency budget: a correct-but-slower-than-this answer scores `slow`.
     LATENCY_BUDGET_S = _env_float("LATENCY_BUDGET_S", 30, minimum=0)
