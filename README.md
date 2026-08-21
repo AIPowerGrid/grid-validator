@@ -26,8 +26,8 @@ What is implemented and testable against the candidate Core:
 - Read-only local dashboard on `127.0.0.1:8790`.
 - Assignment-bound text canaries through validator-only Core endpoints.
 - Randomized text scoring: exact nonce echo, generated arithmetic, strict JSON,
-  context retrieval, generated multistep logic, exact function calls, and
-  latency classification.
+  context retrieval, generated multistep logic, exact function calls,
+  stop-sequence compliance, and latency classification.
 - Mandatory signed registration, heartbeat, and attestations from a wallet
   linked to the validator's Grid account.
 - Small default install: V0 text probing plus signing. Optional `media` and

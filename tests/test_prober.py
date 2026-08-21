@@ -134,6 +134,18 @@ class ProberTests(unittest.TestCase):
                 "failed",
             )
 
+    def test_score_committed_stop_sequence_requires_only_the_prefix(self):
+        canary = {
+            "kind": "stop.sequence",
+            "expected_hash": hashlib.sha256(b"ABC123").hexdigest(),
+        }
+        with patch.object(prober.Settings, "LATENCY_BUDGET_S", 30):
+            self.assertEqual(prober.score_committed(canary, "ABC123", 0.1), "healthy")
+            self.assertEqual(
+                prober.score_committed(canary, "ABC123<STOP_XYZ>TAIL", 0.1),
+                "failed",
+            )
+
     def test_score_committed_unknown_kind_fails_closed(self):
         canary = {
             "kind": "unknown",

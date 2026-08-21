@@ -196,7 +196,7 @@ def _normalized_committed_answer(kind: str, text: str, tool_calls=None) -> str |
         return _normalized_tool_call(tool_calls)
     if not answer:
         return None
-    if kind in ("echo", "context.retrieve"):
+    if kind in ("echo", "context.retrieve", "stop.sequence"):
         candidate = _strip_wrapping_quotes(answer)
         return candidate if candidate and not re.search(r"\s", candidate) else None
     if kind == "json.object":

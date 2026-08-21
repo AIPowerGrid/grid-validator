@@ -230,6 +230,7 @@ Current V0 checks:
 - randomized context retrieval
 - generated multistep integer logic
 - exact randomized single-function calls
+- randomized stop-sequence compliance
 - latency classification
 
 Planned checks:
@@ -398,7 +399,7 @@ Going offline should stop rewards, not slash stake.
 - [x] Node scaffold.
 - [x] V0 text prober.
 - [x] Capability-gated exact instruction, arithmetic, strict JSON, context
-  retrieval, multistep logic, and single-function-call scorers.
+  retrieval, multistep logic, single-function-call, and stop-sequence scorers.
 - [x] Operator CLI.
 - [x] Release binary installer scaffold.
 - [x] Linux systemd installer scaffold.

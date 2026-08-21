@@ -128,7 +128,8 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   payout, strike, or routing authority.
 - V0 text scorer capabilities are exact instruction following, generated
   arithmetic, strict JSON, context retrieval, generated multistep logic, and
-  one exact randomized function call. Multi-turn tool chains remain future work.
+  one exact randomized function call, and randomized stop-sequence compliance.
+  Multi-turn tool chains and token-budget honesty remain future work.
   They are usefulness samples, not proof of a model family or parameter count.
 - **Evidence delivery is durable:** persist the signed public envelope before
   HTTP submission, replay pending evidence before new work, and remove it only

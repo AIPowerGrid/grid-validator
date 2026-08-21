@@ -193,9 +193,9 @@ Capability lanes:
 
 Implemented in the preview: exact instruction, generated arithmetic, strict
 JSON object output, randomized context retrieval, generated multistep
-integer logic, and exact single-function calls. Code execution, multi-turn
-tool-call chains, larger context tiers, and
-transport-limit compliance remain future lanes.
+integer logic, exact single-function calls, and stop-sequence compliance. Code
+execution, multi-turn tool-call chains, larger context tiers, and token-budget
+compliance remain future lanes.
 
 Scoring:
 
