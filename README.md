@@ -9,6 +9,8 @@ later.** The node should be easy to run before it is allowed to carry economic
 authority.
 
 Start with [QUICKSTART.md](QUICKSTART.md) if you just want to run a preview node.
+Read [PREVIEW_COHORT.md](PREVIEW_COHORT.md) to join the first independent
+operator cohort and complete the 72-hour qualification run.
 Use [OPERATORS.md](OPERATORS.md) when you are installing it as an always-on
 service, [RELEASE_V0.md](RELEASE_V0.md) for the cross-repo rollout order, and
 [DESIGN.md](DESIGN.md) for the full validator story across text, image, video,

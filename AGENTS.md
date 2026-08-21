@@ -65,6 +65,9 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   validation, text/image/video policy work, and Base-anchored economics.
 - **`RELEASE_V0.md`** — cross-repo evidence-only release runbook: core migration/API,
   console scorecards, validator packaging, canary operation, and rollback notes.
+- **`PREVIEW_COHORT.md`** — public recruitment and qualification contract for
+  5-10 independent preview operators, including safe reporting and the
+  distinction between node count and independently controlled quorum weight.
 - **`pyproject.toml`** — package metadata and `aipg-validator` console script.
   Default dependencies cover V0 text probing plus signing; heavier future-lane
   dependencies live under `media` and `stake` extras. Do not reintroduce a
