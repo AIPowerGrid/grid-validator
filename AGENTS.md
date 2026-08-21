@@ -160,7 +160,7 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   and never trusts Core's private verdict. Evidence remains input with no slash, reward,
   payout, strike, or routing authority.
 - V0 text scorer capabilities are exact instruction following, generated
-  arithmetic, strict JSON, calibrated 4K/16K context retrieval, generated
+  arithmetic, strict JSON, calibrated 4K/16K/32K context retrieval, generated
   multistep logic, one exact randomized function call, a two-stage randomized
   tool chain, randomized stop-sequence compliance, and gross output-budget
   compliance.

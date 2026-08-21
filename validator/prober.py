@@ -4,8 +4,8 @@
 """Canary generation + output scoring.
 
 Legacy local canaries retain echo and generated arithmetic for isolated tests.
-Grid-issued shared probes additionally support strict JSON, randomized context
-retrieval, generated multistep logic, exact function calls, two-stage tool
+Grid-issued shared probes additionally support strict JSON, randomized 4K/16K/32K
+context retrieval, generated multistep logic, exact function calls, two-stage tool
 chains, stop-sequence compliance, and gross output-budget compliance. Expected
 answers remain one-way
 commitments; this node normalizes and hashes the worker response independently.
@@ -304,7 +304,13 @@ def _normalized_committed_answer(kind: str, text: str, tool_calls=None) -> str |
         return _normalized_tool_chain(tool_calls)
     if not answer:
         return None
-    if kind in ("echo", "context.retrieve", "context.retrieve.16k", "stop.sequence"):
+    if kind in (
+        "echo",
+        "context.retrieve",
+        "context.retrieve.16k",
+        "context.retrieve.32k",
+        "stop.sequence",
+    ):
         candidate = _strip_wrapping_quotes(answer)
         return candidate if candidate and not re.search(r"\s", candidate) else None
     if kind == "json.object":

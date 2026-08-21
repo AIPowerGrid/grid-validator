@@ -35,7 +35,7 @@ independent-reference and rollout gates pass.
   Assignment and probe endpoints fail closed when absent. Worker inventory is
   dashboard-only and must never become an alternate targeting authority.
 - **`prober.py`** — independent text scoring for randomized exact-instruction,
-  arithmetic, strict-JSON, exact 4K/16K context-retrieval, multistep-logic,
+  arithmetic, strict-JSON, exact 4K/16K/32K context-retrieval, multistep-logic,
   exact single-function-call, two-stage tool-chain, and stop-sequence commitments;
   its token-limit scorer independently counts visible plus reasoning output
   with `o200k_base`, requires a length-style finish, and applies the same
