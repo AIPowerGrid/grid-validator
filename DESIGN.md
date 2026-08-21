@@ -207,10 +207,13 @@ Current V0 lifecycle:
 3. Optionally check local stake configuration; preview requires no stake.
 4. Fetch assignments from the Grid.
 5. Submit the assignment through the validator-only targeted endpoint.
-6. Score the result as `healthy`, `slow`, or `failed`.
-7. Sign the assignment id, Grid nonce, evidence hash, and verdict.
-8. Submit the attestation; heartbeat between rounds.
-9. Core stores non-economic evidence and updates scorecards.
+6. Match the returned assignment, worker, model, nonce, and capability; then
+   recompute the prompt, response, and canonical evidence hashes.
+7. Score the result locally as `healthy`, `slow`, or `failed`. Preserve a
+   disagreement with Core's observed verdict instead of copying it.
+8. Sign the assignment id, Grid nonce, verified evidence hash, and local verdict.
+9. Submit the attestation; heartbeat between rounds.
+10. Core stores non-economic evidence and updates scorecards.
 
 Future shared-challenge quorum must assign the same challenge family to multiple
 independent registered validators before evidence can influence routing or money.

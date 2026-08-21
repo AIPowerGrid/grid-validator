@@ -35,6 +35,10 @@ What is implemented and testable against the candidate Core:
 - Targeted probe execution at
   `POST /v1/validator/probe/{assignment_id}`; the core, not the validator,
   selects the worker.
+- Independent result binding and scoring: the node matches every returned
+  assignment field, recomputes the prompt/response/evidence hashes, and applies
+  its local scorer before signing. A mismatch is skipped; a verdict disagreement
+  is preserved as disputed evidence.
 - Assignment-bound attestations, aggregate scorecards, and assignment-health
   views in Core. The state labels are evidence workflow states, not proof of
   independent multi-validator quorum.

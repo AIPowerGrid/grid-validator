@@ -1,3 +1,5 @@
+import hashlib
+import json
 import os
 import subprocess
 import sys
@@ -14,6 +16,62 @@ TEST_ACCOUNT = Account.from_key("0x" + "11" * 32)
 
 
 class ProbeRoundTests(unittest.IsolatedAsyncioTestCase):
+    @staticmethod
+    def _assignment():
+        return {
+            "assignment_id": "asg_1",
+            "grid_nonce": "grid-nonce-1",
+            "target_worker_id": "worker-1",
+            "model": "qwen3-32b",
+            "modality": "text",
+            "capability": "text.basic.v1",
+            "canary_kind": "math.add",
+            "challenge": {
+                "kind": "math.add",
+                "prompt": "What is 19 + 23? Reply with only the number.",
+                "expected": "42",
+            },
+        }
+
+    @classmethod
+    def _result(cls, **overrides):
+        assignment = cls._assignment()
+        prompt_hash = hashlib.sha256(
+            assignment["challenge"]["prompt"].encode("utf-8")
+        ).hexdigest()
+        response_hash = hashlib.sha256(b"42").hexdigest()
+        evidence = {
+            "assignment_id": assignment["assignment_id"],
+            "grid_nonce": assignment["grid_nonce"],
+            "worker_id": assignment["target_worker_id"],
+            "model": assignment["model"],
+            "modality": assignment["modality"],
+            "capability": assignment["capability"],
+            "canary_kind": assignment["canary_kind"],
+            "prompt_hash": prompt_hash,
+            "response_hash": response_hash,
+        }
+        evidence_hash = hashlib.sha256(
+            json.dumps(evidence, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
+        result = {
+            "status": "completed",
+            "output_text": "42",
+            "probe_verdict": "slow",
+            "assignment_id": assignment["assignment_id"],
+            "grid_nonce": assignment["grid_nonce"],
+            "target_worker_id": assignment["target_worker_id"],
+            "model": assignment["model"],
+            "modality": assignment["modality"],
+            "capability": assignment["capability"],
+            "canary_kind": assignment["canary_kind"],
+            "prompt_hash": prompt_hash,
+            "response_hash": response_hash,
+            "evidence_hash": evidence_hash,
+        }
+        result.update(overrides)
+        return result
+
     async def test_assignment_probe_submits_grid_bound_attestation(self):
         class FakeGrid:
             def __init__(self):
@@ -21,31 +79,11 @@ class ProbeRoundTests(unittest.IsolatedAsyncioTestCase):
                 self.submitted = []
 
             async def validator_assignments(self, **_kwargs):
-                return [{
-                    "assignment_id": "asg_1",
-                    "grid_nonce": "grid-nonce-1",
-                    "target_worker_id": "worker-1",
-                    "model": "qwen3-32b",
-                    "modality": "text",
-                    "capability": "text.basic.v1",
-                    "canary_kind": "math.add",
-                    "challenge": {
-                        "kind": "math.add",
-                        "prompt": "What is 19 + 23? Reply with only the number.",
-                        "expected": "42",
-                    },
-                }]
+                return [ProbeRoundTests._assignment()]
 
             async def probe_assignment(self, assignment_id):
                 self.probed.append(assignment_id)
-                return {
-                    "status": "completed",
-                    "output_text": "42",
-                    "probe_verdict": "slow",
-                    "prompt_hash": "a" * 64,
-                    "response_hash": "b" * 64,
-                    "evidence_hash": "c" * 64,
-                }
+                return ProbeRoundTests._result()
 
             async def submit_attestation(self, envelope):
                 self.submitted.append(envelope)
@@ -69,11 +107,49 @@ class ProbeRoundTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(payload["grid_nonce"], "grid-nonce-1")
         self.assertEqual(payload["worker_id"], "worker-1")
         self.assertEqual(payload["capability"], "text.basic.v1")
-        self.assertEqual(payload["verdict"], "slow")
-        self.assertEqual(payload["prompt_hash"], "a" * 64)
-        self.assertEqual(payload["response_hash"], "b" * 64)
-        self.assertEqual(payload["evidence_hash"], "c" * 64)
+        self.assertEqual(payload["verdict"], "healthy")
+        self.assertEqual(payload["prompt_hash"], ProbeRoundTests._result()["prompt_hash"])
+        self.assertEqual(payload["response_hash"], ProbeRoundTests._result()["response_hash"])
+        self.assertEqual(payload["evidence_hash"], ProbeRoundTests._result()["evidence_hash"])
         self.assertIsNotNone(grid.submitted[0]["signature"])
+
+    async def test_assignment_probe_rejects_mismatched_core_commitment(self):
+        class FakeGrid:
+            def __init__(self):
+                self.submitted = []
+
+            async def validator_assignments(self, **_kwargs):
+                return [ProbeRoundTests._assignment()]
+
+            async def probe_assignment(self, _assignment_id):
+                return ProbeRoundTests._result(response_hash="f" * 64)
+
+            async def submit_attestation(self, envelope):
+                self.submitted.append(envelope)
+                return True
+
+        grid = FakeGrid()
+        self.assertEqual(await main.probe_round(grid, 0), 0)
+        self.assertEqual(grid.submitted, [])
+
+    async def test_assignment_probe_rejects_wrong_target_binding(self):
+        class FakeGrid:
+            def __init__(self):
+                self.submitted = []
+
+            async def validator_assignments(self, **_kwargs):
+                return [ProbeRoundTests._assignment()]
+
+            async def probe_assignment(self, _assignment_id):
+                return ProbeRoundTests._result(target_worker_id="worker-2")
+
+            async def submit_attestation(self, envelope):
+                self.submitted.append(envelope)
+                return True
+
+        grid = FakeGrid()
+        self.assertEqual(await main.probe_round(grid, 0), 0)
+        self.assertEqual(grid.submitted, [])
 
     async def test_no_assignment_fails_closed_without_inventory_or_model_fallback(self):
         class FakeGrid:

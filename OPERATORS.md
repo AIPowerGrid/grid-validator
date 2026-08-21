@@ -241,6 +241,11 @@ Checks:
   instruction rather than echoing the whole prompt
 - generated arithmetic QA: catches broken backends or wildly wrong model routing
 - latency budget: classifies correct but slow responses as `slow`
+- evidence binding: rejects a result whose assignment, target, model, nonce,
+  capability, prompt hash, response hash, or canonical evidence hash does not
+  match what the node independently recomputes
+- local scoring: signs the node's own verdict; a disagreement with Core remains
+  visible as disputed evidence
 - mandatory signature: signs registration and the attestation payload,
   including prompt/response hashes and a compact evidence hash
 

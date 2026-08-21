@@ -100,6 +100,12 @@ exists as design/scaffold until the Grid adds modality-aware probe jobs.
 - **V0 fairness:** only execute the modality and capability in the Grid-issued
   assignment. Missing or unsupported assignment metadata is a skip, never a
   worker failure and never a reason to invent another target.
+- **Independent evidence verification:** before signing, the node must match
+  assignment ID, Grid nonce, worker, model, modality, capability, and canary
+  kind; recompute prompt/response hashes and the canonical probe evidence hash;
+  and score the returned output locally. A binding mismatch is a skip. A local
+  verdict that differs from Core's verdict is signed as an honest disagreement,
+  allowing the evidence state to become disputed.
 - **No false targeted failures:** if a targeted probe endpoint is missing, disabled, or
   returns no text, skip attestation instead of recording `failed`.
 - **No green no-op checks:** `aipg-validator check` must fail clearly when no

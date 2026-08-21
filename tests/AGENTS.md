@@ -26,6 +26,9 @@ installer generation.
   imply payout, routing, strike, or slash authority.
 - Prove missing registration, assignments, and probe support do not fall back
   to public inference or locally invented targets.
+- Prove the node rejects mismatched assignment/result metadata and recomputes
+  prompt, response, and canonical evidence hashes before signing. Core's
+  returned verdict must not replace the node's local score.
 - A mocked unit test does not prove real multi-node independence or adversarial
   quorum; keep that limitation explicit in release docs.
 

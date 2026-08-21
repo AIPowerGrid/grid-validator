@@ -7,6 +7,9 @@ Run:  python -m validator.main   (from the grid-validator/ dir, with a .env)
 """
 
 import asyncio
+import hashlib
+import hmac
+import json
 import logging
 import sys
 import time
@@ -20,6 +23,70 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s %(name)s: %(message)s",
 )
 logger = logging.getLogger("validator.main")
+
+
+def _canonical(value: dict) -> str:
+    return json.dumps(value, sort_keys=True, separators=(",", ":"))
+
+
+def _sha256_text(value: str) -> str:
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
+def _verified_probe_evidence(
+    assignment: dict,
+    result: dict,
+    response_text: str,
+) -> dict[str, str] | None:
+    """Recompute and verify Core's targeted-probe commitment.
+
+    Core transports the workload, but the validator must not blindly sign the
+    coordinator's identifiers or hashes. Any mismatch makes the probe
+    unusable; it does not become a failed-worker attestation.
+    """
+    expected_result = {
+        "assignment_id": str(assignment.get("assignment_id") or ""),
+        "grid_nonce": str(assignment.get("grid_nonce") or ""),
+        "target_worker_id": str(assignment.get("target_worker_id") or ""),
+        "model": str(assignment.get("model") or ""),
+        "modality": str(assignment.get("modality") or ""),
+        "capability": str(assignment.get("capability") or ""),
+        "canary_kind": str(assignment.get("canary_kind") or ""),
+    }
+    if not all(expected_result.values()):
+        logger.warning("assignment is missing evidence-binding metadata; skipping")
+        return None
+    for key, expected in expected_result.items():
+        if str(result.get(key) or "") != expected:
+            logger.warning("targeted probe %s mismatch; skipping", key)
+            return None
+
+    challenge = assignment.get("challenge") or {}
+    prompt_hash = _sha256_text(str(challenge.get("prompt") or ""))
+    response_hash = _sha256_text(response_text)
+    evidence = {
+        "assignment_id": expected_result["assignment_id"],
+        "grid_nonce": expected_result["grid_nonce"],
+        "worker_id": expected_result["target_worker_id"],
+        "model": expected_result["model"],
+        "modality": expected_result["modality"],
+        "capability": expected_result["capability"],
+        "canary_kind": expected_result["canary_kind"],
+        "prompt_hash": prompt_hash,
+        "response_hash": response_hash,
+    }
+    evidence_hash = hashlib.sha256(_canonical(evidence).encode("utf-8")).hexdigest()
+    commitments = {
+        "prompt_hash": prompt_hash,
+        "response_hash": response_hash,
+        "evidence_hash": evidence_hash,
+    }
+    for key, expected in commitments.items():
+        actual = str(result.get(key) or "")
+        if not hmac.compare_digest(actual, expected):
+            logger.warning("targeted probe %s does not verify; skipping", key)
+            return None
+    return commitments
 
 
 def _assignment_canary(assignment: dict) -> dict | None:
@@ -66,12 +133,25 @@ async def _probe_assignment(grid: GridClient, assignment: dict) -> int:
         logger.info(f"[{str(worker_id)[:8]} {model}] assignment probe returned no text; skipping")
         return 0
 
-    verdict = str(res.get("probe_verdict") or prober.score(canary, text, latency))
+    commitments = _verified_probe_evidence(assignment, res, text)
+    if commitments is None:
+        return 0
+
+    verdict = prober.score(canary, text, latency)
     if verdict not in attest.VALID_VERDICTS:
         logger.info(
-            f"[{str(worker_id)[:8]} {model}] assignment probe returned invalid verdict; skipping"
+            f"[{str(worker_id)[:8]} {model}] local probe scorer returned invalid verdict; skipping"
         )
         return 0
+    core_verdict = str(res.get("probe_verdict") or "")
+    if core_verdict and core_verdict != verdict:
+        logger.warning(
+            "[%s %s] local verdict %s disagrees with Core verdict %s",
+            str(worker_id)[:8],
+            model,
+            verdict,
+            core_verdict,
+        )
     logger.info(
         f"[{str(worker_id)[:8]} {model}] assignment {canary['kind']} -> {verdict} "
         f"({latency:.1f}s)"
@@ -89,12 +169,9 @@ async def _probe_assignment(grid: GridClient, assignment: dict) -> int:
         assignment_id=str(assignment_id),
         grid_nonce=str(grid_nonce),
     )
-    # Core stores the probe evidence hash when the hard-targeted worker reply
-    # arrives. Echo it exactly so authoritative attestation storage can verify
-    # this claim is bound to that probe, not just to a nonce.
-    for key in ("prompt_hash", "response_hash", "evidence_hash"):
-        if res.get(key):
-            att[key] = res[key]
+    # Echo only the commitment this node independently recomputed and matched
+    # against Core's response.
+    att.update(commitments)
     submitted = await grid.submit_attestation(attest.sign(att))
     return 1 if submitted else 0
 
