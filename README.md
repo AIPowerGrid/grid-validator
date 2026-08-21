@@ -29,8 +29,9 @@ What is implemented and testable against the candidate Core:
 - Assignment-bound text canaries through validator-only Core endpoints.
 - Randomized text scoring: exact nonce echo, generated arithmetic, strict JSON,
   calibrated 4K, 16K, and 32K context retrieval, generated multistep logic, exact
-  function calls, a two-stage function-call chain, stop-sequence compliance,
-  gross output-budget compliance, and latency classification.
+  restricted-AST Python function synthesis against hidden inputs, function
+  calls, a two-stage function-call chain, stop-sequence compliance, gross
+  output-budget compliance, and latency classification.
 - Mandatory signed registration, heartbeat, and attestations from a wallet
   linked to the validator's Grid account.
 - Small default install: V0 text probing plus signing. Optional `media` and

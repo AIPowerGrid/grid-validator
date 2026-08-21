@@ -193,10 +193,12 @@ Capability lanes:
 
 Implemented in the preview: exact instruction, generated arithmetic, strict
 JSON object output, calibrated randomized 4K/16K/32K context retrieval, generated
-multistep integer logic, exact single-function calls, an exact two-stage
-tool-call chain, stop-sequence compliance, and gross output-budget compliance.
-Code execution, longer tool chains, 64K+ context tiers, and exact
-native-tokenizer equivalence remain future lanes.
+multistep integer logic, Python function synthesis interpreted over a bounded
+arithmetic AST against assignment-only hidden inputs, exact single-function
+calls, an exact two-stage tool-call chain, stop-sequence compliance, and gross
+output-budget compliance. Richer code/logic tiers, longer tool chains, 64K+
+context tiers, streaming integrity, and exact native-tokenizer equivalence remain
+future lanes.
 
 Scoring:
 

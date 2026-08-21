@@ -147,6 +147,44 @@ class ProberTests(unittest.TestCase):
             )
             self.assertEqual(prober.score_committed(canary, "41 or 42", 0.1), "failed")
 
+    def test_score_committed_code_uses_restricted_ast_and_hidden_tests(self):
+        inputs = [-11, -1, 0, 3, 19, 42, 87]
+        outputs = [((value * 7 - 4) % 53) - 6 for value in inputs]
+        expected = json.dumps(outputs, separators=(",", ":"))
+        canary = {
+            "kind": "code.function",
+            "function_name": "transform_a1b2c3d4",
+            "test_inputs": inputs,
+            "expected_hash": hashlib.sha256(expected.encode()).hexdigest(),
+        }
+        correct = (
+            "def transform_a1b2c3d4(x):\n"
+            "    return ((7 * x - 4) % 53) - 6"
+        )
+        with patch.object(prober.Settings, "LATENCY_BUDGET_S", 30):
+            self.assertEqual(prober.score_committed(canary, correct, 0.1), "healthy")
+            self.assertEqual(
+                prober.score_committed(canary, correct.replace("- 6", "- 7"), 0.1),
+                "failed",
+            )
+            self.assertEqual(
+                prober.score_committed(canary, f"import os\n{correct}", 0.1),
+                "failed",
+            )
+            self.assertEqual(
+                prober.score_committed(
+                    canary,
+                    "def transform_a1b2c3d4(x):\n"
+                    "    return __import__('os').system('id')",
+                    0.1,
+                ),
+                "failed",
+            )
+            self.assertEqual(
+                prober.score_committed(canary, f"```python\n{correct}\n```", 0.1),
+                "failed",
+            )
+
     def test_score_committed_tool_call_requires_one_exact_call_and_no_text(self):
         expected = json.dumps(
             {"arguments": {"count_a": 7, "token_b": "A1"}, "name": "record_c"},

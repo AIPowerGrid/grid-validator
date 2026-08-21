@@ -161,6 +161,8 @@ def _assignment_canary(assignment: dict) -> dict | None:
         "expected_hash": str(expected_hash),
         "steps": challenge.get("steps"),
         "max_tokens": challenge.get("max_tokens"),
+        "function_name": challenge.get("function_name"),
+        "test_inputs": challenge.get("test_inputs"),
     }
 
 
