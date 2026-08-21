@@ -82,9 +82,11 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   same frozen `uv.lock` as release binaries; the final non-root stage does not
   carry the UV build tool.
 - **`.github/workflows/`**, `.gitleaks.toml`, and `.gitleaksignore` — CI,
-  checksum-verified tracked-tree and complete reachable-history scanning,
+  checksum-verified complete reachable-history scanning,
   image-release, and binary-release workflows. Historical scan exceptions are
-  exact reviewed fingerprints only.
+  exact reviewed fingerprints only. Global placeholder words, lockfiles, and
+  generated-directory names are not secret-scan exemptions; CI proves an
+  `example_private_key` label cannot suppress a committed synthetic secret.
   Ordinary CI installs from the frozen `uv.lock` and audits the complete locked
   graph, including every optional dependency lane; it must not resolve the
   broad `pyproject.toml` ranges independently with pip.
@@ -197,9 +199,9 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   scripts/verify-release-assets.sh`
 - `./scripts/smoke-release.sh`
 - `./scripts/install-systemd.sh --dry-run --exec ./.venv/bin/aipg-validator`
-- `gitleaks detect --source . --no-git --config .gitleaks.toml --redact`, then
-  `gitleaks git . --log-opts=HEAD --config .gitleaks.toml --redact` from a full
-  clone.
+- `gitleaks git . --log-opts=HEAD --config .gitleaks.toml --redact` from a full
+  clone. This covers the current committed tree and all reachable history
+  without scanning ignored local environments or generated caches.
 - `uv export --frozen --all-extras --no-dev --no-emit-project
   --format requirements-txt --output-file /tmp/validator-all-deps.txt` then
   `uvx --from pip-audit==2.9.0 pip-audit -r /tmp/validator-all-deps.txt
