@@ -218,6 +218,19 @@ jobs:
               "tag": tag,
               "version": version,
               "commit": os.environ["RELEASE_COMMIT"],
+              "platform_signing": {
+                  "macos": {
+                      "verified": False,
+                      "identity": "adhoc",
+                      "notarized": False,
+                      "team_id": None,
+                  },
+                  "windows": {
+                      "verified": False,
+                      "identity": "unsigned",
+                      "subject": None,
+                  },
+              },
               "assets": assets,
           }
           (root / "validator-release.json").write_text(
@@ -262,6 +275,38 @@ jobs:
         with:
           name: aipg-validator-release-payload
           path: dist-artifacts
+
+      - name: Require verified platform signing
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import pathlib
+
+          manifest = json.loads(
+              pathlib.Path("dist-artifacts/validator-release.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+          signing = manifest.get("platform_signing") or {}
+          macos = signing.get("macos") or {}
+          windows = signing.get("windows") or {}
+          if not (
+              macos.get("verified") is True
+              and macos.get("identity") == "developer_id_application"
+              and macos.get("notarized") is True
+              and isinstance(macos.get("team_id"), str)
+              and macos["team_id"]
+          ):
+              raise SystemExit("macOS Developer ID/notarization gate is not satisfied")
+          if not (
+              windows.get("verified") is True
+              and windows.get("identity") == "authenticode"
+              and isinstance(windows.get("subject"), str)
+              and windows["subject"]
+          ):
+              raise SystemExit("Windows Authenticode gate is not satisfied")
+          PY
 
       - name: Attest release provenance
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4

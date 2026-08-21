@@ -93,9 +93,12 @@ Expected release assets:
 Every release also carries `install-validator.sh`, `validator-release.json`,
 `SHA256SUMS`, an SPDX JSON SBOM, and GitHub build provenance. The release
 manifest binds the exact version, tag, source commit, asset sizes, and asset
-hashes; `SHA256SUMS` covers the manifest itself. The installer verifies the
-platform archive checksum. GitHub immutable releases prevent a published tag or
-asset from being silently replaced; a correction is always a new version.
+hashes, plus the verified platform-signing state; `SHA256SUMS` covers the
+manifest itself. The publication job refuses to create a release until macOS
+Developer ID/notarization and Windows Authenticode gates are satisfied. The
+installer verifies the platform archive checksum. GitHub immutable releases
+prevent a published tag or asset from being silently replaced; a correction is
+always a new version.
 Operators can add provenance verification with:
 
 ```bash

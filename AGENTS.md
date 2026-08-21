@@ -120,9 +120,11 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
 - **`scripts/verify-release-assets.sh`** — publication gate for the exact four
   platform archives, checksum-covered installer, SPDX JSON SBOM, and
   `validator-release.json` plus `SHA256SUMS`. The manifest binds version, tag,
-  source commit, exact asset names, sizes, and hashes; the aggregate checksum
-  covers the manifest. The verifier checks archive contents and rejects missing,
-  extra, or mismatched entries before provenance is attested.
+  source commit, exact asset names, sizes, hashes, and platform-signing state;
+  the aggregate checksum covers the manifest. The verifier checks archive
+  contents and rejects missing, extra, or mismatched entries before provenance
+  is attested. Publication must fail unless the manifest records verified macOS
+  Developer ID/notarization and Windows Authenticode identities.
 - **`scripts/classify-release-tag.sh`** — shared binary/Docker tag policy.
   Only stable `vX.Y.Z` tags may publish `latest`; bounded prerelease tags such
   as `v0.1.0-preview` remain explicitly versioned.
