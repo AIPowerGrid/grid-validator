@@ -208,7 +208,12 @@ Public release path:
 
 1. Push the repo with CI green. Confirm GitHub immutable releases are enabled
    for `AIPowerGrid/grid-validator`; never disable the setting to repair a
-   published release.
+   published release. The public release remains blocked until
+   [issue #1](https://github.com/AIPowerGrid/grid-validator/issues/1) closes:
+   the macOS binary must carry a verified Developer ID identity and notarization,
+   and the Windows binary must carry a verified Authenticode identity. The
+   workflow records those facts in `validator-release.json` and fails closed
+   before publication while either is absent.
 2. Create a release tag, or run the binary and Docker workflows manually with
    explicit publish tags:
    - binary workflow: set `release_tag` to the release name, for example
