@@ -10,6 +10,10 @@ The first public version should be deliberately low-authority:
 > easy to run, useful evidence, no slashing power.
 
 For the practical build sequence and release gates, see [ROADMAP.md](ROADMAP.md).
+The accepted on-chain and trusted-partner Core sequence lives in
+[`grid-core/docs/architecture/DECENTRALIZATION_ROADMAP.md`](https://github.com/AIPowerGrid/grid-core/blob/main/docs/architecture/DECENTRALIZATION_ROADMAP.md);
+the public node must not independently invent an economic or federation
+protocol.
 
 ## Phases
 
