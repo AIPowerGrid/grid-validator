@@ -248,6 +248,11 @@ Prefer objective checks. Use LLM-as-judge only as a supporting signal.
 
 ## Image Validation
 
+The accepted Core execution and trust-boundary specification is
+`grid-core/docs/architecture/MEDIA_VALIDATION_V1.md`. This section summarizes
+the modality policy; it does not authorize the existing local scaffold as
+assignment-bound evidence.
+
 General image validation:
 
 - output decodes

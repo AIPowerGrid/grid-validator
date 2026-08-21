@@ -213,6 +213,11 @@ Definition of done:
 
 ## Phase 4: Image Validation
 
+Implementation must follow
+`grid-core/docs/architecture/MEDIA_VALIDATION_V1.md`: Core-computed object
+digests, validator URL allowlisting, two agreeing references, distinct operator
+controls, and inconclusive reference disagreement are release gates.
+
 Goal: separate general image usefulness from deterministic workflow fidelity.
 
 General image checks:
