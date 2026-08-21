@@ -26,7 +26,7 @@ VERDICT_SCORE = {
     "failed": 0.0,
 }
 
-VALIDATOR_CAPABILITIES = [
+TEXT_VALIDATOR_CAPABILITIES = [
     "text.instruction.v1",
     "text.reasoning.v1",
     "text.structured.v1",
@@ -36,6 +36,20 @@ VALIDATOR_CAPABILITIES = [
     "text.tool_chain.v1",
     "text.stop_sequence.v1",
 ]
+# Backward-compatible text-only constant for callers that need the package's
+# dependency-free baseline. Registration and heartbeat use
+# ``runtime_capabilities`` so optional media support is never over-advertised.
+VALIDATOR_CAPABILITIES = TEXT_VALIDATOR_CAPABILITIES
+
+
+def runtime_capabilities() -> list[str]:
+    """Return only scorers this process can execute safely right now."""
+    capabilities = list(TEXT_VALIDATOR_CAPABILITIES)
+    from .media_prober import media_dependencies_available
+
+    if Settings.MEDIA_ALLOWED_ORIGINS and media_dependencies_available():
+        capabilities.append("image.fidelity.v1")
+    return capabilities
 
 
 def _canonical(payload: dict) -> str:
@@ -60,7 +74,7 @@ def build_registration(ts: int) -> dict:
         "registration_schema": "aipg.validator.registration.v1",
         "validator": Settings.VALIDATOR_WALLET,
         "software_version": __version__,
-        "capabilities": VALIDATOR_CAPABILITIES,
+        "capabilities": runtime_capabilities(),
         "ts": ts,
     }
 

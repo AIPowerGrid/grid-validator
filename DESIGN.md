@@ -261,11 +261,13 @@ General image validation:
 - prompt constraints are plausibly followed
 - explicit seed behavior is honored where claimed
 
-The validator now has an unwired, fail-closed witness fetch boundary: exact
+The validator now has an assignment-loop-wired, fail-closed witness fetch boundary: exact
 operator-configured public HTTPS origins, redirects/proxies/content encodings
 disabled, bounded time and bytes, MIME/length binding, and SHA-256
-recomputation. Media capabilities remain unadvertised until Core assignments,
-reference agreement, and decoder/scorer gates are complete. A dark
+recomputation. The node advertises image fidelity only when its optional media
+dependencies and origin allowlist are ready. Core issuance remains disabled
+until deterministic recipes, independent bonded references, immutable witness
+retention, and rollout gates are complete. A dark
 `image.fidelity.v1` scorer independently checks dimensions and structure,
 requires two committed references to agree, and only then fails a candidate
 pHash outlier. Unsafe transport, unavailable decoders, malformed contracts, or

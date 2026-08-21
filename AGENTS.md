@@ -133,11 +133,12 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   work.
   They are usefulness samples, not proof of a model family or parameter count.
 - The media witness fetch/verifier and independent `image.fidelity.v1` scorer
-  are implemented but unwired: exact
+  are wired to assignment polling but remain Core-gated: exact
   operator-configured HTTPS origins, redirects and encoded responses disabled,
   bounded bytes/time/MIME, SHA-256 recomputation, structural checks, and pHash
-  comparison only after two references agree. Do not advertise media
-  capabilities until Core assignments and every media rollout gate are complete.
+  comparison only after two references agree. A node advertises the capability
+  only when its media dependencies and HTTPS origin allowlist are ready; Core
+  must still withhold assignments until every media rollout gate is complete.
 - **Evidence delivery is durable:** persist the signed public envelope before
   HTTP submission, replay pending evidence before new work, and remove it only
   after Core accepts it. Never persist the private key in validator state.

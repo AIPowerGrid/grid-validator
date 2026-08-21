@@ -168,13 +168,13 @@ class GridClient:
     async def heartbeat(self) -> dict:
         """Refresh the active validator's liveness and software metadata."""
         from . import __version__
-        from .attest import VALIDATOR_CAPABILITIES
+        from .attest import runtime_capabilities
 
         r = await self._http.post(
             "/v1/validator/heartbeat",
             json={
                 "software_version": __version__,
-                "capabilities": VALIDATOR_CAPABILITIES,
+                "capabilities": runtime_capabilities(),
             },
             timeout=10,
         )

@@ -5,7 +5,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 from eth_account import Account
 
@@ -81,6 +81,103 @@ class ProbeRoundTests(unittest.IsolatedAsyncioTestCase):
         }
         result.update(overrides)
         return result
+
+    @staticmethod
+    def _image_assignment():
+        return {
+            "assignment_id": "asg_image_1",
+            "probe_group_id": "prg_image_1",
+            "grid_nonce": "grid-image-nonce-1",
+            "target_worker_id": "worker-candidate",
+            "model": "deterministic-image-model",
+            "modality": "image",
+            "capability": "image.fidelity.v1",
+            "canary_kind": "image.fidelity",
+            "challenge": {
+                "schema": "aipg.validator.media.challenge.v1",
+                "kind": "image.fidelity",
+                "modality": "image",
+                "scoring_policy_id": "image.fidelity.v1",
+                "prompt": "private randomized prompt",
+                "recipe_root": "0x" + "12" * 32,
+                "parameters": {
+                    "seed": 123456,
+                    "width": 512,
+                    "height": 512,
+                    "steps": 12,
+                    "n": 1,
+                },
+                "reference_worker_ids": ["worker-reference-a", "worker-reference-b"],
+            },
+        }
+
+    @classmethod
+    def _image_result(cls):
+        assignment = cls._image_assignment()
+        witnesses = [
+            {
+                "role": "candidate",
+                "worker_id": "worker-candidate",
+                "url": "https://media.example/candidate.webp?secret=one",
+                "sha256": "a" * 64,
+                "bytes": 1000,
+                "content_type": "image/webp",
+                "latency_ms": 1200,
+            },
+            {
+                "role": "reference",
+                "worker_id": "worker-reference-a",
+                "url": "https://media.example/reference-a.webp?secret=two",
+                "sha256": "b" * 64,
+                "bytes": 1001,
+                "content_type": "image/webp",
+                "latency_ms": 1100,
+            },
+            {
+                "role": "reference",
+                "worker_id": "worker-reference-b",
+                "url": "https://media.example/reference-b.webp?secret=three",
+                "sha256": "c" * 64,
+                "bytes": 1002,
+                "content_type": "image/webp",
+                "latency_ms": 1150,
+            },
+        ]
+        prompt_hash = hashlib.sha256(
+            main._prompt_commitment_text(assignment).encode()
+        ).hexdigest()
+        response_text = main._media_response_commitment({"witnesses": witnesses})
+        assert response_text is not None
+        response_hash = hashlib.sha256(response_text.encode()).hexdigest()
+        evidence = {
+            "assignment_id": assignment["assignment_id"],
+            "probe_group_id": assignment["probe_group_id"],
+            "grid_nonce": assignment["grid_nonce"],
+            "worker_id": assignment["target_worker_id"],
+            "model": assignment["model"],
+            "modality": assignment["modality"],
+            "capability": assignment["capability"],
+            "canary_kind": assignment["canary_kind"],
+            "prompt_hash": prompt_hash,
+            "response_hash": response_hash,
+        }
+        return {
+            "status": "completed",
+            "assignment_id": assignment["assignment_id"],
+            "probe_group_id": assignment["probe_group_id"],
+            "grid_nonce": assignment["grid_nonce"],
+            "target_worker_id": assignment["target_worker_id"],
+            "model": assignment["model"],
+            "modality": assignment["modality"],
+            "capability": assignment["capability"],
+            "canary_kind": assignment["canary_kind"],
+            "witnesses": witnesses,
+            "prompt_hash": prompt_hash,
+            "response_hash": response_hash,
+            "evidence_hash": hashlib.sha256(
+                json.dumps(evidence, sort_keys=True, separators=(",", ":")).encode()
+            ).hexdigest(),
+        }
 
     async def test_assignment_probe_submits_grid_bound_attestation(self):
         class FakeGrid:
@@ -394,6 +491,84 @@ class ProbeRoundTests(unittest.IsolatedAsyncioTestCase):
         grid = FakeGrid()
         self.assertEqual(await main.probe_round(grid, 0, self.outbox), 0)
         self.assertEqual(grid.submitted, [])
+
+    async def test_image_assignment_signs_hashes_without_witness_urls(self):
+        class FakeGrid:
+            def __init__(self):
+                self.submitted = []
+
+            async def validator_assignments(self, *, modality, **_kwargs):
+                return [ProbeRoundTests._image_assignment()] if modality == "image" else []
+
+            async def probe_assignment(self, _assignment_id):
+                return ProbeRoundTests._image_result()
+
+            async def submit_attestation(self, envelope):
+                self.submitted.append(envelope)
+                return True
+
+        grid = FakeGrid()
+        with (
+            patch.object(Settings, "VALIDATOR_WALLET", TEST_ACCOUNT.address.lower()),
+            patch.object(Settings, "VALIDATOR_PRIVATE_KEY", TEST_ACCOUNT.key.hex()),
+            patch.object(Settings, "MEDIA_ALLOWED_ORIGINS", ("https://media.example",)),
+            patch.object(
+                main.attest,
+                "runtime_capabilities",
+                return_value=["text.instruction.v1", "image.fidelity.v1"],
+            ),
+            patch.object(
+                main.media_prober,
+                "score_image_fidelity_witnesses",
+                new=AsyncMock(return_value=("healthy", {"policy": "image.fidelity.v1"})),
+            ),
+        ):
+            self.assertEqual(await main.probe_round(grid, 0, self.outbox), 1)
+
+        payload = grid.submitted[0]["payload"]
+        self.assertEqual(payload["modality"], "image")
+        self.assertEqual(payload["capability"], "image.fidelity.v1")
+        self.assertEqual(payload["verdict"], "healthy")
+        self.assertEqual(payload["latency_ms"], 1200)
+        rendered = json.dumps(grid.submitted[0])
+        self.assertNotIn("media.example", rendered)
+        self.assertNotIn("secret=", rendered)
+
+    async def test_inconclusive_image_assignment_is_not_attested(self):
+        class FakeGrid:
+            def __init__(self):
+                self.submitted = []
+
+            async def validator_assignments(self, *, modality, **_kwargs):
+                return [ProbeRoundTests._image_assignment()] if modality == "image" else []
+
+            async def probe_assignment(self, _assignment_id):
+                return ProbeRoundTests._image_result()
+
+            async def submit_attestation(self, envelope):
+                self.submitted.append(envelope)
+                return True
+
+        grid = FakeGrid()
+        with (
+            patch.object(Settings, "MEDIA_ALLOWED_ORIGINS", ("https://media.example",)),
+            patch.object(
+                main.attest,
+                "runtime_capabilities",
+                return_value=["image.fidelity.v1"],
+            ),
+            patch.object(
+                main.media_prober,
+                "score_image_fidelity_witnesses",
+                new=AsyncMock(
+                    return_value=("inconclusive", {"reason": "references-disagree"})
+                ),
+            ),
+        ):
+            self.assertEqual(await main.probe_round(grid, 0, self.outbox), 0)
+
+        self.assertEqual(grid.submitted, [])
+        self.assertEqual(self.outbox.counts(), {"pending": 0, "dead": 0})
 
     async def test_no_assignment_fails_closed_without_inventory_or_model_fallback(self):
         class FakeGrid:

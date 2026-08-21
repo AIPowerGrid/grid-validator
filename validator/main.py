@@ -14,7 +14,7 @@ import logging
 import sys
 import time
 
-from . import attest, prober, staking
+from . import attest, media_prober, prober, staking
 from .config import Settings
 from .grid_client import GridClient
 from .outbox import AttestationOutbox
@@ -48,8 +48,36 @@ def _response_commitment_text(assignment: dict, result: dict) -> str:
     return text
 
 
+def _media_response_commitment(result: dict) -> str | None:
+    """Commit immutable witness metadata without signing fetch credentials."""
+    witnesses = result.get("witnesses")
+    if not isinstance(witnesses, list) or len(witnesses) != 3:
+        return None
+    committed = []
+    for witness in witnesses:
+        if not isinstance(witness, dict):
+            return None
+        try:
+            item = {
+                "role": str(witness["role"]),
+                "worker_id": str(witness["worker_id"]),
+                "sha256": str(witness["sha256"]).lower(),
+                "bytes": int(witness["bytes"]),
+                "content_type": str(witness["content_type"]).lower(),
+                "latency_ms": int(witness["latency_ms"]),
+            }
+        except (KeyError, TypeError, ValueError):
+            return None
+        if not item["role"] or not item["worker_id"]:
+            return None
+        committed.append(item)
+    return _canonical({"witnesses": committed})
+
+
 def _prompt_commitment_text(assignment: dict) -> str:
     challenge = assignment.get("challenge") or {}
+    if challenge.get("schema") == "aipg.validator.media.challenge.v1":
+        return _canonical(challenge)
     prompt = str(challenge.get("prompt") or "")
     if str(challenge.get("kind") or "") == "tool.chain":
         return _canonical({"prompt": prompt, "steps": challenge.get("steps")})
@@ -171,6 +199,12 @@ async def _probe_assignment(
     worker, and returns the probe evidence hash that the signed attestation must
     echo back.
     """
+    if str(assignment.get("modality") or "") == "image":
+        return await _probe_image_assignment(grid, assignment, outbox)
+    if str(assignment.get("modality") or "text") != "text":
+        logger.info("unsupported assignment modality; skipping")
+        return 0
+
     assignment_id = assignment.get("assignment_id")
     grid_nonce = assignment.get("grid_nonce")
     canary = _assignment_canary(assignment)
@@ -246,6 +280,111 @@ async def _probe_assignment(
     return 1 if await _submit_outbox_item(grid, outbox, item) else 0
 
 
+async def _probe_image_assignment(
+    grid: GridClient,
+    assignment: dict,
+    outbox: AttestationOutbox,
+) -> int:
+    """Fetch, verify, and score one Core-issued three-worker image witness set."""
+    assignment_id = str(assignment.get("assignment_id") or "")
+    grid_nonce = str(assignment.get("grid_nonce") or "")
+    worker_id = str(assignment.get("target_worker_id") or "")
+    model = str(assignment.get("model") or "")
+    challenge = assignment.get("challenge") or {}
+    if (
+        not assignment_id
+        or not grid_nonce
+        or not worker_id
+        or not model
+        or assignment.get("capability") != "image.fidelity.v1"
+        or assignment.get("canary_kind") != "image.fidelity"
+        or not isinstance(challenge, dict)
+        or challenge.get("schema") != "aipg.validator.media.challenge.v1"
+        or not Settings.MEDIA_ALLOWED_ORIGINS
+    ):
+        logger.info("image assignment is unsupported or incomplete; skipping")
+        return 0
+
+    result = await grid.probe_assignment(assignment_id)
+    if not result:
+        logger.info("[%s %s] image assignment probe unavailable; skipping", worker_id[:8], model)
+        return 0
+    response_commitment = _media_response_commitment(result)
+    if response_commitment is None:
+        logger.info("[%s %s] image assignment has invalid witnesses; skipping", worker_id[:8], model)
+        return 0
+    commitments = _verified_probe_evidence(assignment, result, response_commitment)
+    if commitments is None:
+        return 0
+
+    verdict, detail = await media_prober.score_image_fidelity_witnesses(
+        challenge,
+        result.get("witnesses") or [],
+        target_worker_id=worker_id,
+        allowed_origins=Settings.MEDIA_ALLOWED_ORIGINS,
+        max_bytes=Settings.MEDIA_MAX_BYTES,
+        timeout_s=Settings.MEDIA_FETCH_TIMEOUT_S,
+        phash_tolerance=Settings.PHASH_TOLERANCE,
+        latency_budget_s=Settings.MEDIA_LATENCY_BUDGET_S,
+    )
+    if verdict == "inconclusive":
+        logger.info(
+            "[%s %s] image assignment inconclusive (%s); skipping",
+            worker_id[:8],
+            model,
+            detail.get("reason", "unknown"),
+        )
+        return 0
+    if verdict not in attest.VALID_VERDICTS:
+        logger.warning("image scorer returned an invalid verdict; skipping")
+        return 0
+
+    candidate = next(
+        (
+            witness
+            for witness in result.get("witnesses", [])
+            if witness.get("role") == "candidate"
+            and str(witness.get("worker_id") or "") == worker_id
+        ),
+        None,
+    )
+    if not candidate:
+        return 0
+    latency_ms = int(candidate["latency_ms"])
+    canary = {
+        "kind": "image.fidelity",
+        "nonce": grid_nonce,
+        "prompt": _prompt_commitment_text(assignment),
+    }
+    body = attest.build(
+        worker_id=worker_id,
+        model=model,
+        canary=canary,
+        verdict=verdict,
+        latency_ms=latency_ms,
+        ts=int(time.time()),
+        modality="image",
+        capability="image.fidelity.v1",
+        response_text=response_commitment,
+        assignment_id=assignment_id,
+        probe_group_id=str(assignment.get("probe_group_id") or ""),
+        grid_nonce=grid_nonce,
+    )
+    body.update(commitments)
+    item_id = outbox.enqueue(attest.sign(body))
+    item = outbox.get_pending(item_id)
+    if item is None:
+        return 0
+    logger.info(
+        "[%s %s] image assignment -> %s (%dms)",
+        worker_id[:8],
+        model,
+        verdict,
+        latency_ms,
+    )
+    return 1 if await _submit_outbox_item(grid, outbox, item) else 0
+
+
 async def probe_round(
     grid: GridClient,
     round_index: int,
@@ -257,6 +396,8 @@ async def probe_round(
     queued_assignments = outbox.pending_assignment_ids()
     accepted = await _flush_outbox(grid, outbox)
     assignments = await grid.validator_assignments(limit=5, modality="text")
+    if "image.fidelity.v1" in attest.runtime_capabilities():
+        assignments.extend(await grid.validator_assignments(limit=2, modality="image"))
     if not assignments:
         logger.info("no Grid-issued assignments available; fail-closed round performed no probe")
         return accepted

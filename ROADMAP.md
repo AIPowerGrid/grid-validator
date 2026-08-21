@@ -222,8 +222,10 @@ Implemented dark: exact public HTTPS-origin allowlisting, redirect/proxy/
 encoding refusal, byte/time/MIME limits, SHA-256 witness recomputation, and the
 independent `image.fidelity.v1` three-witness scorer. The scorer requires two
 references to agree before comparing the candidate and classifies infrastructure
-or reference ambiguity as inconclusive. It is still not assignment-loop wiring
-or an advertised media capability.
+or reference ambiguity as inconclusive. Node-side assignment polling and
+dependency-aware capability advertisement are implemented. Core assignment
+issuance, immutable witness retention, deterministic recipe certification, and
+the populated rotating reference pool remain release gates.
 
 Goal: separate general image usefulness from deterministic workflow fidelity.
 

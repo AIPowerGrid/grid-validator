@@ -27,6 +27,32 @@ class AttestationTests(unittest.TestCase):
             ],
         )
 
+    def test_registration_advertises_image_only_when_runtime_is_ready(self):
+        with (
+            patch.object(Settings, "VALIDATOR_WALLET", "0x" + "12" * 20),
+            patch.object(Settings, "MEDIA_ALLOWED_ORIGINS", ("https://media.example",)),
+            patch(
+                "validator.media_prober.media_dependencies_available",
+                return_value=True,
+            ),
+        ):
+            payload = attest.build_registration(123456)
+
+        self.assertIn("image.fidelity.v1", payload["capabilities"])
+
+    def test_registration_withholds_image_when_decoder_is_unavailable(self):
+        with (
+            patch.object(Settings, "VALIDATOR_WALLET", "0x" + "12" * 20),
+            patch.object(Settings, "MEDIA_ALLOWED_ORIGINS", ("https://media.example",)),
+            patch(
+                "validator.media_prober.media_dependencies_available",
+                return_value=False,
+            ),
+        ):
+            payload = attest.build_registration(123456)
+
+        self.assertNotIn("image.fidelity.v1", payload["capabilities"])
+
     def test_canonical_is_stable_for_key_order(self):
         left = {"b": 2, "a": {"z": 1, "m": 3}}
         right = {"a": {"m": 3, "z": 1}, "b": 2}

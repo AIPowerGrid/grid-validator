@@ -35,6 +35,9 @@ installer generation.
 - Prove the node rejects mismatched assignment/result metadata and recomputes
   prompt, response, and canonical evidence hashes before signing. Core's
   returned verdict must not replace the node's local score.
+- Image-loop tests must prove capability advertisement depends on local decoder
+  and origin readiness, signed envelopes omit witness URLs, and inconclusive
+  comparisons enqueue no attestation.
 - A mocked unit test does not prove real multi-node independence or adversarial
   quorum; keep that limitation explicit in release docs.
 

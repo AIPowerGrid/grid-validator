@@ -5,8 +5,10 @@
 The validator implementation: load config, register a linked signing identity,
 optionally gate on on-chain stake, consume Grid-issued assignments, fire
 unpredictable targeted canaries, score replies, sign attestations, and POST them
-in a loop. V0 is CPU-only and assignment-bound for text. A deterministic image
-fidelity scorer exists dark until the Grid adds modality-aware probe jobs;
+in a loop. V0 is CPU-only and assignment-bound for text. The assignment loop
+can consume deterministic image-fidelity work only when the optional media
+dependencies and an explicit HTTPS witness-origin allowlist are present; Core
+still issues no image work until its independent-reference rollout gates pass.
 video scoring remains design/scaffold.
 
 ## Ownership
@@ -44,17 +46,21 @@ video scoring remains design/scaffold.
   challenges must come from Core. Its dark `image.fidelity.v1` scorer requires
   one candidate plus two distinct committed references, verifies every witness,
   treats reference disagreement as inconclusive, and fails an outlier candidate
-  only after the references agree. The unwired witness fetcher accepts only exact configured public HTTPS origins,
+  only after the references agree. The witness fetcher accepts only exact configured public HTTPS origins,
   does not follow redirects or environment proxies, rejects encoded/oversized/MIME-
   mismatched bodies, and recomputes Core's SHA-256 commitment before decoding.
   Heavy deps imported lazily; missing dep → skip, never crash.
 - **`attest.py`** — build canonical registration/attestation bodies + `sign()` (EIP-191 over sorted-key
   compact JSON). Text V0 attestations include `modality`, `capability`,
   `assignment_id`, `epoch`, prompt/response hashes, an `evidence_hash`, and a
-  coarse score for scorecard aggregation. Runtime registration and evidence are
-  always signed; low-level unsigned helpers exist only for isolated tests.
+  coarse score for scorecard aggregation. Runtime capability advertisement is
+  dependency-aware: image fidelity is present only with the media extra and a
+  non-empty validated witness-origin allowlist. Runtime registration and
+  evidence are always signed; low-level unsigned helpers exist only for isolated tests.
 - **`main.py`** — entrypoint: `run()` (signed registration, optional stake gate,
-  heartbeat, then assignment loop) and assignment-only `probe_round`.
+  heartbeat, then assignment loop) and assignment-only `probe_round`. The loop
+  polls text plus runtime-supported media modalities, independently verifies
+  Core's challenge/witness commitment, and omits raw media URLs from signed evidence.
   Tool-chain assignments verify and commit both hard-targeted stages before
   signing. A target worker's accepted-but-empty completion is failed evidence,
   not a transport error; coordinator dispatch failures remain inconclusive.
@@ -129,8 +135,8 @@ video scoring remains design/scaffold.
   decoders, unsafe objects, malformed contracts, unusable references, and
   reference disagreement are inconclusive. Candidate decode/dimension/blank or
   pHash-outlier failures are worker failures only after all commitments verify.
-  The scorer is not a live capability until assignment-loop wiring and the Core
-  rollout gates are complete.
+  The scorer is not a live network capability until Core issuance and every
+  media rollout gate are complete.
 - **Independent evidence verification:** before signing, the node must match
   assignment ID, Grid nonce, worker, model, modality, capability, and canary
   kind plus shared probe group; recompute prompt/response hashes and the
