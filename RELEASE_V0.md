@@ -52,7 +52,7 @@ In `grid-validator`:
 ./.venv/bin/python -m compileall validator
 ./.venv/bin/python -m unittest discover -s tests
 bash -n install.sh scripts/classify-release-tag.sh scripts/install-binary.sh \
-  scripts/install-systemd.sh scripts/smoke-release.sh
+  scripts/install-systemd.sh scripts/smoke-release.sh scripts/verify-release-assets.sh
 ./scripts/install-systemd.sh --dry-run --exec ./.venv/bin/aipg-validator
 ./scripts/smoke-release.sh
 docker build -t aipowergrid/validator:local .
@@ -217,6 +217,9 @@ Public release path:
    - `aipg-validator-windows-x64.zip`
    - `SHA256SUMS`
    - `aipg-validator-release.spdx.json`
+   - `install-validator.sh`
+   Then run `./scripts/verify-release-assets.sh <download-directory>` against a
+   clean download of the complete release.
 4. Confirm GitHub build provenance attestations exist and verify each binary
    archive from a clean download directory:
 
@@ -225,15 +228,15 @@ gh attestation verify aipg-validator-linux-x64.zip \
   --repo AIPowerGrid/grid-validator
 ```
 
-   Repeat for the other platform archives and the release SBOM. The installer
-   verifies `SHA256SUMS`; the attestation check proves the artifacts were built
-   by this repository's GitHub Actions workflow.
+   Repeat for the other platform archives, installer, and release SBOM. The
+   installer verifies `SHA256SUMS`; the attestation check proves the artifacts
+   were produced by this repository's GitHub Actions workflow.
 5. Confirm the container image exists at `ghcr.io/aipowergrid/validator` with
    registry SBOM and provenance metadata.
 6. Test the checksum-verifying installer against the release asset:
 
 ```bash
-AIPG_VALIDATOR_VERSION=<tag> ./scripts/install-binary.sh
+AIPG_VALIDATOR_VERSION=<tag> bash install-validator.sh
 cd ~/.aipg-validator
 aipg-validator --help
 aipg-validator init

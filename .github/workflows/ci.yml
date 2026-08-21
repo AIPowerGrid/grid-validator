@@ -44,7 +44,7 @@ jobs:
         run: python -m compileall validator
 
       - name: Validate shell scripts
-        run: bash -n install.sh scripts/classify-release-tag.sh scripts/install-binary.sh scripts/install-systemd.sh scripts/smoke-release.sh
+        run: bash -n install.sh scripts/classify-release-tag.sh scripts/install-binary.sh scripts/install-systemd.sh scripts/smoke-release.sh scripts/verify-release-assets.sh
 
       - name: Systemd helper dry-run
         run: ./scripts/install-systemd.sh --dry-run --exec "$(command -v aipg-validator)"

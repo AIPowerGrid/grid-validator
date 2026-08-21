@@ -93,6 +93,10 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   dashboard, Docker, release binary, and binary installer using throwaway
   offline config. Use `SKIP_DOCKER=1` or `SKIP_BINARY=1` only when the local
   machine genuinely cannot run that lane.
+- **`scripts/verify-release-assets.sh`** — publication gate for the exact four
+  platform archives, checksum-covered installer, SPDX JSON SBOM, and
+  `SHA256SUMS`. It verifies archive contents and rejects missing, extra, or
+  mismatched manifest entries before provenance is attested.
 - **`scripts/classify-release-tag.sh`** — shared binary/Docker tag policy.
   Only stable `vX.Y.Z` tags may publish `latest`; bounded prerelease tags such
   as `v0.1.0-preview` remain explicitly versioned.
@@ -147,7 +151,8 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
 - `docker build -t aipowergrid/validator:local .`
 - `docker run --rm --mount type=bind,source="$PWD/.env",target=/app/.env,readonly aipowergrid/validator:local check --no-probe`
 - `bash -n install.sh scripts/classify-release-tag.sh
-  scripts/install-binary.sh scripts/install-systemd.sh scripts/smoke-release.sh`
+  scripts/install-binary.sh scripts/install-systemd.sh scripts/smoke-release.sh
+  scripts/verify-release-assets.sh`
 - `./scripts/smoke-release.sh`
 - `./scripts/install-systemd.sh --dry-run --exec ./.venv/bin/aipg-validator`
 - `gitleaks detect --source . --no-git --config .gitleaks.toml --redact`

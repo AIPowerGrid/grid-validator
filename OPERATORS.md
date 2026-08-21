@@ -37,10 +37,13 @@ but may need extra optional packages.
 
 ### Binary Install
 
-Once downloadable binaries are published, this is the intended public path:
+Once downloadable binaries are published, use the exact preview release and
+verify the installer provenance before running it:
 
 ```bash
-curl -fsSL https://get.aipowergrid.io/validator | bash
+curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview/install-validator.sh
+gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator
+AIPG_VALIDATOR_VERSION=v0.1.0-preview bash install-validator.sh
 cd ~/.aipg-validator
 aipg-validator init
 aipg-validator check --no-probe

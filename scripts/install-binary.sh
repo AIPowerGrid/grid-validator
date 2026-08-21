@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# Install the latest released AIPG validator binary from GitHub Releases.
+# Install the pinned AIPG validator preview binary from GitHub Releases.
 #
-# Intended hosted form:
-#   curl -fsSL https://get.aipowergrid.io/validator | bash
+# Released installer form:
+#   AIPG_VALIDATOR_VERSION=v0.1.0-preview bash install-validator.sh
 #
-# Local/dev form:
+# Checkout/dev form:
 #   ./scripts/install-binary.sh
 set -euo pipefail
 
 REPO="${AIPG_VALIDATOR_REPO:-AIPowerGrid/grid-validator}"
-VERSION="${AIPG_VALIDATOR_VERSION:-latest}"
+VERSION="${AIPG_VALIDATOR_VERSION:-v0.1.0-preview}"
 INSTALL_DIR="${AIPG_VALIDATOR_INSTALL_DIR:-$HOME/.local/bin}"
 BINARY_NAME="${AIPG_VALIDATOR_BINARY_NAME:-aipg-validator}"
 ASSET_URL="${AIPG_VALIDATOR_URL:-}"

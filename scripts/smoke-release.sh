@@ -85,7 +85,7 @@ status "Python/package checks"
 "$PY" -m compileall validator
 "$PY" -m unittest discover -s tests
 bash -n install.sh scripts/classify-release-tag.sh scripts/install-binary.sh \
-  scripts/install-systemd.sh "$0"
+  scripts/install-systemd.sh scripts/verify-release-assets.sh "$0"
 "$VALIDATOR" --help >/dev/null
 "$PY" -m validator --help >/dev/null
 "$VALIDATOR" check --help >/dev/null

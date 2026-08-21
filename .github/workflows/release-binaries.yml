@@ -167,12 +167,19 @@ jobs:
           output-file: dist-artifacts/aipg-validator-release.spdx.json
           artifact-name: aipg-validator-release-sbom
 
+      - name: Package verified installer
+        shell: bash
+        run: install -m 0755 scripts/install-binary.sh dist-artifacts/install-validator.sh
+
       - name: Generate SHA-256 manifest
         shell: bash
         run: |
           cd dist-artifacts
-          files=( *.zip *.spdx.json )
+          files=( *.zip *.spdx.json install-validator.sh )
           sha256sum -- "${files[@]}" > SHA256SUMS
+
+      - name: Verify complete release payload
+        run: ./scripts/verify-release-assets.sh dist-artifacts
 
       - name: Attest release provenance
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
@@ -189,4 +196,5 @@ jobs:
           files: |
             dist-artifacts/*.zip
             dist-artifacts/*.spdx.json
+            dist-artifacts/install-validator.sh
             dist-artifacts/SHA256SUMS

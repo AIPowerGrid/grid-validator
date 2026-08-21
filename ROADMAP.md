@@ -103,8 +103,9 @@ Deliverables:
 
 - release binaries for Linux x64, Linux ARM64, macOS ARM64, Windows x64
 - published Docker image
-- install script at a stable URL
-- signed release artifacts
+- checksum-covered install script in the exact GitHub release; stable hosted
+  bootstrap only after its DNS and serving path are independently verified
+- provenance-attested release artifacts and SPDX SBOM
 - strict release tags; prereleases never publish Docker `latest`
 - GitHub release workflow
 - service install/update path
@@ -113,7 +114,9 @@ Deliverables:
 Operator shape:
 
 ```bash
-curl -fsSL https://get.aipowergrid.io/validator | bash
+curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview/install-validator.sh
+gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator
+AIPG_VALIDATOR_VERSION=v0.1.0-preview bash install-validator.sh
 cd ~/.aipg-validator
 aipg-validator init
 aipg-validator check --no-probe

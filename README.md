@@ -77,19 +77,22 @@ Expected release assets:
 | Linux x64 | `aipg-validator-linux-x64.zip` |
 | Linux ARM64 | `aipg-validator-linux-arm64.zip` |
 
-Every release also carries `SHA256SUMS`, an SPDX JSON SBOM, and GitHub build
-provenance. The installer verifies the platform archive checksum. Operators can
-add provenance verification with:
+Every release also carries `install-validator.sh`, `SHA256SUMS`, an SPDX JSON
+SBOM, and GitHub build provenance. The installer verifies the platform archive
+checksum. Operators can add provenance verification with:
 
 ```bash
 gh attestation verify aipg-validator-linux-x64.zip \
   --repo AIPowerGrid/grid-validator
 ```
 
-Once published, the worker-like install path is:
+Once published, download the installer from the exact preview release, verify
+its GitHub provenance, and run it:
 
 ```bash
-curl -fsSL https://get.aipowergrid.io/validator | bash
+curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview/install-validator.sh
+gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator
+AIPG_VALIDATOR_VERSION=v0.1.0-preview bash install-validator.sh
 cd ~/.aipg-validator
 aipg-validator init
 aipg-validator check --no-probe
@@ -154,11 +157,10 @@ them:
 ./.venv/bin/python -m pip install -e '.[media,stake]'
 ```
 
-Once downloadable binaries are published, the operator path is the same as the
-download flow above:
+Once downloadable binaries are published, use the exact release installer
+shown in the Download section, then:
 
 ```bash
-curl -fsSL https://get.aipowergrid.io/validator | bash
 cd ~/.aipg-validator
 aipg-validator init
 aipg-validator check --no-probe
@@ -275,7 +277,8 @@ sequence across core, console, and grid-validator.
 
 ## Target Product Shape
 
-The public release should mirror the worker experience:
+The eventual hosted bootstrap should mirror the worker experience. It is not a
+public install surface until DNS, hosting, and an exact-release test are live:
 
 ```bash
 curl -fsSL https://get.aipowergrid.io/validator | bash
@@ -294,7 +297,9 @@ docker run \
   aipowergrid/validator:latest
 ```
 
-Until a public image is published, use the local Docker build or source install above.
+Until that hosted bootstrap and a public image are published, use the
+provenance-verified release installer, direct archive, local Docker build, or
+source install above.
 
 ## Verification
 
@@ -304,7 +309,7 @@ Until a public image is published, use the local Docker build or source install 
 ./.venv/bin/aipg-validator --help
 ./.venv/bin/python -m validator --help
 bash -n install.sh scripts/classify-release-tag.sh scripts/install-binary.sh \
-  scripts/install-systemd.sh scripts/smoke-release.sh
+  scripts/install-systemd.sh scripts/smoke-release.sh scripts/verify-release-assets.sh
 ./scripts/install-systemd.sh --dry-run --exec ./.venv/bin/aipg-validator
 ./scripts/smoke-release.sh
 docker build -t aipowergrid/validator:local .
