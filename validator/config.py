@@ -5,8 +5,9 @@
 
 import os
 import re
+import ipaddress
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import urlsplit
 
 from dotenv import load_dotenv
 
@@ -72,12 +73,55 @@ def normalize_wallet(wallet: str) -> str:
 
 def normalize_grid_url(value: str) -> str:
     value = (value or "").strip().rstrip("/")
-    parsed = urlparse(value)
+    parsed = urlsplit(value)
     if parsed.scheme not in {"http", "https"} or not parsed.netloc:
         raise RuntimeError(
             "GRID_API_URL must be an http(s) URL, e.g. https://api.aipowergrid.io."
         )
     return value
+
+
+def normalize_media_origins(values) -> tuple[str, ...]:
+    """Return exact public HTTPS origins permitted for media evidence."""
+    normalized: list[str] = []
+    for raw in values:
+        value = str(raw or "").strip()
+        if not value:
+            continue
+        parsed = urlsplit(value)
+        if (
+            parsed.scheme.lower() != "https"
+            or not parsed.hostname
+            or parsed.username is not None
+            or parsed.password is not None
+            or parsed.path not in {"", "/"}
+            or parsed.query
+            or parsed.fragment
+        ):
+            raise RuntimeError(
+                "VALIDATOR_MEDIA_ALLOWED_ORIGINS must contain exact HTTPS origins only."
+            )
+        try:
+            host = parsed.hostname.encode("idna").decode("ascii").lower()
+        except UnicodeError as exc:
+            raise RuntimeError("VALIDATOR_MEDIA_ALLOWED_ORIGINS contains an invalid host.") from exc
+        if host == "localhost" or host.endswith(".local"):
+            raise RuntimeError("VALIDATOR_MEDIA_ALLOWED_ORIGINS cannot contain local hosts.")
+        try:
+            address = ipaddress.ip_address(host.strip("[]"))
+        except ValueError:
+            address = None
+        if address and not address.is_global:
+            raise RuntimeError("VALIDATOR_MEDIA_ALLOWED_ORIGINS cannot contain private IPs.")
+        try:
+            port = parsed.port
+        except ValueError as exc:
+            raise RuntimeError("VALIDATOR_MEDIA_ALLOWED_ORIGINS contains an invalid port.") from exc
+        authority = f"[{host}]" if ":" in host else host
+        origin = f"https://{authority}{f':{port}' if port is not None else ''}"
+        if origin not in normalized:
+            normalized.append(origin)
+    return tuple(normalized)
 
 
 def wallet_from_private_key(private_key: str) -> str:
@@ -121,6 +165,13 @@ class Settings:
     MEDIA_LATENCY_BUDGET_S = _env_float("MEDIA_LATENCY_BUDGET_S", 60, minimum=0)
     VIDEO_LATENCY_BUDGET_S = _env_float("VIDEO_LATENCY_BUDGET_S", 120, minimum=0)
     PHASH_TOLERANCE = _env_int("PHASH_TOLERANCE", 12, minimum=0)
+    MEDIA_ALLOWED_ORIGINS = tuple(
+        part.strip()
+        for part in _env_text("VALIDATOR_MEDIA_ALLOWED_ORIGINS", "").split(",")
+        if part.strip()
+    )
+    MEDIA_MAX_BYTES = _env_int("VALIDATOR_MEDIA_MAX_BYTES", 64 * 1024 * 1024, minimum=1)
+    MEDIA_FETCH_TIMEOUT_S = _env_float("VALIDATOR_MEDIA_FETCH_TIMEOUT_S", 30, minimum=0.1)
 
     PROBE_INTERVAL_S = _env_int("PROBE_INTERVAL_S", 60, minimum=1)
     PROBE_TIMEOUT_S = _env_int("PROBE_TIMEOUT_S", 45, minimum=1)
@@ -172,6 +223,7 @@ class Settings:
             raise RuntimeError("DASHBOARD_PORT must be between 1 and 65535.")
         if not cls.STATE_DB_PATH:
             raise RuntimeError("VALIDATOR_STATE_DB must not be empty.")
+        cls.MEDIA_ALLOWED_ORIGINS = normalize_media_origins(cls.MEDIA_ALLOWED_ORIGINS)
 
     @classmethod
     def _wallet_from_private_key(cls) -> str:

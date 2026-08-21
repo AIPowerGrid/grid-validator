@@ -11,7 +11,8 @@ exists as design/scaffold until the Grid adds modality-aware probe jobs.
 ## Ownership
 
 - **`config.py`** — env-driven `Settings` (grid URL + key, wallet/private key, Base RPC +
-  contract addrs, `MIN_STAKE`/`REQUIRE_STAKE`, probe intervals + latency budgets, pHash tolerance).
+  contract addrs, `MIN_STAKE`/`REQUIRE_STAKE`, probe intervals + latency budgets,
+  pHash tolerance, and exact public HTTPS media origins/byte/time limits).
   `Settings.validate()` enforces required fields, rejects malformed Grid URLs,
   rejects malformed EVM addresses for wallet/token/staking fields, validates the
   local dashboard port, and rejects a wallet/private-key mismatch.
@@ -39,6 +40,9 @@ exists as design/scaffold until the Grid adds modality-aware probe jobs.
 - **`media_prober.py`** — image/video canaries + scoring across structural, pHash-consensus, and
   video-motion axes. Its local preview generator uses cryptographic prompt/seed
   selection and is never an authority; future shared media challenges come from Core.
+  Its unwired witness fetcher accepts only exact configured public HTTPS origins,
+  does not follow redirects or environment proxies, rejects encoded/oversized/MIME-
+  mismatched bodies, and recomputes Core's SHA-256 commitment before decoding.
   Heavy deps imported lazily; missing dep → skip, never crash.
 - **`attest.py`** — build canonical registration/attestation bodies + `sign()` (EIP-191 over sorted-key
   compact JSON). Text V0 attestations include `modality`, `capability`,
@@ -113,6 +117,9 @@ exists as design/scaffold until the Grid adds modality-aware probe jobs.
 - **V0 fairness:** only execute the modality and capability in the Grid-issued
   assignment. Missing or unsupported assignment metadata is a skip, never a
   worker failure and never a reason to invent another target.
+- **Media fetch is fail-closed:** an empty origin allowlist, non-HTTPS/private
+  origin, redirect, content encoding, wrong MIME/length/hash, timeout, or byte
+  overflow is inconclusive infrastructure evidence, never a worker verdict.
 - **Independent evidence verification:** before signing, the node must match
   assignment ID, Grid nonce, worker, model, modality, capability, and canary
   kind plus shared probe group; recompute prompt/response hashes and the

@@ -132,6 +132,10 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   randomized stop-sequence compliance. Token-budget honesty remains future
   work.
   They are usefulness samples, not proof of a model family or parameter count.
+- The media witness fetch/verifier is implemented but unwired: exact
+  operator-configured HTTPS origins, redirects and encoded responses disabled,
+  bounded bytes/time/MIME, and SHA-256 recomputation. Do not advertise media
+  capabilities until Core assignments and decoder/scorer gates are complete.
 - **Evidence delivery is durable:** persist the signed public envelope before
   HTTP submission, replay pending evidence before new work, and remove it only
   after Core accepts it. Never persist the private key in validator state.

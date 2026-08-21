@@ -218,6 +218,10 @@ Implementation must follow
 digests, validator URL allowlisting, two agreeing references, distinct operator
 controls, and inconclusive reference disagreement are release gates.
 
+Implemented dark: exact public HTTPS-origin allowlisting, redirect/proxy/
+encoding refusal, byte/time/MIME limits, and SHA-256 witness recomputation.
+This is transport hardening only; it is not a media assignment capability.
+
 Goal: separate general image usefulness from deterministic workflow fidelity.
 
 General image checks:

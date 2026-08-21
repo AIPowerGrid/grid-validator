@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 from eth_account import Account
 
-from validator.config import Settings
+from validator.config import Settings, normalize_media_origins
 
 
 TEST_ACCOUNT = Account.from_key("0x" + "11" * 32)
@@ -17,6 +17,7 @@ def _valid_settings(**overrides):
         "VALIDATOR_PRIVATE_KEY": TEST_ACCOUNT.key.hex(),
         "VALIDATOR_WALLET": TEST_ACCOUNT.address,
         "REQUIRE_STAKE": False,
+        "MEDIA_ALLOWED_ORIGINS": (),
         **overrides,
     }
     with ExitStack() as stack:
@@ -100,6 +101,32 @@ class SettingsValidationTests(unittest.TestCase):
     def test_private_key_wallet_match_passes(self):
         with _valid_settings():
             Settings.validate()
+
+    def test_media_origins_are_exact_https_origins(self):
+        self.assertEqual(
+            normalize_media_origins(
+                ["https://Media.Example.com", "https://media.example.com"],
+            ),
+            ("https://media.example.com",),
+        )
+
+    def test_media_origins_reject_paths_credentials_and_private_targets(self):
+        for value in (
+            "http://media.example.com",
+            "https://media.example.com/path",
+            "https://user:pass@media.example.com",
+            "https://127.0.0.1",
+            "https://10.0.0.1",
+            "https://localhost",
+        ):
+            with self.subTest(value=value):
+                with self.assertRaises(RuntimeError):
+                    normalize_media_origins([value])
+
+    def test_settings_normalize_media_origin_allowlist(self):
+        with _valid_settings(MEDIA_ALLOWED_ORIGINS=("https://MEDIA.example.com/",)):
+            Settings.validate()
+            self.assertEqual(Settings.MEDIA_ALLOWED_ORIGINS, ("https://media.example.com",))
 
 
 if __name__ == "__main__":

@@ -85,7 +85,6 @@ def _verified_probe_evidence(
             logger.warning("targeted probe %s mismatch; skipping", key)
             return None
 
-    challenge = assignment.get("challenge") or {}
     prompt_hash = _sha256_text(_prompt_commitment_text(assignment))
     response_hash = _sha256_text(response_text)
     evidence = {

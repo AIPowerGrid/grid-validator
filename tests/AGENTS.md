@@ -27,6 +27,8 @@ installer generation.
   imply payout, routing, strike, or slash authority.
 - Prove missing registration, assignments, and probe support do not fall back
   to public inference or locally invented targets.
+- Media witness tests must prove exact HTTPS-origin enforcement, no redirects,
+  bounded streaming, MIME/length/hash binding, and private-target rejection.
 - Prove the node rejects mismatched assignment/result metadata and recomputes
   prompt, response, and canonical evidence hashes before signing. Core's
   returned verdict must not replace the node's local score.

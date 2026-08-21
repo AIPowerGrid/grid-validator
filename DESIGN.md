@@ -261,6 +261,12 @@ General image validation:
 - prompt constraints are plausibly followed
 - explicit seed behavior is honored where claimed
 
+The validator now has an unwired, fail-closed witness fetch boundary: exact
+operator-configured public HTTPS origins, redirects/proxies/content encodings
+disabled, bounded time and bytes, MIME/length binding, and SHA-256
+recomputation. Media capabilities remain unadvertised until Core assignments,
+reference agreement, and decoder/scorer gates are complete.
+
 Deterministic workflow validation:
 
 - same workflow
