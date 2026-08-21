@@ -93,6 +93,9 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   payload, but skips provenance attestation, tag creation, and publication. A
   manual Docker dispatch defaults to multi-architecture build-only validation;
   `publish_image` must be explicit before login, push, or attestation.
+  GitHub immutable releases must remain enabled. After a release is published,
+  its tag and assets are permanent; corrections publish a new version instead
+  of replacing an operator-visible artifact.
   Third-party actions are commit-SHA pinned.
 - **`scripts/install-binary.sh`** — GitHub Release binary installer intended to
   back the hosted `get.aipowergrid.io/validator` path. It installs the binary

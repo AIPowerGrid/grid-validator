@@ -89,7 +89,9 @@ Expected release assets:
 
 Every release also carries `install-validator.sh`, `SHA256SUMS`, an SPDX JSON
 SBOM, and GitHub build provenance. The installer verifies the platform archive
-checksum. Operators can add provenance verification with:
+checksum. GitHub immutable releases prevent a published tag or asset from being
+silently replaced; a correction is always a new version. Operators can add
+provenance verification with:
 
 ```bash
 gh attestation verify aipg-validator-linux-x64.zip \

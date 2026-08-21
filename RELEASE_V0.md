@@ -206,7 +206,9 @@ cd grid-validator
 
 Public release path:
 
-1. Push the repo with CI green.
+1. Push the repo with CI green. Confirm GitHub immutable releases are enabled
+   for `AIPowerGrid/grid-validator`; never disable the setting to repair a
+   published release.
 2. Create a release tag, or run the binary and Docker workflows manually with
    explicit publish tags:
    - binary workflow: set `release_tag` to the release name, for example
@@ -248,6 +250,10 @@ aipg-validator --help
 aipg-validator init
 aipg-validator check --no-probe
 ```
+
+After publication, the release tag and assets are immutable. If any asset,
+manifest, signature, or note is wrong, publish a new version and leave the
+original release available for audit.
 
 Operator config:
 
