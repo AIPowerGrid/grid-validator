@@ -3,14 +3,16 @@
 
 """Canary generation + output scoring.
 
-Two canary families, mixed per round so a worker can't special-case them:
-- echo:  prove liveness + exact instruction following for a random nonce
-- qa:    prove the model is loaded AND correct (catches corrupted/swapped weights)
+Legacy local canaries retain echo and generated arithmetic for isolated tests.
+Grid-issued shared probes additionally support strict JSON, randomized context
+retrieval, and generated multistep logic. Expected answers remain one-way
+commitments; this node normalizes and hashes the worker response independently.
 
 Verdicts: "healthy" | "slow" | "failed".
 """
 
 import hashlib
+import json
 import secrets
 import re
 
@@ -148,19 +150,33 @@ def score_committed(canary: dict, text: str, latency_s: float) -> str:
     expected_hash = str(canary.get("expected_hash") or "")
     if not re.fullmatch(r"[0-9a-f]{64}", expected_hash):
         raise ValueError("canary expected_hash must be a lowercase SHA-256 digest")
-    answer = _strip_think(text)
-    if not answer:
+    candidate = _normalized_committed_answer(str(canary.get("kind") or ""), text)
+    if candidate is None:
         return "failed"
-    if canary.get("kind") == "echo":
-        candidate = _strip_wrapping_quotes(answer)
-    else:
-        numbers = re.findall(r"(?<![a-z0-9-])-?\d+(?![a-z0-9])", answer.lower())
-        if len(numbers) != 1:
-            return "failed"
-        candidate = numbers[0]
     actual_hash = hashlib.sha256(candidate.encode("utf-8")).hexdigest()
     if not secrets.compare_digest(actual_hash, expected_hash):
         return "failed"
     if latency_s > Settings.LATENCY_BUDGET_S:
         return "slow"
     return "healthy"
+
+
+def _normalized_committed_answer(kind: str, text: str) -> str | None:
+    answer = _strip_think(text)
+    if not answer:
+        return None
+    if kind in ("echo", "context.retrieve"):
+        candidate = _strip_wrapping_quotes(answer)
+        return candidate if candidate and not re.search(r"\s", candidate) else None
+    if kind == "json.object":
+        try:
+            parsed = json.loads(answer)
+        except (TypeError, ValueError):
+            return None
+        if not isinstance(parsed, dict):
+            return None
+        return json.dumps(parsed, sort_keys=True, separators=(",", ":"))
+    if kind.startswith("math.") or kind == "logic.steps":
+        numbers = re.findall(r"(?<![a-z0-9-])-?\d+(?![a-z0-9])", answer.lower())
+        return numbers[0] if len(numbers) == 1 else None
+    return None

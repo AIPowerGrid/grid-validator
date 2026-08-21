@@ -191,6 +191,11 @@ Capability lanes:
 - long-context retrieval
 - max-token, stop-sequence, and streaming honesty
 
+Implemented in the preview: exact instruction, generated arithmetic, strict
+JSON object output, randomized context retrieval, and generated multistep
+integer logic. Code execution, tool-call chains, larger context tiers, and
+transport-limit compliance remain future lanes.
+
 Scoring:
 
 - deterministic checks where possible

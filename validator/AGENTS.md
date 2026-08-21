@@ -30,9 +30,11 @@ exists as design/scaffold until the Grid adds modality-aware probe jobs.
   behavior unless core deliberately drops one auth style.
   Assignment and probe endpoints fail closed when absent. Worker inventory is
   dashboard-only and must never become an alternate targeting authority.
-- **`prober.py`** — text canaries (`echo` nonce + generated arithmetic `qa`) and `score()`;
-  `is_text_model` heuristic skips media models in v0; `_strip_think` ignores
-  reasoning-model chain-of-thought. Do not reintroduce static QA answer lists.
+- **`prober.py`** — independent text scoring for randomized exact-instruction,
+  arithmetic, strict-JSON, context-retrieval, and multistep-logic commitments;
+  legacy local canary helpers remain for isolated tests. `is_text_model`
+  heuristic skips media models in v0; `_strip_think` ignores reasoning-model
+  chain-of-thought. Do not reintroduce static QA answer lists.
 - **`media_prober.py`** — image/video canaries + scoring across structural, pHash-consensus, and
   video-motion axes. Heavy deps imported lazily; missing dep → skip, never crash.
 - **`attest.py`** — build canonical registration/attestation bodies + `sign()` (EIP-191 over sorted-key
@@ -97,7 +99,9 @@ exists as design/scaffold until the Grid adds modality-aware probe jobs.
   arithmetic QA canaries may accept a short answer phrase containing the expected
   numeric value, but not a larger number that merely contains it. pHash uses
   Hamming distance vs `PHASH_TOLERANCE`, never equality (absorbs cross-GPU
-  nondeterminism).
+  nondeterminism). Assignment-bound JSON is parsed and canonicalized but must
+  be the entire answer; retrieval requires exactly one token; numeric logic
+  requires exactly one unambiguous integer.
 - **A skipped check must not penalize a worker** — a missing optional dep returns ok/skip, not
   `failed`.
 - **V0 fairness:** only execute the modality and capability in the Grid-issued

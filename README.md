@@ -25,7 +25,8 @@ What is implemented and testable against the candidate Core:
 - Module entrypoint for `python -m validator`.
 - Read-only local dashboard on `127.0.0.1:8790`.
 - Assignment-bound text canaries through validator-only Core endpoints.
-- Basic text scoring: exact nonce echo, generated arithmetic QA, latency budget.
+- Randomized text scoring: exact nonce echo, generated arithmetic, strict JSON,
+  context retrieval, generated multistep logic, and latency classification.
 - Mandatory signed registration, heartbeat, and attestations from a wallet
   linked to the validator's Grid account.
 - Small default install: V0 text probing plus signing. Optional `media` and
@@ -42,6 +43,9 @@ What is implemented and testable against the candidate Core:
 - Shared probe groups target five distinct registered validator accounts and
   require three matching votes. This proves distinct evidence identities, not
   independently controlled operators.
+- Core admits a node to a probe group only when its registration advertises the
+  matching local scorer. Legacy `text.basic.v1` nodes remain limited to
+  echo/arithmetic instead of mis-scoring newer challenge families.
 - All current validator evidence has `economic_effect: none`: it does not alter
   routing, rewards, strikes, payouts, or bonds.
 - Fail-closed behavior when registration, assignment, or targeted-probe support

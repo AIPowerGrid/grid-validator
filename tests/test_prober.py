@@ -1,5 +1,6 @@
 import unittest
 import hashlib
+import json
 from unittest.mock import patch
 
 from validator import prober
@@ -64,6 +65,57 @@ class ProberTests(unittest.TestCase):
                 prober.score_committed(canary, "token ABC123EF", 0.1),
                 "failed",
             )
+
+    def test_score_committed_json_is_semantic_and_rejects_markdown(self):
+        expected = json.dumps(
+            {"alpha": "A1", "count": 7},
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        canary = {
+            "kind": "json.object",
+            "expected_hash": hashlib.sha256(expected.encode()).hexdigest(),
+        }
+        with patch.object(prober.Settings, "LATENCY_BUDGET_S", 30):
+            self.assertEqual(
+                prober.score_committed(canary, '{"count":7,"alpha":"A1"}', 0.1),
+                "healthy",
+            )
+            self.assertEqual(
+                prober.score_committed(canary, f"```json\n{expected}\n```", 0.1),
+                "failed",
+            )
+
+    def test_score_committed_context_requires_exact_token(self):
+        canary = {
+            "kind": "context.retrieve",
+            "expected_hash": hashlib.sha256(b"A1B2C3D4").hexdigest(),
+        }
+        with patch.object(prober.Settings, "LATENCY_BUDGET_S", 30):
+            self.assertEqual(prober.score_committed(canary, "`A1B2C3D4`", 0.1), "healthy")
+            self.assertEqual(
+                prober.score_committed(canary, "The value is A1B2C3D4", 0.1),
+                "failed",
+            )
+
+    def test_score_committed_multistep_rejects_ambiguous_numbers(self):
+        canary = {
+            "kind": "logic.steps",
+            "expected_hash": hashlib.sha256(b"42").hexdigest(),
+        }
+        with patch.object(prober.Settings, "LATENCY_BUDGET_S", 30):
+            self.assertEqual(
+                prober.score_committed(canary, "The final result is 42.", 0.1),
+                "healthy",
+            )
+            self.assertEqual(prober.score_committed(canary, "41 or 42", 0.1), "failed")
+
+    def test_score_committed_unknown_kind_fails_closed(self):
+        canary = {
+            "kind": "unknown",
+            "expected_hash": hashlib.sha256(b"x").hexdigest(),
+        }
+        self.assertEqual(prober.score_committed(canary, "x", 0.1), "failed")
 
     def test_score_committed_rejects_malformed_commitment(self):
         with self.assertRaisesRegex(ValueError, "expected_hash"):

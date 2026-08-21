@@ -203,6 +203,11 @@ For text, V0 measures usefulness and job-contract honesty. For future
 deterministic image workflows, validators can compare against certified
 reference outputs and provide proof of fidelity.
 
+The current text preview samples exact instruction following, generated
+arithmetic, strict JSON, context retrieval, and generated multistep logic.
+These checks are randomized and capability-gated, but they still do not prove
+an exact model family, parameter count, or quantization.
+
 ## Operator Safety
 
 - Keep `.env` at `chmod 600`.

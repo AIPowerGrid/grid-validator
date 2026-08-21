@@ -226,14 +226,17 @@ Current V0 checks:
 
 - exact nonce echo
 - generated arithmetic QA
+- strict JSON object compliance
+- randomized context retrieval
+- generated multistep integer logic
 - latency classification
 
 Planned checks:
 
-- strict JSON schema
+- richer JSON Schema constraints
 - hidden code tests
-- generated math/logic tasks
-- long-context retrieval
+- code and logic capability tiers
+- larger long-context retrieval tiers
 - tool-call chains
 - max-token and stop-sequence compliance
 - streaming integrity
@@ -393,6 +396,8 @@ Going offline should stop rewards, not slash stake.
 
 - [x] Node scaffold.
 - [x] V0 text prober.
+- [x] Capability-gated exact instruction, arithmetic, strict JSON, context
+  retrieval, and multistep logic scorers.
 - [x] Operator CLI.
 - [x] Release binary installer scaffold.
 - [x] Linux systemd installer scaffold.

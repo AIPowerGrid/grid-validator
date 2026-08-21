@@ -126,6 +126,9 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   group id/evidence hash. The node scores against an expected-answer commitment
   and never trusts Core's private verdict. Evidence remains input with no slash, reward,
   payout, strike, or routing authority.
+- V0 text scorer capabilities are exact instruction following, generated
+  arithmetic, strict JSON, context retrieval, and generated multistep logic.
+  They are usefulness samples, not proof of a model family or parameter count.
 - **Evidence delivery is durable:** persist the signed public envelope before
   HTTP submission, replay pending evidence before new work, and remove it only
   after Core accepts it. Never persist the private key in validator state.
