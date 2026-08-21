@@ -32,7 +32,7 @@ Status: current repo direction.
 - Candidate Core implements capabilities, worker discovery, assignments,
   targeted text probes, attestations, scorecards, assignment health, and
   non-economic shared 3-of-5 quorum states. Production remains gated on migration
-  `0022`, immutable deployment, and endpoint smoke tests. Independent operator
+  `0024`, immutable deployment, and endpoint smoke tests. Independent operator
   control is not proven by registration alone.
 - Missing required validator endpoints fail closed; read-only metadata may
   degrade gracefully.
@@ -436,7 +436,7 @@ Going offline should stop rewards, not slash stake.
 - [x] Cross-platform binary packaging and build-only release qualification.
 - [ ] Publish Docker image on release.
 - [x] Grid validator assignment endpoint.
-- [ ] Deploy migrations through `0022` and the immutable Core candidate to production.
+- [ ] Deploy migrations through `0024` and the immutable Core candidate to production.
 - [ ] Prove registration, assignment, targeted-probe, attestation, and scorecard
   endpoints against production.
 - [x] `POST /v1/validator/probe/{assignment_id}` targeted text execution.

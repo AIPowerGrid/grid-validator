@@ -40,7 +40,9 @@ The Grid's validator node. In V0 it is a CPU-only distributed audit runner: it s
 small canary jobs through the normal Grid path, scores replies (`healthy` / `slow` /
 `failed`), and submits signed attestations when the Grid exposes the sink. The
 shared-quorum Core implementation is merged but is not production-live until
-migrations through `0022` and the matching immutable Core release are deployed. Once enabled,
+migrations through `0024` and the matching immutable Core release are deployed. `0022`
+adds shared quorum; `0023`-`0024` are required schema parity for the current
+candidate while media assignments remain disabled. Once enabled,
 `GET /v1/validator/assignments`, `POST /v1/validator/probe/{assignment_id}`, and
 preview scorecards and distinct-validator 3-of-5 probe groups make evidence attributable, but still non-economic: no reward,
 routing, strike, or slashing logic may read it as authority. Future phases harden adversarial

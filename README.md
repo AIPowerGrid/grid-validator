@@ -55,7 +55,9 @@ What is implemented and testable against the candidate Core:
 
 What is not production-live yet:
 
-- Core migrations through `0022` and the shared-quorum validator API rollout.
+- Core migrations through `0024` and the shared-quorum validator API rollout.
+  Quorum lands in `0022`; the later dark media schema must still match the
+  deployed Core candidate even though media assignments stay disabled.
 - Public downloadable binary releases.
 - Published Docker image release.
 - Validator rewards.

@@ -8,8 +8,9 @@ submit signed evidence when core exposes the attestation endpoint.
 V0 is evidence-only. It does not pay validator rewards, slash workers, change
 routing, or prove exact model weights.
 
-Rollout status: the shared-quorum Core code is merged but migrations through `0022`
-and the matching production release are still pending. Use `check --no-probe`
+Rollout status: the shared-quorum Core code is merged but migrations through `0024`
+and the matching production release are still pending. `0022` carries quorum;
+the later migrations are required by the current dark media schema. Use `check --no-probe`
 for installation smoke until the public release page opens.
 
 ## What You Need

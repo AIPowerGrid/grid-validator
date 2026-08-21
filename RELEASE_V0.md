@@ -97,7 +97,9 @@ surface.
 
 Required code:
 
-- Alembic migrations through `0022_validator_probe_groups`
+- Alembic migrations through `0024_validator_group_witnesses`; `0022` adds
+  shared quorum and `0023`-`0024` keep the current Core candidate schema-complete
+  while media assignments remain disabled
 - `grid_api/v2/schema.py` validator registration, assignment, and attestation tables
 - `grid_api/services/validators.py`
 - `grid_api/routers/validator.py`
