@@ -140,15 +140,11 @@ jobs:
           path: dist-artifacts/*.zip
           if-no-files-found: error
 
-  release:
-    if: ${{ needs.validate.outputs.publish == 'true' }}
+  bundle:
     needs: [validate, build]
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      id-token: write
-      attestations: write
-      artifact-metadata: write
+      contents: read
 
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -180,6 +176,31 @@ jobs:
 
       - name: Verify complete release payload
         run: ./scripts/verify-release-assets.sh dist-artifacts
+
+      - name: Upload verified release payload
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: aipg-validator-release-payload
+          path: dist-artifacts/*
+          if-no-files-found: error
+          retention-days: 14
+
+  release:
+    if: ${{ needs.validate.outputs.publish == 'true' }}
+    needs: [validate, bundle]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+
+    steps:
+      - name: Download verified release payload
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: aipg-validator-release-payload
+          path: dist-artifacts
 
       - name: Attest release provenance
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4

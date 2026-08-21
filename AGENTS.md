@@ -79,7 +79,9 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   Tag pushes publish normal release artifacts. Manual binary releases must set
   `release_tag`; manual Docker publishes must set `image_tag`, with `latest`
   allowed only for stable tags. Preview/alpha/beta/RC images must never replace
-  `latest`. Third-party actions are commit-SHA pinned.
+  `latest`. A build-only binary dispatch still assembles and verifies the full
+  payload, but skips provenance attestation, tag creation, and publication.
+  Third-party actions are commit-SHA pinned.
 - **`scripts/install-binary.sh`** — GitHub Release binary installer intended to
   back the hosted `get.aipowergrid.io/validator` path. It installs the binary
   under `$HOME/.local/bin` by default and creates `$HOME/.aipg-validator` as
