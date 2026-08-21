@@ -34,9 +34,10 @@ increase quorum weight.
    - whether the network is residential, datacenter, or cloud hosted.
 3. Do not post API keys, private keys, signatures, account IDs, full wallet
    addresses, assignment payloads, prompts, or worker responses.
-4. Wait for the Core rollout notice before running an assignment probe. Source
-   and binary installation checks may be performed earlier with
-   `aipg-validator check --no-probe`.
+4. Wait for enrollment approval and a dedicated scoped validator key before
+   running an assignment probe. Production Core supports shared quorum, but
+   public binary distribution and open enrollment are still gated. Source
+   installation checks may be performed with `aipg-validator check --no-probe`.
 
 ## Qualification Run
 

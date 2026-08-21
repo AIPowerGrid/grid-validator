@@ -41,8 +41,8 @@ candidate worker against certified reference output.
 
 ## Phase 0: Preview Audit Runner
 
-Status: evidence path implemented; production Core rollout and public binary
-distribution are pending.
+Status: the production Core rollout and first-party text-quorum pilot are live;
+public binary distribution and independent operator qualification are pending.
 
 Goal: give operators something easy to run while the Grid learns from evidence
 without economic side effects.
@@ -64,7 +64,7 @@ Live or scaffolded in this repo:
 - mandatory linked-wallet registration and signed attestations
 - fail-closed behavior when required validator endpoints are missing
 
-Candidate Grid-core support (merged, not yet production-live):
+Production Grid-core support:
 
 - `GET /v1/validator/capabilities` advertises safe validator feature flags
 - `POST /v1/validator/attest` stores evidence only

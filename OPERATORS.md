@@ -2,8 +2,8 @@
 
 A validator node helps measure whether Grid workers are useful, honest, and
 available. In V0, it is a distributed audit runner: it sends small canary jobs,
-scores the replies, and submits evidence to the Grid when `/v1/validator/attest`
-is deployed.
+scores the replies, and submits evidence to the Grid through
+`/v1/validator/attest`.
 
 V0 does **not** slash workers, pay public validator rewards, or prove exact model
 identity. Those come later, after targeted assignments, staking, quorum rules, and
@@ -12,10 +12,12 @@ dispute tooling exist.
 For the shortest install path, start with [QUICKSTART.md](QUICKSTART.md). This
 file is the longer operator runbook.
 
-Current rollout gate: assignment-bound Core support is merged but not
-production-live until migrations through `0024`, immutable deployment, and endpoint
-smoke tests pass. Until then, use `check --no-probe`; do not operate the loop as
-a live validator.
+Current rollout: assignment-bound shared quorum is live on production Core with
+migrations through `0024`. Three first-party pilot nodes proved the signed
+3-of-5 text flow without economic side effects on 2026-08-21. Public enrollment
+is still controlled because those nodes share one operator and hypervisor and
+the public binary release is not published. Always run `check --no-probe`
+before operating the loop.
 
 ## System Requirements
 
