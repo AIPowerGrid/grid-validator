@@ -5,48 +5,40 @@ permissions:
 
 on:
   push:
-    tags: ["v*", "[0-9]+.[0-9]+.[0-9]+"]
+    tags: ["v*"]
   workflow_dispatch:
     inputs:
       image_tag:
-        description: "Image tag to qualify or publish, e.g. v0.1.0-preview."
+        description: "Image tag to qualify without publishing, e.g. v0.1.0-preview."
         required: true
         default: "v0.1.0-preview"
         type: string
-      publish_image:
-        description: "Push the qualified image to GHCR. Leave off for build-only validation."
-        required: true
-        default: false
-        type: boolean
-      publish_latest:
-        description: "Also publish ghcr.io/aipowergrid/validator:latest."
-        required: true
-        default: false
-        type: boolean
 
 env:
   IMAGE_NAME: ghcr.io/aipowergrid/validator
 
 jobs:
-  build:
+  validate:
     runs-on: ubuntu-latest
+    outputs:
+      latest: ${{ steps.release.outputs.latest }}
+      publish_image: ${{ steps.release.outputs.publish_image }}
+      tag: ${{ steps.release.outputs.tag }}
     permissions:
       contents: read
-      packages: write
-      id-token: write
-      attestations: write
-      artifact-metadata: write
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
 
       - name: Validate and classify image tag
         id: release
         shell: bash
         env:
+          EVENT_NAME: ${{ github.event_name }}
           INPUT_TAG: ${{ inputs.image_tag }}
-          PUBLISH_IMAGE: ${{ inputs.publish_image }}
-          PUBLISH_LATEST: ${{ inputs.publish_latest }}
         run: |
           args=()
           if [[ "$GITHUB_REF" == refs/tags/* ]]; then
@@ -55,28 +47,35 @@ jobs:
             args+=(--publish-latest-if-stable)
           else
             tag="$INPUT_TAG"
-            publish="$PUBLISH_IMAGE"
-            if [[ "$PUBLISH_LATEST" == "true" && "$publish" != "true" ]]; then
-              echo "error: publish_latest requires publish_image" >&2
+            publish=false
+          fi
+          if [[ "$publish" == "true" ]]; then
+            if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/master; then
+              echo "error: container release commit must be reachable from reviewed master" >&2
               exit 1
             fi
-            if [[ "$PUBLISH_LATEST" == "true" ]]; then
-              args+=(--publish-latest)
+            if [[ "$EVENT_NAME" != "push" || "$GITHUB_REF" != refs/tags/v* ]]; then
+              echo "error: container publication requires a protected v* tag push" >&2
+              exit 1
             fi
           fi
           ./scripts/classify-release-tag.sh "${args[@]}" "$tag" >> "$GITHUB_OUTPUT"
           echo "publish_image=$publish" >> "$GITHUB_OUTPUT"
 
+  qualify:
+    name: Qualify container image
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
-
-      - name: Log in to GitHub Container Registry
-        if: ${{ steps.release.outputs.publish_image == 'true' }}
-        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Docker metadata
         id: meta
@@ -84,8 +83,7 @@ jobs:
         with:
           images: ${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=${{ steps.release.outputs.tag }}
-            type=raw,value=latest,enable=${{ steps.release.outputs.latest == 'true' }}
+            type=raw,value=${{ needs.validate.outputs.tag }}
 
       - name: Build local smoke image
         run: docker build -t aipowergrid/validator:publish-smoke .
@@ -117,20 +115,67 @@ jobs:
           grep -F "text.token_limit.v1" "$tmp/check.out"
           grep -F "Validator registration failed" "$tmp/check.out"
 
-      - name: Build multi-architecture image
+      - name: Build multi-architecture image without publishing
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          provenance: mode=max
+          sbom: true
+
+  publish:
+    name: Publish protected container image
+    if: ${{ needs.validate.outputs.publish_image == 'true' }}
+    needs: [validate, qualify]
+    runs-on: ubuntu-latest
+    environment: validator-release
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=${{ needs.validate.outputs.tag }}
+            type=raw,value=latest,enable=${{ needs.validate.outputs.latest == 'true' }}
+
+      - name: Build and publish multi-architecture image
         id: push
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           context: .
           platforms: linux/amd64,linux/arm64
-          push: ${{ steps.release.outputs.publish_image == 'true' }}
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           provenance: mode=max
           sbom: true
 
       - name: Attest container provenance
-        if: ${{ steps.release.outputs.publish_image == 'true' }}
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-name: ${{ env.IMAGE_NAME }}

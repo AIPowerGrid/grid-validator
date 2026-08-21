@@ -1,5 +1,12 @@
+import hashlib
+import json
+import os
 import re
+import stat
+import subprocess
+import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 
 
@@ -7,6 +14,80 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class ReleasePackagingTests(unittest.TestCase):
+    @staticmethod
+    def _write_release_payload(root: Path) -> None:
+        archives = {
+            "aipg-validator-linux-x64.zip": "aipg-validator",
+            "aipg-validator-linux-arm64.zip": "aipg-validator",
+            "aipg-validator-macos-arm64.zip": "aipg-validator",
+            "aipg-validator-windows-x64.zip": "aipg-validator.exe",
+        }
+        for archive, member in archives.items():
+            info = zipfile.ZipInfo(member)
+            info.create_system = 3
+            info.external_attr = (stat.S_IFREG | 0o755) << 16
+            with zipfile.ZipFile(root / archive, "w", zipfile.ZIP_DEFLATED) as bundle:
+                bundle.writestr(info, b"test validator binary")
+
+        (root / "aipg-validator-release.spdx.json").write_text(
+            json.dumps({"spdxVersion": "SPDX-2.3"}), encoding="utf-8"
+        )
+        (root / "install-validator.sh").write_text(
+            "#!/usr/bin/env bash\nset -euo pipefail\n", encoding="utf-8"
+        )
+        payloads = [*archives, "aipg-validator-release.spdx.json", "install-validator.sh"]
+        assets = [
+            {
+                "name": name,
+                "sha256": hashlib.sha256((root / name).read_bytes()).hexdigest(),
+                "bytes": (root / name).stat().st_size,
+            }
+            for name in payloads
+        ]
+        manifest = {
+            "schema": "aipg-validator-release-v1",
+            "tag": "v0.1.0-preview",
+            "version": "0.1.0",
+            "commit": "a" * 40,
+            "platform_signing": {
+                "macos": {
+                    "verified": False,
+                    "identity": "adhoc",
+                    "notarized": False,
+                    "team_id": None,
+                },
+                "windows": {
+                    "verified": False,
+                    "identity": "unsigned",
+                    "subject": None,
+                },
+            },
+            "assets": assets,
+        }
+        (root / "validator-release.json").write_text(
+            json.dumps(manifest, sort_keys=True), encoding="utf-8"
+        )
+        checksummed = [*payloads, "validator-release.json"]
+        (root / "SHA256SUMS").write_text(
+            "".join(
+                f"{hashlib.sha256((root / name).read_bytes()).hexdigest()}  {name}\n"
+                for name in checksummed
+            ),
+            encoding="ascii",
+        )
+
+    @staticmethod
+    def _run_release_verifier(root: Path, **env_overrides: str) -> subprocess.CompletedProcess:
+        env = os.environ.copy()
+        env.update(env_overrides)
+        return subprocess.run(
+            [str(ROOT / "scripts" / "verify-release-assets.sh"), str(root)],
+            check=False,
+            capture_output=True,
+            env=env,
+            text=True,
+        )
+
     def test_docker_image_uses_frozen_lock_and_non_root_runtime(self):
         dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
         from_lines = [line for line in dockerfile.splitlines() if line.startswith("FROM ")]
@@ -41,6 +122,10 @@ class ReleasePackagingTests(unittest.TestCase):
         self.assertIn("uv run --frozen --extra release pyinstaller", binaries)
         self.assertIn("pull_request:", binaries)
         self.assertIn("branches: [master]", binaries)
+        self.assertIn("git merge-base --is-ancestor", binaries)
+        self.assertIn("binary publication requires a protected v* tag push", binaries)
+        self.assertNotIn("inputs.release_tag", binaries)
+        self.assertIn("environment: validator-release", binaries)
         self.assertIn("name: Assemble verified release payload", binaries)
         self.assertIn("PYTHONIOENCODING=cp1252", binaries)
         self.assertIn("subject-checksums: dist-artifacts/SHA256SUMS", binaries)
@@ -52,16 +137,84 @@ class ReleasePackagingTests(unittest.TestCase):
         self.assertIn("Windows Authenticode gate is not satisfied", binaries)
         self.assertIn('"validator-release.json"', binaries)
         self.assertIn("dist-artifacts/validator-release.json", binaries)
+        self.assertIn("EXPECTED_RELEASE_COMMIT", binaries)
+        self.assertIn("Reverify release identity and payload", binaries)
         self.assertIn("format: spdx-json", binaries)
         self.assertIn("provenance: mode=max", docker)
         self.assertIn("sbom: true", docker)
-        self.assertIn("publish_image:", docker)
-        self.assertIn("push: ${{ steps.release.outputs.publish_image == 'true' }}", docker)
-        self.assertGreaterEqual(
-            docker.count("if: ${{ steps.release.outputs.publish_image == 'true' }}"), 2
-        )
+        self.assertIn("name: Qualify container image", docker)
+        self.assertIn("name: Publish protected container image", docker)
+        self.assertIn("container publication requires a protected v* tag push", docker)
+        self.assertIn("environment: validator-release", docker)
+        self.assertIn("push: false", docker)
+        self.assertIn("push: true", docker)
+        self.assertEqual(docker.count("packages: write"), 1)
+        self.assertNotIn("inputs.publish_image", docker)
+        self.assertNotIn("inputs.publish_latest", docker)
         self.assertIn("scripts/classify-release-tag.sh", binaries)
         self.assertIn("scripts/classify-release-tag.sh", docker)
+
+    def test_release_asset_verifier_binds_workflow_identity(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self._write_release_payload(root)
+
+            passed = self._run_release_verifier(
+                root,
+                EXPECTED_RELEASE_TAG="v0.1.0-preview",
+                EXPECTED_RELEASE_COMMIT="a" * 40,
+            )
+            self.assertEqual(passed.returncode, 0, passed.stderr)
+
+            failed = self._run_release_verifier(
+                root,
+                EXPECTED_RELEASE_TAG="v0.1.0-preview",
+                EXPECTED_RELEASE_COMMIT="b" * 40,
+            )
+            self.assertNotEqual(failed.returncode, 0)
+            self.assertIn("workflow source commit", failed.stderr)
+
+    def test_release_asset_verifier_rejects_unexpected_files(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self._write_release_payload(root)
+            (root / "unattested.zip").write_bytes(b"not part of the release")
+
+            failed = self._run_release_verifier(root)
+
+            self.assertNotEqual(failed.returncode, 0)
+            self.assertIn("release directory mismatch", failed.stderr)
+
+    def test_release_asset_verifier_rejects_symlink_archive_member(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self._write_release_payload(root)
+            archive = root / "aipg-validator-linux-x64.zip"
+            info = zipfile.ZipInfo("aipg-validator")
+            info.create_system = 3
+            info.external_attr = (stat.S_IFLNK | 0o777) << 16
+            with zipfile.ZipFile(archive, "w") as bundle:
+                bundle.writestr(info, "../../bin/sh")
+
+            manifest_path = root / "validator-release.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            for item in manifest["assets"]:
+                if item["name"] == archive.name:
+                    item["bytes"] = archive.stat().st_size
+                    item["sha256"] = hashlib.sha256(archive.read_bytes()).hexdigest()
+            manifest_path.write_text(json.dumps(manifest, sort_keys=True), encoding="utf-8")
+            checksums_path = root / "SHA256SUMS"
+            lines = []
+            for line in checksums_path.read_text(encoding="ascii").splitlines():
+                _, name = line.split(maxsplit=1)
+                path = root / name
+                lines.append(f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {name}")
+            checksums_path.write_text("\n".join(lines) + "\n", encoding="ascii")
+
+            failed = self._run_release_verifier(root)
+
+            self.assertNotEqual(failed.returncode, 0)
+            self.assertIn("unsafe archive member", failed.stderr)
 
 
 if __name__ == "__main__":

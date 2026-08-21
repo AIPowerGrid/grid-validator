@@ -28,14 +28,27 @@ done
 python3 - "$DIR" "${payloads[@]}" <<'PY'
 import hashlib
 import json
+import os
 import pathlib
 import re
+import stat
 import sys
 import zipfile
 
 root = pathlib.Path(sys.argv[1])
 payloads = sys.argv[2:]
 checksummed = [*payloads, "validator-release.json"]
+expected_files = {*checksummed, "SHA256SUMS"}
+actual_files = {path.name for path in root.iterdir()}
+if actual_files != expected_files:
+    missing = sorted(expected_files - actual_files)
+    extra = sorted(actual_files - expected_files)
+    raise SystemExit(f"release directory mismatch: missing={missing} extra={extra}")
+if not all(
+    (root / name).is_file() and not (root / name).is_symlink()
+    for name in expected_files
+):
+    raise SystemExit("release payload entries must all be regular files")
 entries = {}
 for raw in (root / "SHA256SUMS").read_text(encoding="utf-8").splitlines():
     parts = raw.split(maxsplit=1)
@@ -71,6 +84,12 @@ if tag and not re.fullmatch(
     raise SystemExit("release tag does not match version")
 if not re.fullmatch(r"[0-9a-f]{40}", str(manifest.get("commit") or "")):
     raise SystemExit("release commit is invalid")
+expected_tag = os.environ.get("EXPECTED_RELEASE_TAG")
+if expected_tag is not None and tag != expected_tag:
+    raise SystemExit("release tag does not match the workflow release tag")
+expected_commit = os.environ.get("EXPECTED_RELEASE_COMMIT")
+if expected_commit is not None and manifest.get("commit") != expected_commit:
+    raise SystemExit("release commit does not match the workflow source commit")
 signing = manifest.get("platform_signing")
 if not isinstance(signing, dict) or set(signing) != {"macos", "windows"}:
     raise SystemExit("release platform-signing state is invalid")
@@ -97,13 +116,22 @@ if (
 ):
     raise SystemExit("Windows signing state is invalid")
 assets = manifest.get("assets")
+asset_names = [item.get("name") for item in assets] if isinstance(assets, list) else []
 if (
     not isinstance(assets, list)
+    or len(assets) != len(payloads)
     or not all(isinstance(item, dict) for item in assets)
-    or {item.get("name") for item in assets} != set(payloads)
+    or len(asset_names) != len(set(asset_names))
+    or set(asset_names) != set(payloads)
 ):
     raise SystemExit("release manifest asset list is invalid")
 for item in assets:
+    if set(item) != {"name", "sha256", "bytes"}:
+        raise SystemExit("release manifest asset entry is invalid")
+    if not isinstance(item["bytes"], int) or item["bytes"] <= 0:
+        raise SystemExit(f"release manifest size is invalid: {item['name']}")
+    if not re.fullmatch(r"[0-9a-f]{64}", str(item["sha256"])):
+        raise SystemExit(f"release manifest checksum is invalid: {item['name']}")
     path = root / item["name"]
     if item.get("bytes") != path.stat().st_size:
         raise SystemExit(f"release manifest size mismatch: {path.name}")
@@ -118,9 +146,22 @@ archives = {
 }
 for archive, expected in archives.items():
     with zipfile.ZipFile(root / archive) as bundle:
-        members = [item.filename for item in bundle.infolist() if not item.is_dir()]
-    if members != [expected]:
-        raise SystemExit(f"unexpected archive payload for {archive}: {members}")
+        members = bundle.infolist()
+        names = [item.filename for item in members]
+        if names != [expected]:
+            raise SystemExit(f"unexpected archive payload for {archive}: {names}")
+        member = members[0]
+        mode = (member.external_attr >> 16) & 0xFFFF
+        if member.is_dir() or stat.S_ISLNK(mode):
+            raise SystemExit(f"unsafe archive member for {archive}: {member.filename}")
+        if mode and not stat.S_ISREG(mode):
+            raise SystemExit(f"non-regular archive member for {archive}: {member.filename}")
+        if member.flag_bits & 0x1:
+            raise SystemExit(f"encrypted archive member for {archive}: {member.filename}")
+        if not 0 < member.file_size <= 512 * 1024 * 1024:
+            raise SystemExit(f"archive member size is invalid for {archive}")
+        if member.compress_size and member.file_size > member.compress_size * 100:
+            raise SystemExit(f"archive compression ratio is unsafe for {archive}")
 
 sbom = json.loads((root / "aipg-validator-release.spdx.json").read_text(encoding="utf-8"))
 if not str(sbom.get("spdxVersion", "")).startswith("SPDX-"):

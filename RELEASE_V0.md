@@ -208,21 +208,26 @@ Public release path:
 
 1. Push the repo with CI green. Confirm GitHub immutable releases are enabled
    for `AIPowerGrid/grid-validator`; never disable the setting to repair a
-   published release. The public release remains blocked until
+   published release. Confirm the `validator-release` environment requires an
+   explicit reviewer and permits only the `master` branch and `v*` tags. Confirm
+   the active release-tag ruleset permits only the designated release owner to
+   create, update, or delete `v*` tags. The workflow independently rejects
+   every non-tag publication attempt and release commits not reachable from
+   reviewed `master`; these repository settings prevent an unreviewed tagged
+   commit from replacing that workflow with a weaker one. The public release
+   remains blocked until
    [issue #1](https://github.com/AIPowerGrid/grid-validator/issues/1) closes:
    the macOS binary must carry a verified Developer ID identity and notarization,
    and the Windows binary must carry a verified Authenticode identity. The
    workflow records those facts in `validator-release.json` and fails closed
    before publication while either is absent.
-2. Create a release tag, or run the binary and Docker workflows manually with
-   explicit publish tags:
-   - binary workflow: set `release_tag` to the release name, for example
-     `v0.1.0-preview`
-   - Docker workflow: set `image_tag` to the matching image tag, and enable
-     `publish_image` only after a build-only qualification succeeds. Enable
-     `publish_latest` only for a stable release that should become the default
-     public image. Preview/alpha/beta/RC tags are rejected if `publish_latest`
-     is enabled, and `publish_latest` is rejected unless `publish_image` is on.
+2. From the reviewed `master` commit, the designated release owner creates and
+   pushes a protected `v*` release tag, for example `v0.1.0-preview`. This is the
+   only binary publication trigger; a manual binary workflow run is always
+   build-only. A manual Docker run with `image_tag` qualifies the matching
+   multi-architecture image using read-only credentials. The same protected
+   `v*` tag is the only container publication trigger; only a stable tag may
+   additionally publish `latest`.
 3. Confirm release assets exist:
    - `aipg-validator-linux-x64.zip`
    - `aipg-validator-linux-arm64.zip`
