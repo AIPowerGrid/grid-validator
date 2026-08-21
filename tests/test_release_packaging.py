@@ -44,6 +44,11 @@ class ReleasePackagingTests(unittest.TestCase):
         self.assertIn("format: spdx-json", binaries)
         self.assertIn("provenance: mode=max", docker)
         self.assertIn("sbom: true", docker)
+        self.assertIn("publish_image:", docker)
+        self.assertIn("push: ${{ steps.release.outputs.publish_image == 'true' }}", docker)
+        self.assertGreaterEqual(
+            docker.count("if: ${{ steps.release.outputs.publish_image == 'true' }}"), 2
+        )
         self.assertIn("scripts/classify-release-tag.sh", binaries)
         self.assertIn("scripts/classify-release-tag.sh", docker)
 

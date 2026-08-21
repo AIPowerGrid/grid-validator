@@ -9,10 +9,15 @@ on:
   workflow_dispatch:
     inputs:
       image_tag:
-        description: "Image tag to publish for a manual run, e.g. v0.1.0-canary."
+        description: "Image tag to qualify or publish, e.g. v0.1.0-preview."
         required: true
-        default: "v0.1.0-canary"
+        default: "v0.1.0-preview"
         type: string
+      publish_image:
+        description: "Push the qualified image to GHCR. Leave off for build-only validation."
+        required: true
+        default: false
+        type: boolean
       publish_latest:
         description: "Also publish ghcr.io/aipowergrid/validator:latest."
         required: true
@@ -40,24 +45,33 @@ jobs:
         shell: bash
         env:
           INPUT_TAG: ${{ inputs.image_tag }}
+          PUBLISH_IMAGE: ${{ inputs.publish_image }}
           PUBLISH_LATEST: ${{ inputs.publish_latest }}
         run: |
           args=()
           if [[ "$GITHUB_REF" == refs/tags/* ]]; then
             tag="$GITHUB_REF_NAME"
+            publish=true
             args+=(--publish-latest-if-stable)
           else
             tag="$INPUT_TAG"
+            publish="$PUBLISH_IMAGE"
+            if [[ "$PUBLISH_LATEST" == "true" && "$publish" != "true" ]]; then
+              echo "error: publish_latest requires publish_image" >&2
+              exit 1
+            fi
             if [[ "$PUBLISH_LATEST" == "true" ]]; then
               args+=(--publish-latest)
             fi
           fi
           ./scripts/classify-release-tag.sh "${args[@]}" "$tag" >> "$GITHUB_OUTPUT"
+          echo "publish_image=$publish" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
 
       - name: Log in to GitHub Container Registry
+        if: ${{ steps.release.outputs.publish_image == 'true' }}
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
           registry: ghcr.io
@@ -102,19 +116,20 @@ jobs:
           fi
           grep -F "Validator registration failed" "$tmp/check.out"
 
-      - name: Build and push
+      - name: Build multi-architecture image
         id: push
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
           context: .
           platforms: linux/amd64,linux/arm64
-          push: true
+          push: ${{ steps.release.outputs.publish_image == 'true' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           provenance: mode=max
           sbom: true
 
       - name: Attest container provenance
+        if: ${{ steps.release.outputs.publish_image == 'true' }}
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-name: ${{ env.IMAGE_NAME }}

@@ -207,9 +207,10 @@ Public release path:
    - binary workflow: set `release_tag` to the release name, for example
      `v0.1.0-preview`
    - Docker workflow: set `image_tag` to the matching image tag, and enable
+     `publish_image` only after a build-only qualification succeeds. Enable
      `publish_latest` only for a stable release that should become the default
      public image. Preview/alpha/beta/RC tags are rejected if `publish_latest`
-     is enabled.
+     is enabled, and `publish_latest` is rejected unless `publish_image` is on.
 3. Confirm release assets exist:
    - `aipg-validator-linux-x64.zip`
    - `aipg-validator-linux-arm64.zip`

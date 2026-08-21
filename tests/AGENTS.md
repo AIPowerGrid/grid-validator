@@ -16,7 +16,7 @@ installer generation.
 - `test_release_tag.py` - binary/Docker release-tag and `latest` publication
   policy.
 - `test_release_packaging.py` - frozen container/release dependencies, action
-  pinning, SBOM, and provenance workflow contracts.
+  pinning, SBOM/provenance contracts, and explicit publish gating.
 
 ## Local Contracts
 

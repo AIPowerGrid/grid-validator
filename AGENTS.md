@@ -80,7 +80,9 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   `release_tag`; manual Docker publishes must set `image_tag`, with `latest`
   allowed only for stable tags. Preview/alpha/beta/RC images must never replace
   `latest`. A build-only binary dispatch still assembles and verifies the full
-  payload, but skips provenance attestation, tag creation, and publication.
+  payload, but skips provenance attestation, tag creation, and publication. A
+  manual Docker dispatch defaults to multi-architecture build-only validation;
+  `publish_image` must be explicit before login, push, or attestation.
   Third-party actions are commit-SHA pinned.
 - **`scripts/install-binary.sh`** — GitHub Release binary installer intended to
   back the hosted `get.aipowergrid.io/validator` path. It installs the binary
