@@ -22,6 +22,7 @@ class AttestationTests(unittest.TestCase):
                 "text.context.4k.v1",
                 "text.reasoning.multistep.v1",
                 "text.tool_call.v1",
+                "text.tool_chain.v1",
                 "text.stop_sequence.v1",
             ],
         )

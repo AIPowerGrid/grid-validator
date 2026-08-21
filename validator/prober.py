@@ -5,7 +5,8 @@
 
 Legacy local canaries retain echo and generated arithmetic for isolated tests.
 Grid-issued shared probes additionally support strict JSON, randomized context
-retrieval, generated multistep logic, and exact function calls. Expected
+retrieval, generated multistep logic, exact function calls, two-stage tool
+chains, and stop-sequence compliance. Expected
 answers remain one-way
 commitments; this node normalizes and hashes the worker response independently.
 
@@ -188,12 +189,32 @@ def _normalized_tool_call(tool_calls) -> str | None:
     )
 
 
+def _normalized_tool_chain(tool_chain) -> str | None:
+    if not isinstance(tool_chain, list) or len(tool_chain) != 2:
+        return None
+    normalized = []
+    for stage in tool_chain:
+        if not isinstance(stage, dict) or _strip_think(str(stage.get("text") or "")):
+            return None
+        calls = stage.get("tool_calls")
+        call = _normalized_tool_call(calls)
+        if call is None:
+            return None
+        raw_call = calls[0]
+        if not isinstance(raw_call.get("id"), str) or not raw_call["id"].strip():
+            return None
+        normalized.append(json.loads(call))
+    return json.dumps(normalized, sort_keys=True, separators=(",", ":"))
+
+
 def _normalized_committed_answer(kind: str, text: str, tool_calls=None) -> str | None:
     answer = _strip_think(text)
     if kind == "tool.call":
         if answer:
             return None
         return _normalized_tool_call(tool_calls)
+    if kind == "tool.chain":
+        return _normalized_tool_chain(tool_calls)
     if not answer:
         return None
     if kind in ("echo", "context.retrieve", "stop.sequence"):

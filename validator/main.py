@@ -43,7 +43,17 @@ def _response_commitment_text(assignment: dict, result: dict) -> str:
     )
     if kind == "tool.call":
         return _canonical({"text": text, "tool_calls": result.get("tool_calls")})
+    if kind == "tool.chain":
+        return _canonical({"steps": result.get("tool_chain")})
     return text
+
+
+def _prompt_commitment_text(assignment: dict) -> str:
+    challenge = assignment.get("challenge") or {}
+    prompt = str(challenge.get("prompt") or "")
+    if str(challenge.get("kind") or "") == "tool.chain":
+        return _canonical({"prompt": prompt, "steps": challenge.get("steps")})
+    return prompt
 
 
 def _verified_probe_evidence(
@@ -76,7 +86,7 @@ def _verified_probe_evidence(
             return None
 
     challenge = assignment.get("challenge") or {}
-    prompt_hash = _sha256_text(str(challenge.get("prompt") or ""))
+    prompt_hash = _sha256_text(_prompt_commitment_text(assignment))
     response_hash = _sha256_text(response_text)
     evidence = {
         "assignment_id": expected_result["assignment_id"],
@@ -116,6 +126,7 @@ def _assignment_canary(assignment: dict) -> dict | None:
         "nonce": str(assignment.get("grid_nonce") or ""),
         "prompt": str(prompt),
         "expected_hash": str(expected_hash),
+        "steps": challenge.get("steps"),
     }
 
 
@@ -179,7 +190,9 @@ async def _probe_assignment(
 
     text = str(res.get("output_text") or res.get("text") or "")
     tool_calls = res.get("tool_calls")
-    if not text and not tool_calls:
+    tool_chain = res.get("tool_chain")
+    probe_failed = bool((res.get("grid") or {}).get("probe_failed"))
+    if not text and not tool_calls and not tool_chain and not probe_failed:
         logger.info(f"[{str(worker_id)[:8]} {model}] assignment probe returned no text; skipping")
         return 0
 
@@ -189,7 +202,14 @@ async def _probe_assignment(
         return 0
 
     try:
-        verdict = prober.score_committed({**canary, "tool_calls": tool_calls}, text, latency)
+        verdict = prober.score_committed(
+            {
+                **canary,
+                "tool_calls": tool_chain if canary["kind"] == "tool.chain" else tool_calls,
+            },
+            text,
+            latency,
+        )
     except ValueError:
         logger.warning("assignment has an invalid scoring commitment; skipping")
         return 0

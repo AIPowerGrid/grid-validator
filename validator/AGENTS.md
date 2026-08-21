@@ -32,7 +32,7 @@ exists as design/scaffold until the Grid adds modality-aware probe jobs.
   dashboard-only and must never become an alternate targeting authority.
 - **`prober.py`** — independent text scoring for randomized exact-instruction,
   arithmetic, strict-JSON, context-retrieval, multistep-logic, and exact
-  function-call and stop-sequence commitments;
+  single-function-call, two-stage tool-chain, and stop-sequence commitments;
   legacy local canary helpers remain for isolated tests. `is_text_model`
   heuristic skips media models in v0; `_strip_think` ignores reasoning-model
   chain-of-thought. Do not reintroduce static QA answer lists.
@@ -47,6 +47,9 @@ exists as design/scaffold until the Grid adds modality-aware probe jobs.
   always signed; low-level unsigned helpers exist only for isolated tests.
 - **`main.py`** — entrypoint: `run()` (signed registration, optional stake gate,
   heartbeat, then assignment loop) and assignment-only `probe_round`.
+  Tool-chain assignments verify and commit both hard-targeted stages before
+  signing. A target worker's accepted-but-empty completion is failed evidence,
+  not a transport error; coordinator dispatch failures remain inconclusive.
   `probe_round` returns the number of canaries actually
   attempted; one-shot checks use this to reject green-looking no-op probes.
   If `VALIDATOR_REQUIRE_STAKE=true`, missing stake config/deployment must raise

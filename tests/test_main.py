@@ -222,6 +222,160 @@ class ProbeRoundTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(payload["verdict"], "healthy")
         self.assertEqual(payload["response_hash"], response_hash)
 
+    async def test_assignment_probe_scores_and_signs_two_step_tool_chain(self):
+        assignment = {
+            **self._assignment(),
+            "capability": "text.tool_chain.v1",
+            "canary_kind": "tool.chain",
+        }
+        expected_calls = [
+            {"arguments": {"key_a": "K1"}, "name": "lookup_a"},
+            {"arguments": {"token_c": "T1", "total_b": 42}, "name": "submit_b"},
+        ]
+        chain = [
+            {"text": "", "finish_reason": "tool_calls", "tool_calls": [{
+                "id": "call_1", "type": "function",
+                "function": {"name": "lookup_a", "arguments": '{"key_a":"K1"}'},
+            }]},
+            {"text": "", "finish_reason": "tool_calls", "tool_calls": [{
+                "id": "call_2", "type": "function",
+                "function": {
+                    "name": "submit_b",
+                    "arguments": '{"total_b":42,"token_c":"T1"}',
+                },
+            }]},
+        ]
+        expected = json.dumps(expected_calls, sort_keys=True, separators=(",", ":"))
+        assignment["challenge"] = {
+            "kind": "tool.chain",
+            "prompt": "Call lookup_a and then submit_b.",
+            "expected_hash": hashlib.sha256(expected.encode()).hexdigest(),
+            "steps": [
+                {"expected_hash": "a" * 64, "tools": [], "tool_choice": {}},
+                {
+                    "expected_hash": "b" * 64,
+                    "tool_result": {"left": 19, "right": 23, "token": "T1"},
+                    "tools": [],
+                    "tool_choice": {},
+                },
+            ],
+        }
+        response_commitment = main._response_commitment_text(
+            assignment, {"output_text": "", "tool_chain": chain}
+        )
+        prompt_hash = hashlib.sha256(
+            main._prompt_commitment_text(assignment).encode()
+        ).hexdigest()
+        response_hash = hashlib.sha256(response_commitment.encode()).hexdigest()
+        evidence = {
+            "assignment_id": assignment["assignment_id"],
+            "probe_group_id": assignment["probe_group_id"],
+            "grid_nonce": assignment["grid_nonce"],
+            "worker_id": assignment["target_worker_id"],
+            "model": assignment["model"],
+            "modality": assignment["modality"],
+            "capability": assignment["capability"],
+            "canary_kind": assignment["canary_kind"],
+            "prompt_hash": prompt_hash,
+            "response_hash": response_hash,
+        }
+        result = {
+            "status": "completed",
+            "output_text": "",
+            "tool_calls": chain[-1]["tool_calls"],
+            "tool_chain": chain,
+            "assignment_id": assignment["assignment_id"],
+            "probe_group_id": assignment["probe_group_id"],
+            "grid_nonce": assignment["grid_nonce"],
+            "target_worker_id": assignment["target_worker_id"],
+            "model": assignment["model"],
+            "modality": assignment["modality"],
+            "capability": assignment["capability"],
+            "canary_kind": assignment["canary_kind"],
+            "prompt_hash": prompt_hash,
+            "response_hash": response_hash,
+            "evidence_hash": hashlib.sha256(
+                json.dumps(evidence, sort_keys=True, separators=(",", ":")).encode()
+            ).hexdigest(),
+        }
+
+        class FakeGrid:
+            def __init__(self):
+                self.submitted = []
+
+            async def validator_assignments(self, **_kwargs):
+                return [assignment]
+
+            async def probe_assignment(self, _assignment_id):
+                return result
+
+            async def submit_attestation(self, envelope):
+                self.submitted.append(envelope)
+                return True
+
+        grid = FakeGrid()
+        with (
+            patch.object(Settings, "VALIDATOR_WALLET", TEST_ACCOUNT.address.lower()),
+            patch.object(Settings, "VALIDATOR_PRIVATE_KEY", TEST_ACCOUNT.key.hex()),
+        ):
+            self.assertEqual(await main.probe_round(grid, 0, self.outbox), 1)
+
+        payload = grid.submitted[0]["payload"]
+        self.assertEqual(payload["capability"], "text.tool_chain.v1")
+        self.assertEqual(payload["verdict"], "healthy")
+        self.assertEqual(payload["response_hash"], response_hash)
+
+    async def test_target_worker_empty_completion_is_signed_as_failed_evidence(self):
+        assignment = self._assignment()
+        prompt_hash = hashlib.sha256(
+            assignment["challenge"]["prompt"].encode()
+        ).hexdigest()
+        response_hash = hashlib.sha256(b"").hexdigest()
+        evidence = {
+            "assignment_id": assignment["assignment_id"],
+            "probe_group_id": assignment["probe_group_id"],
+            "grid_nonce": assignment["grid_nonce"],
+            "worker_id": assignment["target_worker_id"],
+            "model": assignment["model"],
+            "modality": assignment["modality"],
+            "capability": assignment["capability"],
+            "canary_kind": assignment["canary_kind"],
+            "prompt_hash": prompt_hash,
+            "response_hash": response_hash,
+        }
+        result = {
+            **self._result(),
+            "output_text": "",
+            "grid": {"probe_failed": True},
+            "response_hash": response_hash,
+            "evidence_hash": hashlib.sha256(
+                json.dumps(evidence, sort_keys=True, separators=(",", ":")).encode()
+            ).hexdigest(),
+        }
+
+        class FakeGrid:
+            def __init__(self):
+                self.submitted = []
+
+            async def validator_assignments(self, **_kwargs):
+                return [assignment]
+
+            async def probe_assignment(self, _assignment_id):
+                return result
+
+            async def submit_attestation(self, envelope):
+                self.submitted.append(envelope)
+                return True
+
+        grid = FakeGrid()
+        with (
+            patch.object(Settings, "VALIDATOR_WALLET", TEST_ACCOUNT.address.lower()),
+            patch.object(Settings, "VALIDATOR_PRIVATE_KEY", TEST_ACCOUNT.key.hex()),
+        ):
+            self.assertEqual(await main.probe_round(grid, 0, self.outbox), 1)
+
+        self.assertEqual(grid.submitted[0]["payload"]["verdict"], "failed")
+
     async def test_assignment_probe_rejects_wrong_target_binding(self):
         class FakeGrid:
             def __init__(self):

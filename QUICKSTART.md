@@ -204,9 +204,9 @@ deterministic image workflows, validators can compare against certified
 reference outputs and provide proof of fidelity.
 
 The current text preview samples exact instruction following, generated
-arithmetic, strict JSON, context retrieval, generated multistep logic, and one
-exact randomized function call, and one randomized stop-sequence check. It does
-not yet execute multi-turn tool chains or grade token-budget honesty.
+arithmetic, strict JSON, context retrieval, generated multistep logic, one
+exact randomized function call, one two-stage tool-call chain, and one
+randomized stop-sequence check. It does not yet grade token-budget honesty.
 These checks are randomized and capability-gated, but they still do not prove
 an exact model family, parameter count, or quantization.
 

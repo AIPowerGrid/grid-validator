@@ -134,6 +134,43 @@ class ProberTests(unittest.TestCase):
                 "failed",
             )
 
+    def test_score_committed_tool_chain_requires_both_exact_calls(self):
+        expected_calls = [
+            {"arguments": {"key_a": "K1"}, "name": "lookup_a"},
+            {"arguments": {"token_c": "T1", "total_b": 42}, "name": "submit_b"},
+        ]
+        chain = [
+            {
+                "text": "",
+                "tool_calls": [{
+                    "id": "call_1", "type": "function",
+                    "function": {"name": "lookup_a", "arguments": '{"key_a":"K1"}'},
+                }],
+            },
+            {
+                "text": "",
+                "tool_calls": [{
+                    "id": "call_2", "type": "function",
+                    "function": {
+                        "name": "submit_b",
+                        "arguments": '{"total_b":42,"token_c":"T1"}',
+                    },
+                }],
+            },
+        ]
+        expected = json.dumps(expected_calls, sort_keys=True, separators=(",", ":"))
+        canary = {
+            "kind": "tool.chain",
+            "expected_hash": hashlib.sha256(expected.encode()).hexdigest(),
+            "tool_calls": chain,
+        }
+        with patch.object(prober.Settings, "LATENCY_BUDGET_S", 30):
+            self.assertEqual(prober.score_committed(canary, "", 0.1), "healthy")
+            self.assertEqual(
+                prober.score_committed({**canary, "tool_calls": chain[:1]}, "", 0.1),
+                "failed",
+            )
+
     def test_score_committed_stop_sequence_requires_only_the_prefix(self):
         canary = {
             "kind": "stop.sequence",
