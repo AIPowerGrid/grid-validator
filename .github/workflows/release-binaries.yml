@@ -114,6 +114,7 @@ jobs:
           if grep -Ei "Traceback|ModuleNotFoundError|ImportError" "$tmp/check.out"; then
             exit 1
           fi
+          grep -F "text.token_limit.v1" "$tmp/check.out"
           grep -F "Validator registration failed" "$tmp/check.out"
 
       - name: Package artifact
