@@ -15,10 +15,10 @@ or ledger rows.
 - Deploy the Grid API before the console and validator release.
 - Apply Alembic migrations explicitly. Do not rely on `create_all(checkfirst=True)`
   as proof that an existing production database is migrated.
-- Use targeted probing only through a Grid-issued assignment. The candidate
+- Use targeted probing only through a Grid-issued assignment. The live
   `/v1/validator/probe/{assignment_id}` reaches exactly one assigned worker and
-  is covered by Core and node tests; do not call it production-live before the
-  deployment smoke proves that same behavior.
+  is covered by Core and node tests. Production smoke on 2026-08-21 proved the
+  same hard-targeted, signed, non-economic behavior.
 - Treat `GET /v1/validator/workers` as discovery, never as authority to invent
   an assignment locally.
 - Require each validator signing wallet to be linked to its Grid account and
@@ -75,8 +75,8 @@ Documentation gate:
 - They must not imply that public binary releases, published Docker images,
   validator rewards, staking, media validation, routing impact, or slashing are
   live before the matching Core/contracts/release artifacts exist. Targeted
-  text probes become live only after the Core rollout gate, and remain
-  assignment-bound, non-economic evidence.
+  text probes are production-live and remain assignment-bound, non-economic
+  evidence; media, rewards, stake, routing, and slashing remain gated.
 
 The V0 release binary intentionally includes the default dependency set:
 assignment-bound text probing plus signed registration and attestations.
@@ -131,6 +131,22 @@ Must show:
 - `quorum_policy.operator_independence_proven: false`
 - `features.validator_rewards: false`
 - `features.staking_required: false`
+
+Production evidence captured on 2026-08-21:
+
+- immutable Core commit `0d850e73`, Alembic through `0024`;
+- three active first-party validators on commit `16e05327` with separate
+  accounts, signing wallets, scoped keys, assignments, and nonces;
+- two fresh shared text groups reached `accepted` with three verified,
+  evidence-bound authoritative votes each;
+- one echo group was unanimously `healthy`; one tool-chain group was
+  unanimously `failed`, proving quorum aggregation without claiming that every
+  worker passes every lane; and
+- credit, reservation, den-event, payout, and worker-ledger counts were
+  unchanged across the probes, and no probe job ID joined to `grid_ledger`.
+
+These three nodes share one operator and hypervisor. This is a deployment
+canary, not the independent cohort required for decentralization or economics.
 
 With an authenticated Console session, create a validator-purpose API key. It
 must contain exactly `validator.assignments`, `validator.probe`,

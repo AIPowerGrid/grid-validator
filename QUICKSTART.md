@@ -3,15 +3,17 @@
 Run a validator when you want to help measure Grid worker quality without
 running a generation model yourself. V0 validators are CPU-only audit runners:
 they send small canary jobs through the normal Grid API, score the result, and
-submit signed evidence when core exposes the attestation endpoint.
+submit signed evidence through Core's validator attestation endpoint.
 
 V0 is evidence-only. It does not pay validator rewards, slash workers, change
 routing, or prove exact model weights.
 
-Rollout status: the shared-quorum Core code is merged but migrations through `0024`
-and the matching production release are still pending. `0022` carries quorum;
-the later migrations are required by the current dark media schema. Use `check --no-probe`
-for installation smoke until the public release page opens.
+Rollout status: shared-quorum text validation is live on production Core with
+migrations through `0024`. Three first-party pilot nodes completed fresh,
+economically inert 3-of-5 groups on 2026-08-21. This proves the live protocol,
+not independent operation: the pilot nodes share one operator and hypervisor.
+Public binaries remain unpublished, so use the source preview and begin with
+`check --no-probe` before running an assignment probe.
 
 ## What You Need
 

@@ -18,7 +18,7 @@ reference workers, and Base anchoring.
 
 ## V0 Scope
 
-What is implemented and testable against the candidate Core:
+What is implemented and testable against production Core:
 
 - CPU-only source install.
 - Dockerfile and local Docker Compose.
@@ -58,11 +58,19 @@ What is implemented and testable against the candidate Core:
 - Fail-closed behavior when registration, assignment, or targeted-probe support
   is unavailable; read-only dashboard metadata may degrade gracefully.
 
+Production preview status:
+
+- Production Core runs the shared-quorum validator API with migrations through
+  `0024`.
+- Three first-party pilot nodes completed two fresh groups with three distinct
+  verified signatures and evidence commitments per group on 2026-08-21.
+- Probe job IDs produced no credit, reservation, den, payout, or worker-ledger
+  entries. Evidence remains economically inert.
+- The three nodes share one operator and hypervisor. They do not prove an
+  independent or decentralized validator cohort.
+
 What is not production-live yet:
 
-- Core migrations through `0024` and the shared-quorum validator API rollout.
-  Quorum lands in `0022`; the later dark media schema must still match the
-  deployed Core candidate even though media assignments stay disabled.
 - Public downloadable binary releases.
 - Published Docker image release.
 - Validator rewards.
@@ -72,10 +80,10 @@ What is not production-live yet:
 - Routing impact.
 - On-chain epoch roots or dispute flow.
 
-Runtime Core capability flags are the source of truth. Until the migration and
-endpoint smoke tests pass in production, operators should use `check --no-probe`
-only; the public release remains closed. Current evidence has no economic
-authority; independent operator operation is not yet proven.
+Runtime Core capability flags are the source of truth. Operators should run
+`check --no-probe` before their first assignment probe. The public release
+remains closed, current evidence has no economic authority, and independent
+operator operation is not yet proven.
 
 ## Download
 

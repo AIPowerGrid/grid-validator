@@ -38,11 +38,13 @@ concrete detail in children. Delete stale notes instead of explaining history.
 
 The Grid's validator node. In V0 it is a CPU-only distributed audit runner: it sends
 small canary jobs through the normal Grid path, scores replies (`healthy` / `slow` /
-`failed`), and submits signed attestations when the Grid exposes the sink. The
-shared-quorum Core implementation is merged but is not production-live until
-migrations through `0024` and the matching immutable Core release are deployed. `0022`
-adds shared quorum; `0023`-`0024` are required schema parity for the current
-candidate while media assignments remain disabled. Once enabled,
+`failed`), and submits signed attestations. Shared-quorum text validation is
+production-live on Core commit `0d850e73` with migrations through `0024`.
+Three first-party pilot nodes running validator commit `16e05327` completed two
+fresh 3-of-5 groups on 2026-08-21; all six signatures and evidence commitments
+verified, with no economic ledger side effects. This proves the protocol and
+deployment path, not independent operator control. Media assignments remain
+disabled. The live
 `GET /v1/validator/assignments`, `POST /v1/validator/probe/{assignment_id}`, and
 preview scorecards and distinct-validator 3-of-5 probe groups make evidence attributable, but still non-economic: no reward,
 routing, strike, or slashing logic may read it as authority. Future phases harden adversarial
