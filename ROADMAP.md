@@ -273,20 +273,26 @@ workflow checks where the stack supports it.
 
 General video checks:
 
-- output decodes
-- duration matches
-- fps matches
-- resolution matches
-- frames are not a static still unless requested
+- [x] output decodes in an isolated, bounded child process
+- [x] duration, fps, frame count, and resolution match
+- [x] frames are not a static still unless requested
 - simple motion/key-event constraints are present where objectively checkable
 
 Deterministic or semi-deterministic checks:
 
-- workflow hash
-- keyframe pHash
-- frame count
-- optical-flow/motion profile
-- reference comparison for certified workflows
+- [ ] workflow hash
+- [x] per-frame pHash
+- [x] lightweight pHash motion profile
+- [ ] optical flow and prompt/key-event checks
+- [x] two-reference comparison in the dark validator scorer
+
+Remaining activation gates:
+
+- Core generates and executes versioned video assignments
+- witness retention and trusted reference selection are operational
+- tolerances are calibrated against real LTX and other allowed workflows
+- media-enabled binaries pass the release matrix
+- multi-operator canaries remain evidence-only before routing influence
 
 Definition of done:
 

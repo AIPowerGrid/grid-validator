@@ -39,6 +39,11 @@ installer generation.
 - Deterministic image tests must use generated local fixtures and prove two
   references agree before an outlier candidate can fail. Reference disagreement,
   missing decoders, unsafe transport, and oversized contracts are inconclusive.
+- Video tests must generate local MP4 fixtures, exercise the real bounded PyAV
+  decoder, reject inconsistent assignment timing and static/corrupt candidates,
+  and prove reference agreement precedes candidate fidelity failure. They do
+  not prove prompt relevance, production workflow calibration, or cross-GPU
+  fidelity.
 - Prove the node rejects mismatched assignment/result metadata and recomputes
   prompt, response, and canonical evidence hashes before signing. Core's
   returned verdict must not replace the node's local score.

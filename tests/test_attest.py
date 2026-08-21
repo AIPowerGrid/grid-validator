@@ -66,6 +66,25 @@ class AttestationTests(unittest.TestCase):
 
         self.assertNotIn("image.fidelity.v1", payload["capabilities"])
 
+    def test_registration_advertises_video_only_with_decoder_and_origin(self):
+        with (
+            patch.object(Settings, "VALIDATOR_WALLET", "0x" + "12" * 20),
+            patch.object(Settings, "MEDIA_ALLOWED_ORIGINS", ("https://media.example",)),
+            patch("validator.media_prober.video_dependencies_available", return_value=True),
+        ):
+            payload = attest.build_registration(123456)
+
+        self.assertIn("video.contract.v1", payload["capabilities"])
+        self.assertIn("video.fidelity.v1", payload["capabilities"])
+
+        with (
+            patch.object(Settings, "VALIDATOR_WALLET", "0x" + "12" * 20),
+            patch.object(Settings, "MEDIA_ALLOWED_ORIGINS", ()),
+            patch("validator.media_prober.video_dependencies_available", return_value=True),
+        ):
+            payload = attest.build_registration(123456)
+        self.assertNotIn("video.contract.v1", payload["capabilities"])
+
     def test_canonical_is_stable_for_key_order(self):
         left = {"b": 2, "a": {"z": 1, "m": 3}}
         right = {"a": {"m": 3, "z": 1}, "b": 2}

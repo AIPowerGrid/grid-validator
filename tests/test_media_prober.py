@@ -1,5 +1,6 @@
 import gzip
 import hashlib
+import io
 import logging
 import struct
 import unittest
@@ -16,7 +17,6 @@ def _png(width, height, pixel):
         b"\x00" + b"".join(bytes(pixel(x, y)) for x in range(width))
         for y in range(height)
     )
-
     def chunk(kind, data):
         return (
             struct.pack(">I", len(data))
@@ -31,6 +31,37 @@ def _png(width, height, pixel):
         + chunk(b"IDAT", zlib.compress(raw))
         + chunk(b"IEND", b"")
     )
+
+
+def _mp4(*, frames=8, fps=8, variant=0, static=False):
+    import av
+    from PIL import Image, ImageDraw
+
+    output = io.BytesIO()
+    with av.open(output, "w", format="mp4") as container:
+        stream = container.add_stream("mpeg4", rate=fps)
+        stream.width = 64
+        stream.height = 64
+        stream.pix_fmt = "yuv420p"
+        for index in range(frames):
+            image = Image.new("RGB", (64, 64))
+            pixels = image.load()
+            for y in range(64):
+                for x in range(64):
+                    pixels[x, y] = (
+                        (x * 4 + variant * 47) % 256,
+                        (y * 4 + variant * 83) % 256,
+                        ((x + y) * 2 + variant * 29) % 256,
+                    )
+            draw = ImageDraw.Draw(image)
+            offset = 4 if static else 4 + index * 5
+            draw.rectangle((offset % 48, 20, offset % 48 + 15, 35), fill=(255, 255, 255))
+            frame = av.VideoFrame.from_image(image)
+            for packet in stream.encode(frame):
+                container.mux(packet)
+        for packet in stream.encode():
+            container.mux(packet)
+    return output.getvalue()
 
 
 class MediaChallengeTests(unittest.TestCase):
@@ -386,6 +417,223 @@ class ImageFidelityTests(unittest.IsolatedAsyncioTestCase):
             outcome, detail = await self._score(witnesses)
         self.assertEqual(outcome, "inconclusive")
         self.assertEqual(detail["reason"], "invalid-challenge-or-witness-set")
+
+
+class VideoScoringTests(unittest.IsolatedAsyncioTestCase):
+    ORIGIN = "https://media.example.test"
+    TARGET = "worker-candidate"
+    REFERENCES = ("worker-reference-a", "worker-reference-b")
+
+    @classmethod
+    def setUpClass(cls):
+        cls.reference = _mp4()
+        cls.outlier = _mp4(variant=3)
+        cls.static = _mp4(static=True)
+
+    def _challenge(self, *, fidelity=False, **parameter_overrides):
+        parameters = {
+            "width": 64,
+            "height": 64,
+            "frame_count": 8,
+            "fps": 8.0,
+            "duration_s": 1.0,
+            "motion_required": True,
+        }
+        parameters.update(parameter_overrides)
+        return {
+            "schema": "aipg.validator.media.challenge.v1",
+            "kind": "video.fidelity" if fidelity else "video.contract",
+            "modality": "video",
+            "scoring_policy_id": "video.fidelity.v1" if fidelity else "video.contract.v1",
+            "parameters": parameters,
+            "reference_worker_ids": list(self.REFERENCES) if fidelity else [],
+        }
+
+    def _witness(self, role, worker_id, name, body, latency_ms=1000):
+        return {
+            "role": role,
+            "worker_id": worker_id,
+            "url": f"{self.ORIGIN}/{name}?signature=opaque",
+            "sha256": hashlib.sha256(body).hexdigest(),
+            "bytes": len(body),
+            "content_type": "video/mp4",
+            "latency_ms": latency_ms,
+        }
+
+    def _witnesses(self, *, fidelity=False, candidate=None, reference_a=None, reference_b=None):
+        values = [
+            self._witness("candidate", self.TARGET, "candidate", candidate or self.reference),
+        ]
+        if fidelity:
+            values.extend((
+                self._witness(
+                    "reference",
+                    self.REFERENCES[0],
+                    "reference-a",
+                    reference_a or self.reference,
+                ),
+                self._witness(
+                    "reference",
+                    self.REFERENCES[1],
+                    "reference-b",
+                    reference_b or self.reference,
+                ),
+            ))
+        return values
+
+    async def _score(self, witnesses, *, fidelity=False, bodies=None, challenge=None):
+        response_bodies = bodies or {
+            "candidate": self.reference,
+            "reference-a": self.reference,
+            "reference-b": self.reference,
+        }
+
+        def handler(request):
+            name = request.url.path.rsplit("/", 1)[-1]
+            body = response_bodies[name]
+            return httpx.Response(200, headers={"content-type": "video/mp4"}, content=body)
+
+        return await media_prober.score_video_witnesses(
+            challenge or self._challenge(fidelity=fidelity),
+            witnesses,
+            target_worker_id=self.TARGET,
+            allowed_origins=[self.ORIGIN],
+            max_bytes=1024 * 1024,
+            fetch_timeout_s=2,
+            decode_timeout_s=5,
+            phash_tolerance=0,
+            motion_tolerance=0,
+            latency_budget_s=2,
+            transport=httpx.MockTransport(handler),
+        )
+
+    def test_bounded_decoder_reports_real_container_timing(self):
+        witness = media_prober.VerifiedMediaWitness(
+            self.reference,
+            hashlib.sha256(self.reference).hexdigest(),
+            len(self.reference),
+            "video/mp4",
+        )
+        profile = media_prober.decode_video_bounded(witness, max_frames=10, timeout_s=5)
+        self.assertEqual((profile.width, profile.height), (64, 64))
+        self.assertEqual(profile.frame_count, 8)
+        self.assertAlmostEqual(profile.fps, 8.0)
+        self.assertAlmostEqual(profile.duration_s, 1.0)
+        self.assertTrue(any(distance >= 2 for distance in profile.motion_distances))
+
+    async def test_contract_accepts_valid_video_and_rejects_repeated_still(self):
+        outcome, detail = await self._score(self._witnesses())
+        self.assertEqual(outcome, "healthy")
+        self.assertEqual(detail["frame_count"], 8)
+
+        witnesses = self._witnesses(candidate=self.static)
+        outcome, detail = await self._score(
+            witnesses,
+            bodies={"candidate": self.static},
+        )
+        self.assertEqual(outcome, "failed")
+        self.assertIn("repeated-still", detail["checks"])
+
+    async def test_contract_rejects_wrong_timing_and_corrupt_candidate(self):
+        outcome, detail = await self._score(
+            self._witnesses(),
+            challenge=self._challenge(frame_count=16, duration_s=2.0),
+        )
+        self.assertEqual(outcome, "failed")
+        self.assertIn("frame-count", detail["checks"])
+        self.assertIn("duration", detail["checks"])
+
+        corrupt = b"not a video"
+        outcome, detail = await self._score(
+            self._witnesses(candidate=corrupt),
+            bodies={"candidate": corrupt},
+        )
+        self.assertEqual(outcome, "failed")
+        self.assertEqual(detail["reason"], "candidate-decode-failed")
+
+    async def test_local_decoder_timeout_is_inconclusive(self):
+        with patch.object(
+            media_prober,
+            "decode_video_bounded",
+            side_effect=media_prober.VideoDecodeTimeout("deadline"),
+        ):
+            outcome, detail = await self._score(self._witnesses())
+        self.assertEqual(outcome, "inconclusive")
+        self.assertEqual(detail["reason"], "local-decoder-timeout")
+
+    async def test_inconsistent_assignment_timing_is_inconclusive_before_fetch(self):
+        with patch.object(
+            media_prober,
+            "fetch_media_witness",
+            side_effect=AssertionError("fetch must not run"),
+        ):
+            outcome, detail = await self._score(
+                self._witnesses(),
+                challenge=self._challenge(frame_count=8, fps=8.0, duration_s=4.0),
+            )
+        self.assertEqual(outcome, "inconclusive")
+        self.assertEqual(detail["reason"], "invalid-challenge-or-witness-set")
+
+    async def test_fidelity_requires_reference_agreement_before_candidate_comparison(self):
+        witnesses = self._witnesses(fidelity=True)
+        outcome, detail = await self._score(witnesses, fidelity=True)
+        self.assertEqual(outcome, "healthy")
+        self.assertEqual(detail["reference_frame_distance_max"], 0)
+
+        disagreeing = self._witnesses(fidelity=True, reference_b=self.outlier)
+        outcome, detail = await self._score(
+            disagreeing,
+            fidelity=True,
+            bodies={
+                "candidate": self.reference,
+                "reference-a": self.reference,
+                "reference-b": self.outlier,
+            },
+        )
+        self.assertEqual(outcome, "inconclusive")
+        self.assertEqual(detail["reason"], "references-disagree")
+
+    async def test_fidelity_fails_candidate_outlier_after_references_agree(self):
+        witnesses = self._witnesses(fidelity=True, candidate=self.outlier)
+        outcome, detail = await self._score(
+            witnesses,
+            fidelity=True,
+            bodies={
+                "candidate": self.outlier,
+                "reference-a": self.reference,
+                "reference-b": self.reference,
+            },
+        )
+        self.assertEqual(outcome, "failed")
+        self.assertEqual(detail["reason"], "candidate-outlier")
+
+    async def test_invalid_video_witness_contract_fails_before_fetch(self):
+        witnesses = self._witnesses()
+        witnesses[0]["content_type"] = "image/png"
+        with patch.object(
+            media_prober,
+            "fetch_media_witness",
+            side_effect=AssertionError("fetch must not run"),
+        ):
+            outcome, detail = await media_prober.score_video_witnesses(
+                self._challenge(),
+                witnesses,
+                target_worker_id=self.TARGET,
+                allowed_origins=[self.ORIGIN],
+                max_bytes=1024 * 1024,
+                fetch_timeout_s=2,
+                decode_timeout_s=5,
+                phash_tolerance=0,
+                motion_tolerance=0,
+                latency_budget_s=2,
+            )
+        self.assertEqual(outcome, "inconclusive")
+        self.assertEqual(detail["reason"], "invalid-challenge-or-witness-set")
+
+        with patch.object(media_prober, "video_dependencies_available", return_value=False):
+            outcome, detail = await self._score(self._witnesses())
+        self.assertEqual(outcome, "inconclusive")
+        self.assertEqual(detail["reason"], "video-dependencies-unavailable")
 
 
 if __name__ == "__main__":

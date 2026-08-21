@@ -148,13 +148,15 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   `o200k_base` and a cross-tokenizer tolerance; it does not claim exact native
   tokenizer equivalence.
   They are usefulness samples, not proof of a model family or parameter count.
-- The media witness fetch/verifier and independent `image.fidelity.v1` scorer
-  are wired to assignment polling but remain Core-gated: exact
+- The media witness fetch/verifier and independent image/video scorers are wired
+  to assignment polling but remain Core-gated: exact
   operator-configured HTTPS origins, redirects and encoded responses disabled,
-  bounded bytes/time/MIME, SHA-256 recomputation, structural checks, and pHash
-  comparison only after two references agree. A node advertises the capability
-  only when its media dependencies and HTTPS origin allowlist are ready; Core
-  must still withhold assignments until every media rollout gate is complete.
+  bounded bytes/time/MIME, SHA-256 recomputation, structural checks, and
+  reference comparison only after two references agree. Video decoding runs in
+  a killable child process with time, frame, dimension, and Linux resource
+  bounds. A node advertises each capability only when its media dependencies
+  and HTTPS origin allowlist are ready; Core must still withhold assignments
+  until every media rollout gate is complete.
 - **Evidence delivery is durable:** persist the signed public envelope before
   HTTP submission, replay pending evidence before new work, and remove it only
   after Core accepts it. Never persist the private key in validator state.
@@ -173,7 +175,7 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
 
 - New env vars: add to `validator/config.py` `Settings` (typed, with a
   default), not ad-hoc `getenv`.
-- Keep heavy deps (web3, Pillow, imagehash) lazily imported and in optional
+- Keep heavy deps (web3, Pillow, imagehash, PyAV) lazily imported and in optional
   extras so default V0 text validators stay small. `eth-account` remains a
   default dependency because signed V0 attestations are part of the preview.
 - New grid-side endpoint dependencies fail closed when they are required for

@@ -289,21 +289,39 @@ This is where the network can get close to proof-of-fidelity.
 
 ## Video Validation
 
-General video validation:
+The source validator now has a dark, assignment-loop-wired video scorer. It is
+not production-live: Core still withholds video assignments, and the public V0
+binary does not bundle PyAV. The scorer fetches only hash-bound witnesses from
+explicit public HTTPS origins and decodes each untrusted MP4/WebM object in a
+killable child process with time, frame, dimension, and Linux resource bounds.
+Witnesses are decoded sequentially to bound peak native memory. A local decode
+timeout is inconclusive; malformed candidate bytes are a worker failure only
+after the authenticated witness commitment verifies.
+
+Implemented `video.contract.v1` checks:
 
 - output decodes
 - duration/fps/resolution match
+- frame count and timestamps are coherent
 - frames are not just a static still
-- motion direction or key events match the prompt where objectively checkable
+- blank frames fail
+- latency is classified
 
-Deterministic or semi-deterministic video validation:
+Implemented `video.fidelity.v1` checks add two distinct reference workers:
 
-- sample keyframes
-- compare keyframe pHashes
-- check optical flow / motion profile
-- confirm duration and frame count
+- both references must satisfy the same contract and agree first
+- every decoded frame's pHash is compared within a configured tolerance
+- consecutive-frame pHash distances form a lightweight motion profile
+- candidate/reference mismatch fails only after the references agree
 
-Video scoring should start as routing evidence, not a slashing surface.
+The current motion profile is deliberately CPU-light; it is not optical flow.
+Prompt relevance, direction, and key-event matching remain future supporting
+signals and must not be claimed from this scorer.
+
+Core assignment generation, targeted media execution, immutable witness
+retention, real-workload calibration, and cross-platform media-enabled binary
+qualification remain rollout gates. Video evidence should start as routing
+evidence, not a slashing surface.
 
 ## Attestations
 
@@ -435,7 +453,7 @@ Going offline should stop rewards, not slash stake.
 - [x] Mandatory signed registration and attestations.
 - [x] Core-side validator capability, attestation, scorecard, worker-inventory,
   assignment, and targeted-probe implementation with tests.
-- [x] Image/video scoring design.
+- [x] Image/video scoring design and dark validator-side video contract/fidelity scorer.
 - [x] Dev-manager roadmap and go/no-go boundaries.
 - [x] Cross-platform binary packaging and build-only release qualification.
 - [ ] Publish Docker image on release.
@@ -448,7 +466,8 @@ Going offline should stop rewards, not slash stake.
 - [x] Shared-challenge distinct-validator 3-of-5 quorum implementation and tests.
 - [x] Remove fixed public media seeds and round-index prompt selection from the
   local scaffold; authoritative media challenges remain Core-issued future work.
-- [ ] Media/video probe loop integration.
+- [ ] Media/video probe loop activation: validator-side polling and scoring are
+  implemented dark; Core issuance/execution and production calibration remain disabled.
 - [x] Informational worker/model scorecards in core.
 - [x] Console validator evidence scorecards in current workspace.
 - [ ] Validator staking contract.

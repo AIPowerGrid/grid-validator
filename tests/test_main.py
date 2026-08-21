@@ -179,6 +179,85 @@ class ProbeRoundTests(unittest.IsolatedAsyncioTestCase):
             ).hexdigest(),
         }
 
+    @staticmethod
+    def _video_assignment():
+        return {
+            "assignment_id": "asg_video_1",
+            "probe_group_id": "prg_video_1",
+            "grid_nonce": "grid-video-nonce-1",
+            "target_worker_id": "worker-video-candidate",
+            "model": "video-model",
+            "modality": "video",
+            "capability": "video.contract.v1",
+            "canary_kind": "video.contract",
+            "challenge": {
+                "schema": "aipg.validator.media.challenge.v1",
+                "kind": "video.contract",
+                "modality": "video",
+                "scoring_policy_id": "video.contract.v1",
+                "prompt": "private randomized moving subject",
+                "recipe_root": "0x" + "34" * 32,
+                "parameters": {
+                    "seed": 987654,
+                    "width": 512,
+                    "height": 512,
+                    "frame_count": 16,
+                    "fps": 8.0,
+                    "duration_s": 2.0,
+                    "motion_required": True,
+                },
+                "reference_worker_ids": [],
+            },
+        }
+
+    @classmethod
+    def _video_result(cls):
+        assignment = cls._video_assignment()
+        witnesses = [{
+            "role": "candidate",
+            "worker_id": assignment["target_worker_id"],
+            "url": "https://media.example/candidate.mp4?secret=video",
+            "sha256": "d" * 64,
+            "bytes": 4096,
+            "content_type": "video/mp4",
+            "latency_ms": 2400,
+        }]
+        prompt_hash = hashlib.sha256(
+            main._prompt_commitment_text(assignment).encode()
+        ).hexdigest()
+        response_text = main._media_response_commitment({"witnesses": witnesses})
+        assert response_text is not None
+        response_hash = hashlib.sha256(response_text.encode()).hexdigest()
+        evidence = {
+            "assignment_id": assignment["assignment_id"],
+            "probe_group_id": assignment["probe_group_id"],
+            "grid_nonce": assignment["grid_nonce"],
+            "worker_id": assignment["target_worker_id"],
+            "model": assignment["model"],
+            "modality": assignment["modality"],
+            "capability": assignment["capability"],
+            "canary_kind": assignment["canary_kind"],
+            "prompt_hash": prompt_hash,
+            "response_hash": response_hash,
+        }
+        return {
+            "status": "completed",
+            "assignment_id": assignment["assignment_id"],
+            "probe_group_id": assignment["probe_group_id"],
+            "grid_nonce": assignment["grid_nonce"],
+            "target_worker_id": assignment["target_worker_id"],
+            "model": assignment["model"],
+            "modality": assignment["modality"],
+            "capability": assignment["capability"],
+            "canary_kind": assignment["canary_kind"],
+            "witnesses": witnesses,
+            "prompt_hash": prompt_hash,
+            "response_hash": response_hash,
+            "evidence_hash": hashlib.sha256(
+                json.dumps(evidence, sort_keys=True, separators=(",", ":")).encode()
+            ).hexdigest(),
+        }
+
     async def test_assignment_probe_submits_grid_bound_attestation(self):
         class FakeGrid:
             def __init__(self):
@@ -704,6 +783,48 @@ class ProbeRoundTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(grid.submitted, [])
         self.assertEqual(self.outbox.counts(), {"pending": 0, "dead": 0})
+
+    async def test_video_assignment_signs_committed_witness_without_url(self):
+        class FakeGrid:
+            def __init__(self):
+                self.submitted = []
+
+            async def validator_assignments(self, *, modality, **_kwargs):
+                return [ProbeRoundTests._video_assignment()] if modality == "video" else []
+
+            async def probe_assignment(self, _assignment_id):
+                return ProbeRoundTests._video_result()
+
+            async def submit_attestation(self, envelope):
+                self.submitted.append(envelope)
+                return True
+
+        grid = FakeGrid()
+        with (
+            patch.object(Settings, "VALIDATOR_WALLET", TEST_ACCOUNT.address.lower()),
+            patch.object(Settings, "VALIDATOR_PRIVATE_KEY", TEST_ACCOUNT.key.hex()),
+            patch.object(Settings, "MEDIA_ALLOWED_ORIGINS", ("https://media.example",)),
+            patch.object(
+                main.attest,
+                "runtime_capabilities",
+                return_value=["text.instruction.v1", "video.contract.v1"],
+            ),
+            patch.object(
+                main.media_prober,
+                "score_video_witnesses",
+                new=AsyncMock(return_value=("healthy", {"policy": "video.contract.v1"})),
+            ),
+        ):
+            self.assertEqual(await main.probe_round(grid, 0, self.outbox), 1)
+
+        payload = grid.submitted[0]["payload"]
+        self.assertEqual(payload["modality"], "video")
+        self.assertEqual(payload["capability"], "video.contract.v1")
+        self.assertEqual(payload["verdict"], "healthy")
+        self.assertEqual(payload["latency_ms"], 2400)
+        rendered = json.dumps(grid.submitted[0])
+        self.assertNotIn("media.example", rendered)
+        self.assertNotIn("secret=", rendered)
 
     async def test_no_assignment_fails_closed_without_inventory_or_model_fallback(self):
         class FakeGrid:

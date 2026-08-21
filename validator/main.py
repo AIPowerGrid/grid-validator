@@ -57,7 +57,7 @@ def _response_commitment_text(assignment: dict, result: dict) -> str:
 def _media_response_commitment(result: dict) -> str | None:
     """Commit immutable witness metadata without signing fetch credentials."""
     witnesses = result.get("witnesses")
-    if not isinstance(witnesses, list) or len(witnesses) != 3:
+    if not isinstance(witnesses, list) or len(witnesses) not in {1, 3}:
         return None
     committed = []
     for witness in witnesses:
@@ -208,6 +208,8 @@ async def _probe_assignment(
     """
     if str(assignment.get("modality") or "") == "image":
         return await _probe_image_assignment(grid, assignment, outbox)
+    if str(assignment.get("modality") or "") == "video":
+        return await _probe_video_assignment(grid, assignment, outbox)
     if str(assignment.get("modality") or "text") != "text":
         logger.info("unsupported assignment modality; skipping")
         return 0
@@ -396,6 +398,121 @@ async def _probe_image_assignment(
     return 1 if await _submit_outbox_item(grid, outbox, item) else 0
 
 
+async def _probe_video_assignment(
+    grid: GridClient,
+    assignment: dict,
+    outbox: AttestationOutbox,
+) -> int:
+    """Fetch, verify, and score one Core-issued video witness set."""
+    assignment_id = str(assignment.get("assignment_id") or "")
+    grid_nonce = str(assignment.get("grid_nonce") or "")
+    worker_id = str(assignment.get("target_worker_id") or "")
+    model = str(assignment.get("model") or "")
+    capability = str(assignment.get("capability") or "")
+    canary_kind = str(assignment.get("canary_kind") or "")
+    challenge = assignment.get("challenge") or {}
+    expected = {
+        "video.contract.v1": "video.contract",
+        "video.fidelity.v1": "video.fidelity",
+    }
+    if (
+        not assignment_id
+        or not grid_nonce
+        or not worker_id
+        or not model
+        or capability not in expected
+        or canary_kind != expected[capability]
+        or not isinstance(challenge, dict)
+        or challenge.get("schema") != "aipg.validator.media.challenge.v1"
+        or challenge.get("kind") != canary_kind
+        or challenge.get("scoring_policy_id") != capability
+        or not Settings.MEDIA_ALLOWED_ORIGINS
+    ):
+        logger.info("video assignment is unsupported or incomplete; skipping")
+        return 0
+
+    result = await grid.probe_assignment(assignment_id)
+    if not result:
+        logger.info("[%s %s] video assignment probe unavailable; skipping", worker_id[:8], model)
+        return 0
+    response_commitment = _media_response_commitment(result)
+    if response_commitment is None:
+        logger.info("[%s %s] video assignment has invalid witnesses; skipping", worker_id[:8], model)
+        return 0
+    commitments = _verified_probe_evidence(assignment, result, response_commitment)
+    if commitments is None:
+        return 0
+
+    verdict, detail = await media_prober.score_video_witnesses(
+        challenge,
+        result.get("witnesses") or [],
+        target_worker_id=worker_id,
+        allowed_origins=Settings.MEDIA_ALLOWED_ORIGINS,
+        max_bytes=Settings.MEDIA_MAX_BYTES,
+        fetch_timeout_s=Settings.MEDIA_FETCH_TIMEOUT_S,
+        decode_timeout_s=Settings.VIDEO_DECODE_TIMEOUT_S,
+        phash_tolerance=Settings.VIDEO_PHASH_TOLERANCE,
+        motion_tolerance=Settings.VIDEO_MOTION_TOLERANCE,
+        latency_budget_s=Settings.VIDEO_LATENCY_BUDGET_S,
+    )
+    if verdict == "inconclusive":
+        logger.info(
+            "[%s %s] video assignment inconclusive (%s); skipping",
+            worker_id[:8],
+            model,
+            detail.get("reason", "unknown"),
+        )
+        return 0
+    if verdict not in attest.VALID_VERDICTS:
+        logger.warning("video scorer returned an invalid verdict; skipping")
+        return 0
+
+    candidate = next(
+        (
+            witness
+            for witness in result.get("witnesses", [])
+            if witness.get("role") == "candidate"
+            and str(witness.get("worker_id") or "") == worker_id
+        ),
+        None,
+    )
+    if not candidate:
+        return 0
+    latency_ms = int(candidate["latency_ms"])
+    canary = {
+        "kind": canary_kind,
+        "nonce": grid_nonce,
+        "prompt": _prompt_commitment_text(assignment),
+    }
+    body = attest.build(
+        worker_id=worker_id,
+        model=model,
+        canary=canary,
+        verdict=verdict,
+        latency_ms=latency_ms,
+        ts=int(time.time()),
+        modality="video",
+        capability=capability,
+        response_text=response_commitment,
+        assignment_id=assignment_id,
+        probe_group_id=str(assignment.get("probe_group_id") or ""),
+        grid_nonce=grid_nonce,
+    )
+    body.update(commitments)
+    item_id = outbox.enqueue(attest.sign(body))
+    item = outbox.get_pending(item_id)
+    if item is None:
+        return 0
+    logger.info(
+        "[%s %s] video assignment -> %s (%dms)",
+        worker_id[:8],
+        model,
+        verdict,
+        latency_ms,
+    )
+    return 1 if await _submit_outbox_item(grid, outbox, item) else 0
+
+
 async def probe_round(
     grid: GridClient,
     round_index: int,
@@ -409,6 +526,8 @@ async def probe_round(
     assignments = await grid.validator_assignments(limit=5, modality="text")
     if "image.fidelity.v1" in attest.runtime_capabilities():
         assignments.extend(await grid.validator_assignments(limit=2, modality="image"))
+    if "video.contract.v1" in attest.runtime_capabilities():
+        assignments.extend(await grid.validator_assignments(limit=2, modality="video"))
     if not assignments:
         logger.info("no Grid-issued assignments available; fail-closed round performed no probe")
         return accepted

@@ -107,8 +107,8 @@ Then run:
 ```
 
 The default source install keeps dependencies small: text probing and signed V0
-attestations work out of the box. Future media scoring and on-chain stake-gate
-experiments need optional extras:
+attestations work out of the box. Dark image/video scoring and on-chain
+stake-gate experiments need optional extras:
 
 ```bash
 ./.venv/bin/python -m pip install -e '.[media,stake]'

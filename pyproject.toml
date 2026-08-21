@@ -21,6 +21,7 @@ dependencies = [
 media = [
   "Pillow>=10.0",
   "ImageHash>=4.3",
+  "av>=17.1,<18",
 ]
 stake = [
   "web3>=6.15",

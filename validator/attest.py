@@ -49,10 +49,12 @@ def runtime_capabilities() -> list[str]:
 
     if token_limit_available():
         capabilities.append("text.token_limit.v1")
-    from .media_prober import media_dependencies_available
+    from .media_prober import media_dependencies_available, video_dependencies_available
 
     if Settings.MEDIA_ALLOWED_ORIGINS and media_dependencies_available():
         capabilities.append("image.fidelity.v1")
+    if Settings.MEDIA_ALLOWED_ORIGINS and video_dependencies_available():
+        capabilities.extend(("video.contract.v1", "video.fidelity.v1"))
     return capabilities
 
 

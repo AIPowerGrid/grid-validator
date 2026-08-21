@@ -34,7 +34,9 @@ What is implemented and testable against the candidate Core:
 - Mandatory signed registration, heartbeat, and attestations from a wallet
   linked to the validator's Grid account.
 - Small default install: V0 text probing plus signing. Optional `media` and
-  `stake` extras install heavier future-lane dependencies.
+  `stake` extras install heavier future-lane dependencies. From source, the
+  media extra includes dark image and video scorers; release binaries remain
+  text-only until media packaging is separately qualified.
 - GitHub Actions release workflow scaffold for downloadable binaries.
 - Grid-issued text assignments with short-lived nonces.
 - Targeted probe execution at
@@ -64,7 +66,8 @@ What is not production-live yet:
 - Published Docker image release.
 - Validator rewards.
 - Validator staking/slashing.
-- Media/video probe loop integration.
+- Core-issued media assignments and production media probe execution. The
+  source node has dark image/video scoring paths, but Core withholds the work.
 - Routing impact.
 - On-chain epoch roots or dispute flow.
 
@@ -167,8 +170,8 @@ First-run command meanings:
 | `aipg-validator check` | yes | register and run one assigned text probe round |
 | `aipg-validator run` | yes | continuous V0 probe loop |
 
-Optional future-lane dependencies can be added from source when you are testing
-them:
+Optional dark-lane dependencies can be added from source when testing image or
+video scoring and the future stake gate:
 
 ```bash
 ./.venv/bin/python -m pip install -e '.[media,stake]'
