@@ -289,10 +289,11 @@ This is where the network can get close to proof-of-fidelity.
 
 ## Video Validation
 
-The source validator now has a dark, assignment-loop-wired video scorer. It is
-not production-live: Core still withholds video assignments, and the public V0
-binary does not bundle PyAV. The scorer fetches only hash-bound witnesses from
-explicit public HTTPS origins and decodes each untrusted MP4/WebM object in a
+The source validator now has a dark, assignment-loop-wired video scorer. Core
+has the matching separately gated, default-off `video.contract.v1` assignment
+and hard-targeted witness path, but neither is production-live; the public V0
+binary also does not bundle PyAV. The scorer fetches only hash-bound witnesses
+from explicit public HTTPS origins and decodes each untrusted MP4/WebM object in a
 killable child process with time, frame, dimension, and Linux resource bounds.
 Witnesses are decoded sequentially to bound peak native memory. A local decode
 timeout is inconclusive; malformed candidate bytes are a worker failure only

@@ -288,7 +288,8 @@ Deterministic or semi-deterministic checks:
 
 Remaining activation gates:
 
-- Core generates and executes versioned video assignments
+- [x] Core generates and executes default-off versioned video-contract assignments
+- publish an explicit-timing LTX recipe through RecipeVault and run a real-workload canary
 - witness retention and trusted reference selection are operational
 - tolerances are calibrated against real LTX and other allowed workflows
 - media-enabled binaries pass the release matrix

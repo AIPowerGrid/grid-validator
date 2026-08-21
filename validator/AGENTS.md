@@ -154,8 +154,10 @@ independent-reference and rollout gates pass.
   malformed or inconsistent timing contracts, missing PyAV, reference decode
   failure/disagreement, and local decoder timeout are inconclusive. Candidate
   malformed decode, contract, blank/static, or reference-outlier failures may
-  produce failed evidence only after all commitments verify. Core currently issues no video
-  assignments, and public preview binaries do not bundle the media extra.
+  produce failed evidence only after all commitments verify. Core has a
+  separately gated, default-off `video.contract.v1` assignment/witness path;
+  governed timing metadata and a real-workload canary are still required before
+  operators enable it. Public preview binaries do not bundle the media extra.
 - **Independent evidence verification:** before signing, the node must match
   assignment ID, Grid nonce, worker, model, modality, capability, and canary
   kind plus shared probe group; recompute prompt/response hashes and the
