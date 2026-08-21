@@ -5,8 +5,9 @@
 The validator implementation: load config, register a linked signing identity,
 optionally gate on on-chain stake, consume Grid-issued assignments, fire
 unpredictable targeted canaries, score replies, sign attestations, and POST them
-in a loop. V0 is CPU-only and assignment-bound for text; image/video scoring
-exists as design/scaffold until the Grid adds modality-aware probe jobs.
+in a loop. V0 is CPU-only and assignment-bound for text. A deterministic image
+fidelity scorer exists dark until the Grid adds modality-aware probe jobs;
+video scoring remains design/scaffold.
 
 ## Ownership
 
@@ -37,10 +38,13 @@ exists as design/scaffold until the Grid adds modality-aware probe jobs.
   legacy local canary helpers remain for isolated tests. `is_text_model`
   heuristic skips media models in v0; `_strip_think` ignores reasoning-model
   chain-of-thought. Do not reintroduce static QA answer lists.
-- **`media_prober.py`** — image/video canaries + scoring across structural, pHash-consensus, and
-  video-motion axes. Its local preview generator uses cryptographic prompt/seed
-  selection and is never an authority; future shared media challenges come from Core.
-  Its unwired witness fetcher accepts only exact configured public HTTPS origins,
+- **`media_prober.py`** — image/video canaries + scoring across structural,
+  pHash-consensus, and video-motion axes. Its local preview generator uses
+  cryptographic prompt/seed selection and is never an authority; shared media
+  challenges must come from Core. Its dark `image.fidelity.v1` scorer requires
+  one candidate plus two distinct committed references, verifies every witness,
+  treats reference disagreement as inconclusive, and fails an outlier candidate
+  only after the references agree. The unwired witness fetcher accepts only exact configured public HTTPS origins,
   does not follow redirects or environment proxies, rejects encoded/oversized/MIME-
   mismatched bodies, and recomputes Core's SHA-256 commitment before decoding.
   Heavy deps imported lazily; missing dep → skip, never crash.
@@ -120,6 +124,13 @@ exists as design/scaffold until the Grid adds modality-aware probe jobs.
 - **Media fetch is fail-closed:** an empty origin allowlist, non-HTTPS/private
   origin, redirect, content encoding, wrong MIME/length/hash, timeout, or byte
   overflow is inconclusive infrastructure evidence, never a worker verdict.
+- **Image fidelity is dark and fail-closed:** `image.fidelity.v1` accepts only
+  the versioned Core challenge contract and exactly three bound witnesses. Missing
+  decoders, unsafe objects, malformed contracts, unusable references, and
+  reference disagreement are inconclusive. Candidate decode/dimension/blank or
+  pHash-outlier failures are worker failures only after all commitments verify.
+  The scorer is not a live capability until assignment-loop wiring and the Core
+  rollout gates are complete.
 - **Independent evidence verification:** before signing, the node must match
   assignment ID, Grid nonce, worker, model, modality, capability, and canary
   kind plus shared probe group; recompute prompt/response hashes and the

@@ -265,7 +265,11 @@ The validator now has an unwired, fail-closed witness fetch boundary: exact
 operator-configured public HTTPS origins, redirects/proxies/content encodings
 disabled, bounded time and bytes, MIME/length binding, and SHA-256
 recomputation. Media capabilities remain unadvertised until Core assignments,
-reference agreement, and decoder/scorer gates are complete.
+reference agreement, and decoder/scorer gates are complete. A dark
+`image.fidelity.v1` scorer independently checks dimensions and structure,
+requires two committed references to agree, and only then fails a candidate
+pHash outlier. Unsafe transport, unavailable decoders, malformed contracts, or
+reference disagreement are inconclusive.
 
 Deterministic workflow validation:
 

@@ -219,8 +219,11 @@ digests, validator URL allowlisting, two agreeing references, distinct operator
 controls, and inconclusive reference disagreement are release gates.
 
 Implemented dark: exact public HTTPS-origin allowlisting, redirect/proxy/
-encoding refusal, byte/time/MIME limits, and SHA-256 witness recomputation.
-This is transport hardening only; it is not a media assignment capability.
+encoding refusal, byte/time/MIME limits, SHA-256 witness recomputation, and the
+independent `image.fidelity.v1` three-witness scorer. The scorer requires two
+references to agree before comparing the candidate and classifies infrastructure
+or reference ambiguity as inconclusive. It is still not assignment-loop wiring
+or an advertised media capability.
 
 Goal: separate general image usefulness from deterministic workflow fidelity.
 

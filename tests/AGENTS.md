@@ -29,6 +29,9 @@ installer generation.
   to public inference or locally invented targets.
 - Media witness tests must prove exact HTTPS-origin enforcement, no redirects,
   bounded streaming, MIME/length/hash binding, and private-target rejection.
+- Deterministic image tests must use generated local fixtures and prove two
+  references agree before an outlier candidate can fail. Reference disagreement,
+  missing decoders, unsafe transport, and oversized contracts are inconclusive.
 - Prove the node rejects mismatched assignment/result metadata and recomputes
   prompt, response, and canonical evidence hashes before signing. Core's
   returned verdict must not replace the node's local score.
