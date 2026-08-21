@@ -224,6 +224,10 @@ General image checks:
 - explicit seed behavior is respected when claimed
 - simple prompt constraints are plausibly followed
 
+The local, non-authoritative scaffold now uses cryptographic prompt and seed
+selection. The future authoritative lane must replace that helper with one
+private Core-issued challenge shared only with the assigned validator group.
+
 Deterministic workflow checks:
 
 - workflow hash

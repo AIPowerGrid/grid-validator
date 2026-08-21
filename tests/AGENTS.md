@@ -8,7 +8,7 @@ installer generation.
 
 ## Ownership
 
-- `test_prober.py`, `test_attest.py`, `test_main.py` - challenge, evidence, and
+- `test_prober.py`, `test_media_prober.py`, `test_attest.py`, `test_main.py` - challenge, evidence, and
   assignment loop.
 - `test_outbox.py` - durable signed-evidence delivery and restart behavior.
 - `test_grid_client.py` - endpoint/capability contracts and fail-closed behavior.

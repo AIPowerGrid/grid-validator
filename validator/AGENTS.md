@@ -37,7 +37,9 @@ exists as design/scaffold until the Grid adds modality-aware probe jobs.
   heuristic skips media models in v0; `_strip_think` ignores reasoning-model
   chain-of-thought. Do not reintroduce static QA answer lists.
 - **`media_prober.py`** — image/video canaries + scoring across structural, pHash-consensus, and
-  video-motion axes. Heavy deps imported lazily; missing dep → skip, never crash.
+  video-motion axes. Its local preview generator uses cryptographic prompt/seed
+  selection and is never an authority; future shared media challenges come from Core.
+  Heavy deps imported lazily; missing dep → skip, never crash.
 - **`attest.py`** — build canonical registration/attestation bodies + `sign()` (EIP-191 over sorted-key
   compact JSON). Text V0 attestations include `modality`, `capability`,
   `assignment_id`, `epoch`, prompt/response hashes, an `evidence_hash`, and a

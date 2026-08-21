@@ -6,7 +6,7 @@
 Generative media can't be exact-matched, so we score on two CPU-light axes
 (see DESIGN.md) — no GPU, no ML model:
   1. structural/liveness — decode, dimensions, not-blank, latency
-  2. pHash consensus     — perceptual agreement across workers on a fixed-seed canary
+  2. pHash consensus     — perceptual agreement across workers on one Core-issued seed
 Video adds a motion check (sampled frames must perceptually differ).
 
 Pillow + imagehash are imported lazily so a missing dep degrades a check to
@@ -15,25 +15,50 @@ Pillow + imagehash are imported lazily so a missing dep degrades a check to
 
 import secrets
 
-# Unpredictable prompts defeat cached-image cheats: a worker can't have a stock
-# image for a random object+color+setting combo it's never seen.
-_OBJS = ["elephant", "teapot", "bicycle", "lighthouse", "cactus", "violin", "dragon", "umbrella"]
-_COLORS = ["crimson", "turquoise", "golden", "violet", "emerald", "obsidian"]
-_SETTINGS = ["underwater", "on the moon", "in a snowy forest", "in a neon city", "in a desert at dusk"]
-
-# A fixed seed makes honest workers on the same model converge perceptually,
-# which is what the pHash cross-worker consensus check relies on.
-CANARY_SEED = 1234567
+# This generator is local preview scaffolding only. Authoritative media prompts
+# and seeds must be issued privately by Core to a shared probe group. The large
+# randomized combination space prevents this public helper from becoming a
+# small enumerable answer set while that Core lane is being built.
+_OBJS = (
+    "elephant", "teapot", "bicycle", "lighthouse", "cactus", "violin",
+    "dragon", "umbrella", "airship", "hourglass", "origami fox", "telescope",
+)
+_COLORS = (
+    "crimson", "turquoise", "golden", "violet", "emerald", "obsidian",
+    "cobalt", "coral", "silver", "amber", "indigo", "ivory",
+)
+_SETTINGS = (
+    "underwater", "on the moon", "in a snowy forest", "in a neon city",
+    "in a desert at dusk", "inside a glass observatory", "on a stormy coast",
+    "in an overgrown library", "above a field of clouds", "beside a frozen lake",
+)
+_COMPOSITIONS = (
+    "wide establishing view", "low-angle close view", "symmetrical composition",
+    "overhead composition", "shallow depth of field", "layered foreground and background",
+)
+_LIGHTING = (
+    "soft morning light", "hard rim lighting", "moonlit haze", "warm lantern light",
+    "diffuse overcast light", "high-contrast studio lighting",
+)
+_VIDEO_ACTIONS = (
+    "moving steadily from left to right", "turning slowly toward the camera",
+    "rising through drifting mist", "circling a stationary landmark",
+    "approaching while the camera pulls back", "crossing the frame as shadows move",
+)
 
 
 def make_media_canary(round_index: int, kind: str = "image") -> dict:
-    obj = _OBJS[round_index % len(_OBJS)]
-    color = _COLORS[(round_index // 2) % len(_COLORS)]
-    setting = _SETTINGS[(round_index // 3) % len(_SETTINGS)]
+    del round_index
+    obj = secrets.choice(_OBJS)
+    color = secrets.choice(_COLORS)
+    setting = secrets.choice(_SETTINGS)
+    composition = secrets.choice(_COMPOSITIONS)
+    lighting = secrets.choice(_LIGHTING)
     nonce = secrets.token_hex(3)
-    prompt = f"a {color} {obj} {setting}, highly detailed"
+    action = f", {secrets.choice(_VIDEO_ACTIONS)}" if kind == "video" else ""
+    prompt = f"a {color} {obj} {setting}{action}, {composition}, {lighting}, highly detailed"
     payload = {
-        "prompt": prompt, "seed": CANARY_SEED,
+        "prompt": prompt, "seed": secrets.randbits(63) or 1,
         "width": 512, "height": 512, "steps": 12, "n": 1,
     }
     if kind == "video":

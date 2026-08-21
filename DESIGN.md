@@ -413,7 +413,7 @@ Going offline should stop rewards, not slash stake.
   assignment, and targeted-probe implementation with tests.
 - [x] Image/video scoring design.
 - [x] Dev-manager roadmap and go/no-go boundaries.
-- [ ] Public binary packaging.
+- [x] Cross-platform binary packaging and build-only release qualification.
 - [ ] Publish Docker image on release.
 - [x] Grid validator assignment endpoint.
 - [ ] Deploy migrations through `0022` and the immutable Core candidate to production.
@@ -421,7 +421,9 @@ Going offline should stop rewards, not slash stake.
   endpoints against production.
 - [x] `POST /v1/validator/probe/{assignment_id}` targeted text execution.
 - [x] Assignment health, scorecards, and non-economic evidence lifecycle.
-- [ ] Shared-challenge independent-validator quorum.
+- [x] Shared-challenge distinct-validator 3-of-5 quorum implementation and tests.
+- [x] Remove fixed public media seeds and round-index prompt selection from the
+  local scaffold; authoritative media challenges remain Core-issued future work.
 - [ ] Media/video probe loop integration.
 - [x] Informational worker/model scorecards in core.
 - [x] Console validator evidence scorecards in current workspace.
