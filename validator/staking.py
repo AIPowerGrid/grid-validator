@@ -54,7 +54,7 @@ def _w3():
 def stake_of(address: str) -> int:
     """Return the validator's staked AIPG (whole tokens)."""
     if not Settings.VALIDATOR_STAKING_ADDR:
-        raise NotDeployed("VALIDATOR_STAKING_ADDR not set — contract not deployed yet.")
+        raise NotDeployed("VALIDATOR_STAKING_ADDR not set - contract not deployed yet.")
     w3 = _w3()
     c = w3.eth.contract(
         address=w3.to_checksum_address(Settings.VALIDATOR_STAKING_ADDR),
@@ -71,7 +71,7 @@ def assert_eligible() -> None:
     """
     if not Settings.REQUIRE_STAKE:
         logger.warning(
-            "REQUIRE_STAKE=false — running WITHOUT an on-chain stake gate (dev only)."
+            "REQUIRE_STAKE=false - running WITHOUT an on-chain stake gate (dev only)."
         )
         return
     if not Settings.VALIDATOR_WALLET:

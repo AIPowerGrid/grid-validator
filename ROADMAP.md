@@ -52,6 +52,7 @@ Live or scaffolded in this repo:
 - source install
 - local Docker build and Compose
 - tag/manual GitHub Actions binary-release workflow
+- frozen cross-platform release dependency lock
 - release-binary installer script
 - Linux systemd installer script
 - `aipg-validator init`
@@ -104,6 +105,7 @@ Deliverables:
 - published Docker image
 - install script at a stable URL
 - signed release artifacts
+- strict release tags; prereleases never publish Docker `latest`
 - GitHub release workflow
 - service install/update path
 - operator health page that shows core capability flags

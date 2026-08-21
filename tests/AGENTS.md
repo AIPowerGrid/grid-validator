@@ -13,6 +13,10 @@ installer generation.
 - `test_grid_client.py` - endpoint/capability contracts and fail-closed behavior.
 - `test_cli.py`, `test_dashboard.py`, `test_config.py` - operator surfaces.
 - `test_systemd_installer.py` - generated service security and behavior.
+- `test_release_tag.py` - binary/Docker release-tag and `latest` publication
+  policy.
+- `test_release_packaging.py` - frozen container/release dependencies, action
+  pinning, SBOM, and provenance workflow contracts.
 
 ## Local Contracts
 

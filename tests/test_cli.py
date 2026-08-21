@@ -20,6 +20,29 @@ class _RegisteredFakeGrid:
 
 
 class CliCapabilityTests(unittest.TestCase):
+    def test_command_help_is_safe_for_default_windows_codepage(self):
+        env = os.environ.copy()
+        env["PYTHONIOENCODING"] = "cp1252"
+
+        for args in (
+            ["--help"],
+            ["init", "--help"],
+            ["check", "--help"],
+            ["dashboard", "--help"],
+            ["run", "--help"],
+        ):
+            with self.subTest(args=args):
+                result = subprocess.run(
+                    [sys.executable, "-m", "validator", *args],
+                    cwd=os.getcwd(),
+                    env=env,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    check=False,
+                )
+                self.assertEqual(result.returncode, 0, result.stdout.decode("cp1252"))
+                self.assertNotIn(b"Traceback", result.stdout)
+
     def test_capability_lines_are_conservative_when_targeting_disabled(self):
         lines = cli._capability_lines({
             "available": True,

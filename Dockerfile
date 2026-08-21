@@ -1,16 +1,29 @@
-FROM python:3.11-slim
+FROM python:3.11-slim@sha256:9c900dea9e8fb7e16277c179b555cc72d29a352dbc33cff48ad5a0412fd5bfc7 AS builder
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    VALIDATOR_ENV=/app/.env
+ENV UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    UV_PYTHON_DOWNLOADS=never
 
 WORKDIR /app
 
-COPY pyproject.toml README.md ./
+RUN python -m pip install --no-cache-dir uv==0.12.5
+
+COPY pyproject.toml uv.lock README.md ./
 COPY validator/ validator/
 
-RUN python -m pip install --no-cache-dir --upgrade pip \
-    && python -m pip install --no-cache-dir .
+RUN uv sync --frozen --no-dev --no-editable \
+    && rm -rf /root/.cache/uv
+
+FROM python:3.11-slim@sha256:9c900dea9e8fb7e16277c179b555cc72d29a352dbc33cff48ad5a0412fd5bfc7 AS runtime
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    VALIDATOR_ENV=/app/.env \
+    PATH=/app/.venv/bin:$PATH
+
+WORKDIR /app
+
+COPY --from=builder /app /app
 
 RUN useradd --create-home --shell /bin/sh validator \
     && chown -R validator:validator /app

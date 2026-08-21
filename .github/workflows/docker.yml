@@ -1,5 +1,8 @@
 name: Docker Image
 
+permissions:
+  contents: read
+
 on:
   push:
     tags: ["v*", "[0-9]+.[0-9]+.[0-9]+"]
@@ -30,22 +33,32 @@ jobs:
       artifact-metadata: write
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - name: Validate manual image tag
-        if: ${{ github.event_name == 'workflow_dispatch' }}
+      - name: Validate and classify image tag
+        id: release
         shell: bash
+        env:
+          INPUT_TAG: ${{ inputs.image_tag }}
+          PUBLISH_LATEST: ${{ inputs.publish_latest }}
         run: |
-          if [[ -z "${{ inputs.image_tag }}" ]]; then
-            echo "image_tag is required for manual Docker publishes" >&2
-            exit 1
+          args=()
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            tag="$GITHUB_REF_NAME"
+            args+=(--publish-latest-if-stable)
+          else
+            tag="$INPUT_TAG"
+            if [[ "$PUBLISH_LATEST" == "true" ]]; then
+              args+=(--publish-latest)
+            fi
           fi
+          ./scripts/classify-release-tag.sh "${args[@]}" "$tag" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -53,14 +66,12 @@ jobs:
 
       - name: Docker metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5
         with:
           images: ${{ env.IMAGE_NAME }}
           tags: |
-            type=ref,event=tag
-            type=raw,value=${{ inputs.image_tag || 'manual' }},enable=${{ github.event_name == 'workflow_dispatch' }}
-            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/') }}
-            type=raw,value=latest,enable=${{ github.event_name == 'workflow_dispatch' && inputs.publish_latest }}
+            type=raw,value=${{ steps.release.outputs.tag }}
+            type=raw,value=latest,enable=${{ steps.release.outputs.latest == 'true' }}
 
       - name: Build local smoke image
         run: docker build -t aipowergrid/validator:publish-smoke .
@@ -86,12 +97,14 @@ jobs:
           set -e
           cat "$tmp/check.out"
           test "$code" -eq 1
-          ! grep -Ei "Traceback|ModuleNotFoundError|ImportError" "$tmp/check.out"
+          if grep -Ei "Traceback|ModuleNotFoundError|ImportError" "$tmp/check.out"; then
+            exit 1
+          fi
           grep -F "Validator registration failed" "$tmp/check.out"
 
       - name: Build and push
         id: push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
           context: .
           platforms: linux/amd64,linux/arm64
@@ -102,7 +115,7 @@ jobs:
           sbom: true
 
       - name: Attest container provenance
-        uses: actions/attest@v4
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-name: ${{ env.IMAGE_NAME }}
           subject-digest: ${{ steps.push.outputs.digest }}

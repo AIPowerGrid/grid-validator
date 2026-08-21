@@ -67,17 +67,25 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   Default dependencies cover V0 text probing plus signing; heavier future-lane
   dependencies live under `media` and `stake` extras. Do not reintroduce a
   parallel `requirements.txt`; it drifts from release builds.
+- **`uv.lock`** — cross-platform dependency lock for release binaries. Release
+  builds must use it with `uv sync --frozen`; update it deliberately with the
+  pinned workflow uv version when package requirements change.
 - **`Dockerfile` / `docker-compose.yml` / `.dockerignore`** — container packaging and
-  local Compose run paths.
+  local Compose run paths. The image uses a digest-pinned Python base and the
+  same frozen `uv.lock` as release binaries; the final non-root stage does not
+  carry the UV build tool.
 - **`.github/workflows/`** — CI, checksum-verified secret scanning, image-release,
   and binary-release workflows.
   Tag pushes publish normal release artifacts. Manual binary releases must set
   `release_tag`; manual Docker publishes must set `image_tag`, with `latest`
-  opt-in only.
+  allowed only for stable tags. Preview/alpha/beta/RC images must never replace
+  `latest`. Third-party actions are commit-SHA pinned.
 - **`scripts/install-binary.sh`** — GitHub Release binary installer intended to
   back the hosted `get.aipowergrid.io/validator` path. It installs the binary
   under `$HOME/.local/bin` by default and creates `$HOME/.aipg-validator` as
   the private config directory unless overridden.
+  It verifies the selected archive against the release `SHA256SUMS`; signed
+  GitHub provenance is verified separately with `gh attestation verify`.
 - **`scripts/install-systemd.sh`** — Linux systemd service installer for source
   or released-binary validator nodes. Dry-run safe; generated unit must keep
   secrets in `.env`, not in the unit file.
@@ -85,6 +93,9 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   dashboard, Docker, release binary, and binary installer using throwaway
   offline config. Use `SKIP_DOCKER=1` or `SKIP_BINARY=1` only when the local
   machine genuinely cannot run that lane.
+- **`scripts/classify-release-tag.sh`** — shared binary/Docker tag policy.
+  Only stable `vX.Y.Z` tags may publish `latest`; bounded prerelease tags such
+  as `v0.1.0-preview` remain explicitly versioned.
 - **`install.sh` / `aipg-validator.service` / `.env.template`** — source-checkout
   install + run-as-service. `install.sh` may launch interactive setup only when
   stdin is a terminal; non-interactive runs must skip setup and point operators
@@ -135,7 +146,8 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
 - `./.venv/bin/python -m validator --help`
 - `docker build -t aipowergrid/validator:local .`
 - `docker run --rm --mount type=bind,source="$PWD/.env",target=/app/.env,readonly aipowergrid/validator:local check --no-probe`
-- `bash -n scripts/install-binary.sh scripts/install-systemd.sh`
+- `bash -n install.sh scripts/classify-release-tag.sh
+  scripts/install-binary.sh scripts/install-systemd.sh scripts/smoke-release.sh`
 - `./scripts/smoke-release.sh`
 - `./scripts/install-systemd.sh --dry-run --exec ./.venv/bin/aipg-validator`
 - `gitleaks detect --source . --no-git --config .gitleaks.toml --redact`

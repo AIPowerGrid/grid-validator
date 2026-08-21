@@ -218,7 +218,7 @@ class GridClient:
         try:
             r = await self._http.post("/v1/validator/attest", json=attestation, timeout=10)
             if r.status_code == 404:
-                logger.warning("grid /v1/validator/attest not deployed yet — attestation dropped")
+                logger.warning("grid /v1/validator/attest not deployed yet - attestation dropped")
                 return False
             r.raise_for_status()
             return True

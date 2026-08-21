@@ -3,7 +3,7 @@
 
 """Operator-friendly CLI:  aipg-validator <init | check | run | dashboard>
 
-    init   one-time interactive setup → writes .env (chmod 600)
+    init   one-time interactive setup -> writes .env (chmod 600)
     check  verify config + grid + stake + scorecards, run ONE probe round, print results
     run    start the validator loop
     dashboard  serve a read-only local status page
@@ -30,7 +30,7 @@ def _capability_lines(capabilities: dict) -> list[str]:
     available = capabilities.get("available")
     endpoint = "available" if available else "not deployed"
     lines = [
-        f"ℹ️  Validator API: {endpoint} (mode={mode}, version={version})",
+        f"INFO Validator API: {endpoint} (mode={mode}, version={version})",
         f"   attest={_enabled(features.get('attest'))} "
         f"inventory={_enabled(features.get('worker_inventory'))} "
         f"targeted={_enabled(features.get('targeted_probe'))} "
@@ -57,14 +57,14 @@ def _scorecard_lines(scorecards: dict, *, max_items: int = 3) -> list[str]:
     """
     if not scorecards.get("available"):
         note = scorecards.get("error") or "scorecards endpoint not deployed"
-        return [f"ℹ️  Scorecards: unavailable ({note})"]
+        return [f"INFO Scorecards: unavailable ({note})"]
 
     items = scorecards.get("items") or []
     count = scorecards.get("count", len(items))
     window = scorecards.get("window_hours") or "?"
     economic_effect = scorecards.get("economic_effect") or "none"
     lines = [
-        f"ℹ️  Scorecards: {count} subject(s) over {window}h "
+        f"INFO Scorecards: {count} subject(s) over {window}h "
         f"(economic_effect={economic_effect})"
     ]
     if not items:
@@ -99,36 +99,36 @@ def _cmd_init(args) -> int:
             print("Keeping existing .env.")
             return 0
 
-        print("\nAIPG Validator setup — press Enter to accept [defaults].\n")
+        print("\nAIPG Validator setup - press Enter to accept [defaults].\n")
         grid = input("Grid API URL [https://api.aipowergrid.io]: ").strip() or "https://api.aipowergrid.io"
         try:
             grid = normalize_grid_url(grid)
         except RuntimeError as exc:
-            print(f"❌ {exc}")
+            print(f"ERROR {exc}")
             return 1
         api_key = input("Validator grid API key (required): ").strip()
         if not api_key:
-            print("❌ Validator grid API key is required.")
+            print("ERROR Validator grid API key is required.")
             return 1
-        wallet = input("Validator wallet address 0x… (must be linked to your Grid account): ").strip()
+        wallet = input("Validator wallet address 0x... (must be linked to your Grid account): ").strip()
         if wallet:
             try:
                 wallet = normalize_wallet(wallet)
             except RuntimeError as exc:
-                print(f"❌ {exc}")
+                print(f"ERROR {exc}")
                 return 1
         staked = input("Run with on-chain stake required? [y/N] ").lower() == "y"
         pk = getpass.getpass("Validator private key (kept local, chmod 600): ").strip()
         if not pk:
-            print("❌ Validator private key is required for registration and evidence signing.")
+            print("ERROR Validator private key is required for registration and evidence signing.")
             return 1
         try:
             derived_wallet = wallet_from_private_key(pk)
         except RuntimeError as exc:
-            print(f"❌ {exc}")
+            print(f"ERROR {exc}")
             return 1
         if wallet and wallet.lower() != derived_wallet:
-            print("❌ Validator wallet does not match the private key.")
+            print("ERROR Validator wallet does not match the private key.")
             print(f"   Configured wallet: {wallet}")
             print(f"   Key wallet:        {derived_wallet}")
             return 1
@@ -136,7 +136,7 @@ def _cmd_init(args) -> int:
             wallet = derived_wallet
             print(f"Derived validator wallet: {wallet}")
     except EOFError:
-        print("❌ Interactive setup requires a terminal.")
+        print("ERROR Interactive setup requires a terminal.")
         print("   Run `aipg-validator init` from a shell, or create `.env` from `.env.template`.")
         return 1
 
@@ -156,7 +156,7 @@ def _cmd_init(args) -> int:
     ]
     env_path.write_text("\n".join(lines) + "\n")
     os.chmod(env_path, stat.S_IRUSR | stat.S_IWUSR)  # 600 — protects the private key
-    print(f"\n✅ Wrote {env_path} (chmod 600). Next: `aipg-validator check`")
+    print(f"\nOK Wrote {env_path} (chmod 600). Next: `aipg-validator check`")
     return 0
 
 
@@ -170,19 +170,19 @@ def _cmd_check(args) -> int:
     try:
         Settings.validate()
     except RuntimeError as e:
-        print(f"❌ Config: {e}")
+        print(f"ERROR Config: {e}")
         return 1
-    print(f"✅ Config OK → grid {Settings.GRID_API_URL}")
+    print(f"OK Config -> grid {Settings.GRID_API_URL}")
 
     if Settings.REQUIRE_STAKE:
         try:
             staking.assert_eligible()
-            print("✅ Stake: eligible")
+            print("OK Stake: eligible")
         except (staking.NotDeployed, RuntimeError) as e:
-            print(f"❌ Stake: {e}")
+            print(f"ERROR Stake: {e}")
             return 1
     else:
-        print("ℹ️  Stake: gate disabled (V0 preview)")
+        print("INFO Stake: gate disabled (V0 preview)")
 
     async def _go():
         grid = GridClient()
@@ -194,10 +194,10 @@ def _cmd_check(args) -> int:
                     attest.sign(attest.build_registration(int(time.time())))
                 )
             except Exception as exc:
-                print(f"❌ Validator registration failed: {exc}")
+                print(f"ERROR Validator registration failed: {exc}")
                 return False
             print(
-                f"✅ Validator registered: {registration.get('validator_id', 'unknown')} "
+                f"OK Validator registered: {registration.get('validator_id', 'unknown')} "
                 f"({registration.get('status', 'active')})"
             )
             capabilities = await grid.validator_capabilities()
@@ -206,27 +206,27 @@ def _cmd_check(args) -> int:
             scorecards = await grid.validator_scorecards(limit=3, since_hours=24)
             for line in _scorecard_lines(scorecards):
                 print(line)
-            print("✅ Grid reachable — validator registration and API available")
+            print("OK Grid reachable - validator registration and API available")
             if args.no_probe:
-                print("ℹ️  Probe skipped (--no-probe).")
+                print("INFO Probe skipped (--no-probe).")
                 return True
             print("Running one probe round...\n")
             try:
                 attempted = await probe_round(grid, 0)
             except Exception as exc:
-                print(f"❌ Probe round failed: {exc}")
+                print(f"ERROR Probe round failed: {exc}")
                 return False
             if attempted <= 0:
-                print("❌ No Grid assignment was available; no canary was submitted.")
+                print("ERROR No Grid assignment was available; no canary was submitted.")
                 return False
-            print(f"✅ Probe round submitted {attempted} canary job(s).")
+            print(f"OK Probe round submitted {attempted} canary job(s).")
             return True
         finally:
             await grid.aclose()
 
     if not asyncio.run(_go()):
         return 1
-    print("\n✅ check complete.")
+    print("\nOK check complete.")
     return 0
 
 
@@ -235,7 +235,7 @@ def _cmd_run(args) -> int:
     try:
         asyncio.run(run())
     except RuntimeError as exc:
-        print(f"❌ Startup: {exc}")
+        print(f"ERROR Startup: {exc}")
         return 1
     return 0
 
@@ -246,7 +246,7 @@ def _cmd_dashboard(args) -> int:
     try:
         run_dashboard(host=args.host, port=args.port)
     except (OSError, RuntimeError) as exc:
-        print(f"❌ Dashboard: {exc}")
+        print(f"ERROR Dashboard: {exc}")
         return 1
     return 0
 
@@ -254,7 +254,7 @@ def _cmd_dashboard(args) -> int:
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(prog="aipg-validator", description="AIPG validator node")
     sub = p.add_subparsers(dest="cmd", required=True)
-    sub.add_parser("init", help="interactive setup → .env")
+    sub.add_parser("init", help="interactive setup -> .env")
     check = sub.add_parser("check", help="verify config/grid/stake/scorecards + one probe round")
     check.add_argument(
         "--no-probe",

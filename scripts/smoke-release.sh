@@ -84,7 +84,8 @@ trap 'if [ -n "$dashboard_pid" ]; then kill "$dashboard_pid" 2>/dev/null || true
 status "Python/package checks"
 "$PY" -m compileall validator
 "$PY" -m unittest discover -s tests
-bash -n install.sh scripts/install-binary.sh scripts/install-systemd.sh "$0"
+bash -n install.sh scripts/classify-release-tag.sh scripts/install-binary.sh \
+  scripts/install-systemd.sh "$0"
 "$VALIDATOR" --help >/dev/null
 "$PY" -m validator --help >/dev/null
 "$VALIDATOR" check --help >/dev/null

@@ -1,5 +1,8 @@
 name: CI
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [main, master]
@@ -15,13 +18,22 @@ jobs:
         python-version: ["3.10", "3.11", "3.12"]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.5"
+          enable-cache: false
+
+      - name: Verify release dependency lock
+        run: uv lock --check
 
       - name: Install package
         run: |
@@ -32,7 +44,7 @@ jobs:
         run: python -m compileall validator
 
       - name: Validate shell scripts
-        run: bash -n install.sh scripts/install-binary.sh scripts/install-systemd.sh scripts/smoke-release.sh
+        run: bash -n install.sh scripts/classify-release-tag.sh scripts/install-binary.sh scripts/install-systemd.sh scripts/smoke-release.sh
 
       - name: Systemd helper dry-run
         run: ./scripts/install-systemd.sh --dry-run --exec "$(command -v aipg-validator)"
@@ -66,7 +78,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Build Docker image
         run: docker build -t aipowergrid/validator:ci .
@@ -92,5 +104,7 @@ jobs:
           set -e
           cat "$tmp/check.out"
           test "$code" -eq 1
-          ! grep -Ei "Traceback|ModuleNotFoundError|ImportError" "$tmp/check.out"
+          if grep -Ei "Traceback|ModuleNotFoundError|ImportError" "$tmp/check.out"; then
+            exit 1
+          fi
           grep -F "Validator registration failed" "$tmp/check.out"

@@ -95,6 +95,10 @@ This is the intended public path once release artifacts are published:
 | Linux x64 | `aipg-validator-linux-x64.zip` |
 | Linux ARM64 | `aipg-validator-linux-arm64.zip` |
 
+The installer verifies the downloaded archive against the release
+`SHA256SUMS`. For a signed provenance check after downloading an archive, run
+`gh attestation verify <archive> --repo AIPowerGrid/grid-validator`.
+
 ```bash
 curl -fsSL https://get.aipowergrid.io/validator | bash
 cd ~/.aipg-validator

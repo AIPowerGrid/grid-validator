@@ -73,7 +73,7 @@ async def _probe_assignment(grid: GridClient, assignment: dict) -> int:
         )
         return 0
     logger.info(
-        f"[{str(worker_id)[:8]} {model}] assignment {canary['kind']} → {verdict} "
+        f"[{str(worker_id)[:8]} {model}] assignment {canary['kind']} -> {verdict} "
         f"({latency:.1f}s)"
     )
     att = attest.build(
@@ -117,7 +117,7 @@ async def run() -> None:
     except staking.NotDeployed:
         if Settings.REQUIRE_STAKE:
             raise RuntimeError(
-                "Stake contract not deployed and REQUIRE_STAKE=true — exiting. "
+                "Stake contract not deployed and REQUIRE_STAKE=true - exiting. "
                 "Set VALIDATOR_REQUIRE_STAKE=false to run pre-launch."
             )
 
@@ -129,7 +129,7 @@ async def run() -> None:
         await grid.aclose()
         raise RuntimeError(f"validator registration failed: {exc}") from exc
     logger.info(
-        f"Validator {registered.get('validator_id', 'unknown')} online → {Settings.GRID_API_URL} "
+        f"Validator {registered.get('validator_id', 'unknown')} online -> {Settings.GRID_API_URL} "
         f"(probe every {Settings.PROBE_INTERVAL_S}s)"
     )
     round_index = 0

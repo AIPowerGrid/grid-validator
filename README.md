@@ -73,6 +73,15 @@ Expected release assets:
 | Linux x64 | `aipg-validator-linux-x64.zip` |
 | Linux ARM64 | `aipg-validator-linux-arm64.zip` |
 
+Every release also carries `SHA256SUMS`, an SPDX JSON SBOM, and GitHub build
+provenance. The installer verifies the platform archive checksum. Operators can
+add provenance verification with:
+
+```bash
+gh attestation verify aipg-validator-linux-x64.zip \
+  --repo AIPowerGrid/grid-validator
+```
+
 Once published, the worker-like install path is:
 
 ```bash
@@ -290,7 +299,8 @@ Until a public image is published, use the local Docker build or source install 
 ./.venv/bin/python -m unittest discover -s tests
 ./.venv/bin/aipg-validator --help
 ./.venv/bin/python -m validator --help
-bash -n install.sh scripts/install-binary.sh scripts/install-systemd.sh
+bash -n install.sh scripts/classify-release-tag.sh scripts/install-binary.sh \
+  scripts/install-systemd.sh scripts/smoke-release.sh
 ./scripts/install-systemd.sh --dry-run --exec ./.venv/bin/aipg-validator
 ./scripts/smoke-release.sh
 docker build -t aipowergrid/validator:local .
