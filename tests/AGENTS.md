@@ -53,6 +53,10 @@ installer generation.
   comparisons enqueue no attestation.
 - A mocked unit test does not prove real multi-node independence or adversarial
   quorum; keep that limitation explicit in release docs.
+- Adversarial coverage must include a template-specific solver that can pass an
+  objective protocol check while remaining ineligible for quality authority.
+  Add prompt-classification, replay, and model-switching workers before any
+  economic rollout.
 
 ## Work Guidance
 

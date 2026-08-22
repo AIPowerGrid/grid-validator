@@ -169,6 +169,7 @@ Rules:
 - probes must be unpredictable
 - failed core endpoints must skip, not punish
 - validators sign canonical attestation payloads
+- randomized values prevent replay but do not make a public template blind
 
 Definition of done:
 
@@ -176,6 +177,8 @@ Definition of done:
 - retries cannot create duplicate economic effects
 - missing or disabled targeted probes produce no false `failed` attestations
 - scorecards can display evidence without routing impact first
+- protocol, capability, quality, and fidelity evidence are visibly separate
+- a template-specific solver cannot create quality evidence
 
 ## Phase 3: Text Validation
 
@@ -207,12 +210,15 @@ Scoring:
 - exact nonce and schema checks
 - latency and timeout classification
 - LLM-as-judge only as secondary evidence
+- public generated templates are never labeled as quality evidence
 
 Definition of done:
 
 - each text capability has a scoring policy id
 - validators can explain `healthy`, `slow`, and `failed`
 - repeated objective failures affect routing caps before any slash design
+- blind production-shaped audits and adversarial prompt-classifier tests gate
+  any routing impact
 
 ## Phase 4: Image Validation
 

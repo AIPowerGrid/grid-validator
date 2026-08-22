@@ -63,6 +63,8 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
 - **`OPERATORS.md`** — plain-language run guide (install, systemd, troubleshooting, FAQ).
 - **`DESIGN.md`** — source of truth for validator phases, proof lanes, modality scoring,
   reference pool, future economics, Base anchoring, and Grid-side dependencies.
+- **`ADVERSARIAL_VALIDATION.md`** — attacker model, evidence-dimension boundaries,
+  probe-fingerprinting gaps, red-team acceptance tests, and economic gates.
 - **`ROADMAP.md`** — dev-manager build order from V0 preview through targeted
   validation, text/image/video policy work, and Base-anchored economics.
 - **`RELEASE_V0.md`** — cross-repo evidence-only release runbook: core migration/API,
@@ -192,6 +194,9 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   must track accepted useful attestations and consensus agreement, not attestation count.
 - **Canaries must stay unpredictable.** Do not commit static challenge answer keys, golden
   pHashes, private prompts, or live scoring secrets into the public repo.
+- Unpredictable values are not indistinguishable workloads. Public-template
+  canaries may produce protocol or capability evidence, never quality evidence.
+  Follow `ADVERSARIAL_VALIDATION.md` before adding routing or economic authority.
 - On-chain reads (stake gate) fail fast and gate startup only when `VALIDATOR_REQUIRE_STAKE=true`;
   they are not on the probe hot path.
 
