@@ -8,6 +8,12 @@ V0 is intentionally humble: **observe, score, and attest first; route/reward/sla
 later.** The node should be easy to run before it is allowed to carry economic
 authority.
 
+Random challenge values prevent answer replay, not template recognition. A
+regex solver can legitimately pass some protocol checks, so current canaries do
+not produce a quality score or prove an exact model. See
+[ADVERSARIAL_VALIDATION.md](ADVERSARIAL_VALIDATION.md) for the attacker model
+and economic gates.
+
 Start with [QUICKSTART.md](QUICKSTART.md) if you just want to run a preview node.
 Read [PREVIEW_COHORT.md](PREVIEW_COHORT.md) to join the first independent
 operator cohort and complete the 72-hour qualification run.
@@ -47,9 +53,11 @@ What is implemented and testable against production Core:
   assignment field, recomputes the prompt/response/evidence hashes, and applies
   its local scorer against an expected-answer hash before signing. Core does not
   return its private answer or verdict; a mismatch is skipped.
-- Shared probe groups target five distinct registered validator accounts and
-  require three matching votes. This proves distinct evidence identities, not
-  independently controlled operators.
+- Shared probe batches target five distinct registered validator accounts and
+  require three matching votes. New Core v8 batches issue a unique randomized
+  challenge per validator within one capability lane. This proves distinct
+  evidence identities, not independently controlled operators or general model
+  quality.
 - Core admits a node to a probe group only when its registration advertises the
   matching local scorer. Legacy `text.basic.v1` nodes remain limited to
   echo/arithmetic instead of mis-scoring newer challenge families.
@@ -79,6 +87,9 @@ What is not production-live yet:
   source node has dark image/video scoring paths, but Core withholds the work.
 - Routing impact.
 - On-chain epoch roots or dispute flow.
+- Blind production-shaped quality audits and an ordinary paid audit-job rail;
+  the current post-job zero-den acknowledgment remains a retrospective probe
+  fingerprint.
 
 Runtime Core capability flags are the source of truth. Operators should run
 `check --no-probe` before their first assignment probe. The public release

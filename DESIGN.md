@@ -5,6 +5,12 @@ not a magic proof that a remote machine is running a specific private stack. The
 are a distributed way to measure whether workers deliver the capability they
 claim, follow job parameters, and deserve more trust.
 
+Public templates with random values are not blind workloads. A script or tiny
+specialist model can pass them. Current canaries therefore measure availability,
+protocol conformance, capability samples, or deterministic fidelity; none is a
+general quality score. The adversarial contract and economic gates live in
+[ADVERSARIAL_VALIDATION.md](ADVERSARIAL_VALIDATION.md).
+
 The first public version should be deliberately low-authority:
 
 > easy to run, useful evidence, no slashing power.
@@ -77,15 +83,14 @@ independently operated validators and a dispute process.
 
 ```mermaid
 flowchart TD
-  A["Grid core assignment service"] --> B["Signed assignment<br/>worker, modality, policy, nonce, deadline"]
+  A["Grid core challenge and batch scheduler"] --> B["Signed assignment<br/>worker, modality, policy, nonce, deadline"]
   B --> C["Validator node"]
-  C --> D["Challenge engine<br/>text, image, video"]
-  D --> E["Targeted probe endpoint"]
+  C --> E["Targeted probe endpoint"]
   E --> F["Assigned worker"]
   E --> G["Reference worker pool<br/>bonded, highly validated"]
   F --> H["Candidate output"]
   G --> I["Reference output(s)"]
-  H --> J["Modality scorer"]
+  H --> J["Independent validator scorer"]
   I --> J
   J --> K["Evidence package<br/>prompt hash, response hash, verdict"]
   K --> L["Signed attestation"]
@@ -221,8 +226,11 @@ Current V0 lifecycle:
 11. Core stores non-economic evidence and updates shared 3-of-5 quorum scorecards.
 
 The shared-quorum protocol assigns one challenge family to multiple registered
-validators. Evidence still cannot influence routing or money until those nodes
-are proven independently operated and a dispute process exists.
+validators. New Core v8 batches issue a separately randomized challenge to each
+validator inside that family; already-open v7 groups retain their shared
+challenge during rollout. Evidence still cannot influence routing or money
+until those nodes are proven independently operated, probes are not
+fingerprintable, and a dispute process exists.
 
 ## Text Validation
 
@@ -239,6 +247,13 @@ Current V0 checks:
 - exact randomized two-stage tool-call chains
 - randomized stop-sequence compliance
 - latency classification
+
+Evidence classification:
+
+- exact echo, strict JSON, single-tool, stop, and output-budget checks are protocol conformance
+- reasoning, context, code, and chained-tool workflows are narrow capability samples
+- deterministic image comparison is fidelity evidence
+- no current generated canary is quality-eligible
 
 Planned checks:
 
@@ -358,10 +373,11 @@ Current V0 text payload shape:
 }
 ```
 
-V0 assignment ids are validator-generated and explicitly marked
-`assignment_source=validator_v0`; they are not proof of Grid assignment or
-worker attribution. Targeted/economic phases must require Grid-issued
-assignment ids and nonces, then add modality-specific evidence fields.
+Legacy local-preview assignment ids were validator-generated and explicitly
+marked `assignment_source=validator_v0`; they are not proof of Grid assignment
+or worker attribution. Authoritative production-preview evidence requires a
+Grid-issued assignment id, nonce, probe group, hard-targeted evidence hash, and
+verified validator signature.
 
 The public repo can contain the attestation format and scoring engines. It must
 not contain live answer keys, static private challenge prompts, golden pHashes,
