@@ -48,8 +48,10 @@ side effects. This proves the protocol and deployment path, not independent
 operator control. Media assignments remain
 disabled. The live
 `GET /v1/validator/assignments`, `POST /v1/validator/probe/{assignment_id}`, and
-preview scorecards and distinct-validator 3-of-5 probe groups make evidence attributable, but still non-economic: no reward,
-routing, strike, or slashing logic may read it as authority. Future phases harden adversarial
+preview scorecards and distinct-validator 3-of-5 probe groups make evidence attributable, but still non-economic: no validator reward,
+routing, strike, or slashing logic may read it as authority. Core candidate
+`0025` adds a default-off, budget-bounded rail that can compensate the audited
+worker; it does not pay the validator or increase evidence authority. Future phases harden adversarial
 independent-operator proof, deterministic media workflow certification, rewards, staking, and
 objective-fraud slashing. Do not describe future economic authority as live until the
 Grid endpoints and contracts exist. Python package: `validator/`. Entry: `validator.main`.
@@ -183,8 +185,10 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   budget; the node must reuse issued work rather than invent assignments.
   Assignment-bound evidence includes the Grid assignment id, nonce, and probe
   group id/evidence hash. The node scores against an expected-answer commitment
-  and never trusts Core's private verdict. Evidence remains input with no slash, reward,
-  payout, strike, or routing authority.
+  and never trusts Core's private verdict. Evidence remains input with no slash,
+  validator reward, strike, or routing authority. Assignment
+  `worker_compensation` is informational to the node; it must not influence a
+  verdict.
 - V0 text scorer capabilities are exact instruction following, generated
   arithmetic, strict JSON, calibrated 4K/16K/32K context retrieval, generated
   multistep logic, restricted-AST Python function synthesis against

@@ -267,6 +267,13 @@ Evidence classification:
 - deterministic image comparison is fidelity evidence
 - no current generated canary is quality-eligible
 
+Core may return `worker_compensation=audit_budget` on an assignment during a
+reviewed paid-audit pilot. This pays the target worker from a durable daily den
+budget so its terminal ACK matches ordinary compensated work. It does not pay
+the validator, increase evidence authority, or hide recognizable prompt
+families. The node must treat the field as informational and never alter its
+verdict because compensation is enabled.
+
 Planned checks:
 
 - richer JSON Schema constraints

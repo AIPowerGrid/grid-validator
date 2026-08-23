@@ -62,8 +62,12 @@ No generated public-template canary is quality-eligible.
 - Prompt families remain recognizable even when their values are random.
 - Production v7 text groups repeat one challenge across validators. Core v8
   changes the group into a capability batch with a unique challenge per member.
-- A validator probe currently ends with `den: 0`. Although this arrives after
-  the answer, it labels examples that can train a future probe detector.
+- An evidence-only validator probe ends with `den: 0`. Although this arrives
+  after the answer, it labels examples that can train a future probe detector.
+  Core candidate `0025` adds a default-off reviewed-wallet pilot whose text
+  stages reserve from a durable daily den budget and settle through the
+  ordinary worker ledger/ACK path. That closes the terminal label for the
+  pilot, not prompt-template recognition.
 - First-party pilot validators share one operator and hypervisor.
 
 These are blockers for economic authority, not reasons to hide the source.
