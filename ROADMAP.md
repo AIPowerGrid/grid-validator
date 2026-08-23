@@ -219,6 +219,9 @@ Definition of done:
 - repeated objective failures affect routing caps before any slash design
 - blind production-shaped audits and adversarial prompt-classifier tests gate
   any routing impact
+- paid worker-audit mode is not validator rewards: require a reviewed operator
+  cohort, durable daily budget, atomic settlement, and supervised production
+  canary before enabling it
 
 ## Phase 4: Image Validation
 
