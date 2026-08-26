@@ -174,6 +174,7 @@ class Settings:
     )
     MEDIA_MAX_BYTES = _env_int("VALIDATOR_MEDIA_MAX_BYTES", 64 * 1024 * 1024, minimum=1)
     MEDIA_FETCH_TIMEOUT_S = _env_float("VALIDATOR_MEDIA_FETCH_TIMEOUT_S", 30, minimum=0.1)
+    IMAGE_DECODE_TIMEOUT_S = _env_float("VALIDATOR_IMAGE_DECODE_TIMEOUT_S", 10, minimum=0.1)
     VIDEO_DECODE_TIMEOUT_S = _env_float("VALIDATOR_VIDEO_DECODE_TIMEOUT_S", 15, minimum=0.1)
 
     PROBE_INTERVAL_S = _env_int("PROBE_INTERVAL_S", 60, minimum=1)

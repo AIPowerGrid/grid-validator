@@ -55,7 +55,11 @@ independent-reference and rollout gates pass.
   challenges must come from Core. Its dark `image.fidelity.v1` scorer requires
   one candidate plus two distinct committed references, verifies every witness,
   treats reference disagreement as inconclusive, and fails an outlier candidate
-  only after the references agree. Its dark video scorers validate a bounded
+  only after the references agree. Image decoding and pHash computation run in
+  a killable child process with host-supported resource limits; decoder timeout
+  or local process failure is inconclusive, while a committed malformed
+  candidate may fail. Its
+  dark video scorers validate a bounded
   MP4/WebM decode, dimensions, frame count, frame rate, duration, blank/static
   frames, and latency. Video fidelity additionally compares every decoded frame
   and the motion profile against two references after those references agree.
@@ -154,9 +158,12 @@ independent-reference and rollout gates pass.
 - **V0 fairness:** only execute the modality and capability in the Grid-issued
   assignment. Missing or unsupported assignment metadata is a skip, never a
   worker failure and never a reason to invent another target.
-- **Media fetch is fail-closed:** an empty origin allowlist, non-HTTPS/private
+- **Media fetch and decode are fail-closed:** an empty origin allowlist, non-HTTPS/private
   origin, redirect, content encoding, wrong MIME/length/hash, timeout, or byte
   overflow is inconclusive infrastructure evidence, never a worker verdict.
+  Authoritative image and video decoders run out of process with deadlines and
+  resource bounds; a local decoder/process failure cannot become worker-failed
+  evidence.
 - **Image fidelity is dark and fail-closed:** `image.fidelity.v1` accepts only
   the versioned Core challenge contract and exactly three bound witnesses. Missing
   decoders, unsafe objects, malformed contracts, unusable references, and
