@@ -110,6 +110,9 @@ Expected release assets:
 | Linux x64 | `aipg-validator-linux-x64.zip` |
 | Linux ARM64 | `aipg-validator-linux-arm64.zip` |
 
+Linux binaries target glibc 2.35 or newer (Ubuntu 22.04 or a comparable
+distribution). Alpine/musl hosts should use Docker or the source install.
+
 Every release also carries `install-validator.sh`, `install-validator.ps1`, `validator-release.json`,
 `SHA256SUMS`, an SPDX JSON SBOM, and GitHub build provenance. The release
 manifest binds the exact version, tag, source commit, asset sizes, and asset

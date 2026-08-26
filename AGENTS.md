@@ -102,7 +102,10 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   graph, including every optional dependency lane; it must not resolve the
   broad `pyproject.toml` ranges independently with pip.
   Pull requests and `master` pushes assemble, verify, and clean-install the exact
-  four-platform binary payload without publishing it. Protected `v*` tag pushes are the only
+  four-platform binary payload without publishing it. Linux x64 and ARM64
+  binaries are built and clean-installed on Ubuntu 22.04 runners, establishing
+  a glibc 2.35 baseline instead of inheriting `ubuntu-latest` silently.
+  Protected `v*` tag pushes are the only
   binary and container publication path; manual binary and Docker dispatches
   are build-only. `latest` is allowed only for stable tags.
   Preview/alpha/beta/RC images must never replace `latest`. A build-only binary
