@@ -9,6 +9,13 @@ This is distributed testing, not decentralized economic validation. Preview
 evidence does not change worker routing, strikes, payouts, or rewards. There is
 no validator staking, slashing, or compensation in this cohort.
 
+Enrollment is open for the evidence-only cohort. Production Core runs commit
+`49a6eb00` with migrations through `0026`, and the immutable public operator
+preview is
+[`v0.1.0-preview.1`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.1).
+The three first-party nodes share one operator and hypervisor, so they do not
+count toward the five independent-operator exit gate.
+
 ## Who Should Join
 
 An operator should have:
@@ -42,9 +49,24 @@ notes.
 3. Do not post API keys, private keys, signatures, account IDs, full wallet
    addresses, assignment payloads, prompts, or worker responses.
 4. Wait for enrollment approval and a dedicated scoped validator key before
-   running an assignment probe. Production Core supports shared quorum, but
-   public binary distribution and open enrollment are still gated. Source
-   installation checks may be performed with `aipg-validator check --no-probe`.
+   running an assignment probe. Link the dedicated signing wallet to the same
+   Grid account through the authenticated account flow; never send a private key
+   to a maintainer.
+5. Install the exact preview release, verify its checksum and GitHub provenance,
+   and run `aipg-validator check --no-probe` before starting the assignment loop.
+
+Linux x64 and ARM64 binaries target glibc 2.35 or newer. macOS and Windows
+preview binaries are explicitly unsigned; Linux or Docker is the lowest-friction
+pilot path.
+
+```bash
+curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.1/install-validator.sh
+gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator
+AIPG_VALIDATOR_VERSION=v0.1.0-preview.1 bash install-validator.sh
+cd ~/.aipg-validator
+aipg-validator init
+aipg-validator check --no-probe
+```
 
 ## Qualification Run
 
@@ -74,7 +96,8 @@ verified independent operator groups and real shared groups receive at least
 three reviewed independent votes. The public status exposes aggregate verified
 and participating counts but no group identifiers. A successful install,
 registration, wallet, heartbeat, or ordinary 3-of-5 registration quorum alone
-does not prove independence.
+does not prove independence. Until both conditions hold, validator evidence
+remains preview-only and economically inert.
 
 The 72-hour run qualifies basic operation and control separation. It does not
 prove every model claim, authorize rewards, or make subjective evidence
