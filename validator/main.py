@@ -196,6 +196,32 @@ async def _flush_outbox(grid: GridClient, outbox: AttestationOutbox) -> int:
     return delivered
 
 
+def _probe_latency_seconds(result: dict, fallback: float) -> float | None:
+    """Use Core's original worker latency when a completed result is replayed."""
+    value = result.get("probe_latency_ms")
+    if not isinstance(value, bool) and isinstance(value, (int, float)):
+        milliseconds = float(value)
+        if 0 <= milliseconds <= 24 * 60 * 60 * 1000:
+            return milliseconds / 1000
+    if result.get("replayed"):
+        return None
+    return fallback
+
+
+async def _promote_and_submit(
+    grid: GridClient,
+    outbox: AttestationOutbox,
+    assignment_id: str,
+    envelope: dict,
+) -> int:
+    item_id = outbox.promote_assignment(assignment_id, envelope)
+    item = outbox.get_pending(item_id)
+    if item is None:
+        # A duplicate envelope may already have been delivered or dead-lettered.
+        return 0
+    return 1 if await _submit_outbox_item(grid, outbox, item) else 0
+
+
 async def _probe_assignment(
     grid: GridClient,
     assignment: dict,
@@ -249,6 +275,10 @@ async def _probe_assignment(
             f"[{str(worker_id)[:8]} {model}] assignment probe returned no committed output; skipping"
         )
         return 0
+    latency = _probe_latency_seconds(res, latency)
+    if latency is None:
+        logger.warning("replayed assignment omitted its original probe latency; skipping")
+        return 0
 
     response_commitment = _response_commitment_text(assignment, res)
     commitments = _verified_probe_evidence(assignment, res, response_commitment)
@@ -295,12 +325,12 @@ async def _probe_assignment(
     # Echo only the commitment this node independently recomputed and matched
     # against Core's response.
     att.update(commitments)
-    item_id = outbox.enqueue(attest.sign(att))
-    item = outbox.get_pending(item_id)
-    if item is None:
-        # A duplicate envelope may already have been delivered or dead-lettered.
-        return 0
-    return 1 if await _submit_outbox_item(grid, outbox, item) else 0
+    return await _promote_and_submit(
+        grid,
+        outbox,
+        str(assignment_id),
+        attest.sign(att),
+    )
 
 
 async def _probe_image_assignment(
@@ -394,10 +424,6 @@ async def _probe_image_assignment(
         grid_nonce=grid_nonce,
     )
     body.update(commitments)
-    item_id = outbox.enqueue(attest.sign(body))
-    item = outbox.get_pending(item_id)
-    if item is None:
-        return 0
     logger.info(
         "[%s %s] image assignment -> %s (%dms)",
         worker_id[:8],
@@ -405,7 +431,12 @@ async def _probe_image_assignment(
         verdict,
         latency_ms,
     )
-    return 1 if await _submit_outbox_item(grid, outbox, item) else 0
+    return await _promote_and_submit(
+        grid,
+        outbox,
+        assignment_id,
+        attest.sign(body),
+    )
 
 
 async def _probe_video_assignment(
@@ -509,10 +540,6 @@ async def _probe_video_assignment(
         grid_nonce=grid_nonce,
     )
     body.update(commitments)
-    item_id = outbox.enqueue(attest.sign(body))
-    item = outbox.get_pending(item_id)
-    if item is None:
-        return 0
     logger.info(
         "[%s %s] video assignment -> %s (%dms)",
         worker_id[:8],
@@ -520,7 +547,12 @@ async def _probe_video_assignment(
         verdict,
         latency_ms,
     )
-    return 1 if await _submit_outbox_item(grid, outbox, item) else 0
+    return await _promote_and_submit(
+        grid,
+        outbox,
+        assignment_id,
+        attest.sign(body),
+    )
 
 
 async def probe_round(
@@ -531,25 +563,54 @@ async def probe_round(
     """Run one probe round and return the number of attestations accepted by Core."""
     del round_index
     outbox = outbox or AttestationOutbox(Settings.STATE_DB_PATH)
-    queued_assignments = outbox.pending_assignment_ids()
     accepted = await _flush_outbox(grid, outbox)
     assignments = await grid.validator_assignments(limit=5, modality="text")
     if "image.fidelity.v1" in attest.runtime_capabilities():
         assignments.extend(await grid.validator_assignments(limit=2, modality="image"))
     if "video.contract.v1" in attest.runtime_capabilities():
         assignments.extend(await grid.validator_assignments(limit=2, modality="video"))
-    if not assignments:
+    tracked_attestations = outbox.tracked_attestation_assignment_ids()
+    for assignment in assignments:
+        assignment_id = str(assignment.get("assignment_id") or "")
+        if not assignment_id or assignment_id in tracked_attestations:
+            continue
+        try:
+            outbox.journal_assignment(assignment)
+        except (TypeError, ValueError) as exc:
+            logger.error("refusing invalid assignment journal entry: %s", exc)
+
+    pending_assignments = outbox.pending_assignments()
+    if not pending_assignments:
         logger.info("no Grid-issued assignments available; fail-closed round performed no probe")
         return accepted
-    fresh_assignments = [
-        assignment
-        for assignment in assignments
-        if str(assignment.get("assignment_id") or "") not in queued_assignments
-    ]
     results = await asyncio.gather(
-        *(_probe_assignment(grid, assignment, outbox) for assignment in fresh_assignments)
+        *(_probe_assignment(grid, assignment, outbox) for assignment in pending_assignments),
+        return_exceptions=True,
     )
-    return accepted + sum(results)
+    completed = 0
+    still_journaled = outbox.journaled_assignment_ids()
+    for assignment, result in zip(pending_assignments, results, strict=True):
+        assignment_id = str(assignment.get("assignment_id") or "")
+        if isinstance(result, BaseException):
+            logger.error(
+                "assignment %s probe raised %s",
+                assignment_id[:12],
+                type(result).__name__,
+            )
+        else:
+            completed += int(result)
+        if assignment_id in still_journaled and (isinstance(result, BaseException) or result == 0):
+            dead = outbox.assignment_failed(
+                assignment_id,
+                max_attempts=Settings.ASSIGNMENT_MAX_ATTEMPTS,
+                max_age_seconds=Settings.ASSIGNMENT_MAX_AGE_S,
+            )
+            if dead:
+                logger.error(
+                    "assignment %s exhausted recovery policy and was dead-lettered",
+                    assignment_id[:12],
+                )
+    return accepted + completed
 
 
 async def run() -> None:

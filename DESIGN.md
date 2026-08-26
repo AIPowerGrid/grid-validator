@@ -213,15 +213,16 @@ Current V0 lifecycle:
 1. Load config from `.env`.
 2. Register the linked signing wallet and advertised capabilities.
 3. Optionally check local stake configuration; preview requires no stake.
-4. Fetch assignments from the Grid.
-5. Submit the assignment through the validator-only targeted endpoint.
+4. Fetch assignments from the Grid and persist them in the private local journal.
+5. Submit the assignment through the validator-only targeted endpoint. After a
+   restart, request Core's committed result rather than dispatching the worker again.
 6. Match the returned assignment, worker, model, nonce, and capability; then
    recompute the prompt, response, and canonical evidence hashes.
 7. Score the result locally as `healthy`, `slow`, or `failed` against Core's
    expected-answer commitment. Core does not return its private verdict.
 8. Sign the probe group, assignment id, Grid nonce, verified evidence hash, and local verdict.
-9. Persist the signed envelope in the private local outbox, then submit it.
-   Retry delivery before new work and delete only after Core accepts it.
+9. Atomically replace the journaled assignment with the signed envelope, then
+   submit it. Retry delivery before new work and delete only after Core accepts it.
 10. Heartbeat between rounds.
 11. Core stores non-economic evidence and updates shared 3-of-5 quorum scorecards.
 

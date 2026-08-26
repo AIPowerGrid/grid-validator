@@ -10,7 +10,8 @@ installer generation.
 
 - `test_prober.py`, `test_media_prober.py`, `test_attest.py`, `test_main.py` - challenge, evidence, and
   assignment loop.
-- `test_outbox.py` - durable signed-evidence delivery and restart behavior.
+- `test_outbox.py` - durable assignment journaling, atomic signed-evidence
+  promotion, delivery, dead-letter recovery, and restart behavior.
 - `test_grid_client.py` - endpoint/capability contracts and fail-closed behavior.
 - `test_cli.py`, `test_dashboard.py`, `test_config.py` - operator surfaces.
 - `test_systemd_installer.py` - generated service security and behavior.
@@ -63,8 +64,10 @@ installer generation.
 - Add negative tests for missing/expired nonce, wrong worker, evidence-hash
   mismatch, duplicate attestation, endpoint failure, and self-validation.
 - Keep CLI/installer tests isolated from the user's real home and services.
-- Outbox tests must use temporary paths and prove evidence survives restart,
-  retries idempotently, and never persists a validator private key.
+- Outbox tests must use temporary paths and prove assignments are journaled
+  before probing, completed work promotes atomically, evidence survives restart,
+  retries idempotently, dead rows require explicit revival, and validator state
+  never persists a private key.
 
 ## Verification
 

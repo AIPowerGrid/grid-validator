@@ -287,12 +287,19 @@ must not substitute ordinary inference or invent a worker target.
 
 ## Durable Evidence Delivery
 
-The node writes each signed attestation to the private local SQLite outbox at
-`VALIDATOR_STATE_DB` before submitting it. Failed submissions are replayed
-before new work, and the row is removed only after Core accepts it. Evidence
-that exceeds `VALIDATOR_OUTBOX_MAX_ATTEMPTS` or
-`VALIDATOR_OUTBOX_MAX_AGE_S` is retained as a dead letter for operator review.
-The outbox contains signed public payloads, not `VALIDATOR_PRIVATE_KEY`.
+The node writes every assignment to the private local SQLite journal at
+`VALIDATOR_STATE_DB` before probing. After local scoring, it atomically replaces
+that row with the signed attestation before submission. A restart can therefore
+request Core's committed completed result without dispatching the worker twice.
+Failed submissions are replayed before new work, and the row is removed only
+after Core accepts it.
+
+Assignments and attestations have separate attempt/age bounds. Exhausted rows
+remain as dead letters for operator review. Inspect them with
+`aipg-validator queue status`; after resolving the cause, explicitly revive them
+with `aipg-validator queue retry-dead --kind assignments`, `--kind attestations`,
+or the default `--kind all`. The state database contains short-lived synthetic
+assignments and signed public payloads, not `VALIDATOR_PRIVATE_KEY`.
 
 ## Future Validator Roles
 

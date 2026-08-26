@@ -12,6 +12,7 @@ from eth_account import Account
 
 from validator import cli
 from validator.config import Settings
+from validator.outbox import AttestationOutbox
 
 
 class _RegisteredFakeGrid:
@@ -29,6 +30,8 @@ class CliCapabilityTests(unittest.TestCase):
             ["init", "--help"],
             ["check", "--help"],
             ["dashboard", "--help"],
+            ["queue", "--help"],
+            ["queue", "retry-dead", "--help"],
             ["run", "--help"],
         ):
             with self.subTest(args=args):
@@ -42,6 +45,29 @@ class CliCapabilityTests(unittest.TestCase):
                 )
                 self.assertEqual(result.returncode, 0, result.stdout.decode("cp1252"))
                 self.assertNotIn(b"Traceback", result.stdout)
+
+    def test_queue_status_and_explicit_dead_letter_retry(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "state.sqlite3")
+            state = AttestationOutbox(path)
+            state.journal_assignment({"assignment_id": "asg_1", "challenge": {}})
+            state.assignment_failed("asg_1", max_attempts=1, max_age_seconds=3600)
+
+            with patch.object(Settings, "STATE_DB_PATH", path):
+                status_output = io.StringIO()
+                with redirect_stdout(status_output):
+                    self.assertEqual(cli.main(["queue", "status"]), 0)
+                self.assertIn("Assignments: pending=0 dead=1", status_output.getvalue())
+
+                retry_output = io.StringIO()
+                with redirect_stdout(retry_output):
+                    self.assertEqual(
+                        cli.main(["queue", "retry-dead", "--kind", "assignments"]),
+                        0,
+                    )
+                self.assertIn("assignments=1", retry_output.getvalue())
+
+            self.assertEqual(state.assignment_counts(), {"pending": 1, "dead": 0})
 
     def test_capability_lines_are_conservative_when_targeting_disabled(self):
         lines = cli._capability_lines({

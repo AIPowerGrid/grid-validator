@@ -1,12 +1,13 @@
 # SPDX-FileCopyrightText: 2026 AI Power Grid
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-"""Operator-friendly CLI:  aipg-validator <init | check | run | dashboard>
+"""Operator-friendly CLI: aipg-validator <init | check | run | dashboard | queue>
 
     init   one-time interactive setup -> writes .env (chmod 600)
     check  verify config + grid + stake + scorecards, run ONE probe round, print results
     run    start the validator loop
     dashboard  serve a read-only local status page
+    queue  inspect or explicitly retry local dead letters
 """
 
 import argparse
@@ -252,6 +253,44 @@ def _cmd_dashboard(args) -> int:
     return 0
 
 
+def _cmd_queue(args) -> int:
+    from .config import Settings
+    from .outbox import AttestationOutbox
+
+    state = AttestationOutbox(Settings.STATE_DB_PATH)
+    if args.queue_cmd == "status":
+        attestations = state.counts()
+        assignments = state.assignment_counts()
+        print(
+            "Attestations: "
+            f"pending={attestations['pending']} dead={attestations['dead']}"
+        )
+        print(
+            "Assignments: "
+            f"pending={assignments['pending']} dead={assignments['dead']}"
+        )
+        dead = state.dead_letters()
+        for item in dead["attestations"]:
+            print(
+                "   dead attestation "
+                f"{item['id'][:12]} assignment={item['assignment_id'][:24]} "
+                f"attempts={item['attempts']} age={item['age_seconds']}s"
+            )
+        for item in dead["assignments"]:
+            print(
+                "   dead assignment "
+                f"{item['assignment_id'][:24]} attempts={item['attempts']} "
+                f"age={item['age_seconds']}s"
+            )
+        return 0
+    revived = state.retry_dead(args.kind)
+    print(
+        "Revived dead letters: "
+        f"attestations={revived['attestations']} assignments={revived['assignments']}"
+    )
+    return 0
+
+
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(prog="aipg-validator", description="AIPG validator node")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -266,12 +305,23 @@ def main(argv=None) -> int:
     dashboard = sub.add_parser("dashboard", help="serve local read-only dashboard")
     dashboard.add_argument("--host", default=None, help="bind host (default: DASHBOARD_HOST)")
     dashboard.add_argument("--port", default=None, type=int, help="bind port (default: DASHBOARD_PORT)")
+    queue = sub.add_parser("queue", help="inspect or recover local validator work")
+    queue_sub = queue.add_subparsers(dest="queue_cmd", required=True)
+    queue_sub.add_parser("status", help="show pending and dead-letter counts")
+    retry = queue_sub.add_parser("retry-dead", help="retry reviewed dead letters")
+    retry.add_argument(
+        "--kind",
+        choices=("all", "attestations", "assignments"),
+        default="all",
+        help="dead-letter class to retry (default: all)",
+    )
     args = p.parse_args(argv)
     return {
         "init": _cmd_init,
         "check": _cmd_check,
         "run": _cmd_run,
         "dashboard": _cmd_dashboard,
+        "queue": _cmd_queue,
     }[args.cmd](args)
 
 
