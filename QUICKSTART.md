@@ -13,9 +13,9 @@ Rollout status: shared-quorum text validation is live on production Core commit
 completed fresh, economically inert 3-of-5 groups on 2026-08-21. This proves
 the live protocol, not independent operation: the pilot nodes share one
 operator and hypervisor.
-All three now run the exact verified `v0.1.0-preview` payload. Install that
-preview or use the source path, and begin with `check --no-probe` before running
-an assignment probe.
+All three now run the exact verified pre-release payload from commit `3a505d6`.
+The public binary target is `v0.1.0-preview.1`; install it or use the source
+path, and begin with `check --no-probe` before running an assignment probe.
 
 ## What You Need
 
@@ -113,9 +113,9 @@ before running it:
 > Docker are the least-friction preview paths.
 
 ```bash
-curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview/install-validator.sh
+curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.1/install-validator.sh
 gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator
-AIPG_VALIDATOR_VERSION=v0.1.0-preview bash install-validator.sh
+AIPG_VALIDATOR_VERSION=v0.1.0-preview.1 bash install-validator.sh
 cd ~/.aipg-validator
 aipg-validator init
 aipg-validator check --no-probe
@@ -126,9 +126,9 @@ aipg-validator run
 Windows x64 PowerShell:
 
 ```powershell
-Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview/install-validator.ps1 -OutFile install-validator.ps1
+Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.1/install-validator.ps1 -OutFile install-validator.ps1
 gh attestation verify install-validator.ps1 --repo AIPowerGrid/grid-validator
-$env:AIPG_VALIDATOR_VERSION = "v0.1.0-preview"
+$env:AIPG_VALIDATOR_VERSION = "v0.1.0-preview.1"
 .\install-validator.ps1 -AcceptUnsignedPreview
 ```
 

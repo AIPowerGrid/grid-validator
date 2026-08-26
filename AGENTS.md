@@ -40,8 +40,8 @@ The Grid's validator node. In V0 it is a CPU-only distributed audit runner: it s
 small canary jobs through the normal Grid path, scores replies (`healthy` / `slow` /
 `failed`), and submits signed attestations. Shared-quorum text validation is
 production-live on Core commit `49a6eb00` with migrations through `0026`.
-Three first-party pilot nodes run the verified `v0.1.0-preview` payload from
-validator commit `3a505d6`; signed check/suspend/resume and immutable binary
+Three first-party pilot nodes run the verified pre-release payload from
+validator commit `3a505d6`; signed check/suspend/resume and binary
 rollout were proven against production on 2026-08-26. Earlier 3-of-5 groups
 verified distinct signatures and evidence commitments with no economic ledger
 side effects. This proves the protocol and deployment path, not independent
@@ -160,7 +160,7 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   fail unless both platform-signing identities are verified.
 - **`scripts/classify-release-tag.sh`** — shared binary/Docker tag policy.
   Only stable `vX.Y.Z` tags may publish `latest`; bounded prerelease tags such
-  as `v0.1.0-preview` remain explicitly versioned.
+  as `v0.1.0-preview.1` remain explicitly versioned.
 - **`install.sh` / `aipg-validator.service` / `.env.template`** — source-checkout
   install + run-as-service. `install.sh` may launch interactive setup only when
   stdin is a terminal; non-interactive runs must skip setup and point operators
