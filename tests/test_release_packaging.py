@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class ReleasePackagingTests(unittest.TestCase):
     @staticmethod
-    def _write_release_payload(root: Path) -> None:
+    def _write_release_payload(root: Path, *, tag: str = "v0.1.0-preview") -> None:
         archives = {
             "aipg-validator-linux-x64.zip": "aipg-validator",
             "aipg-validator-linux-arm64.zip": "aipg-validator",
@@ -46,13 +46,21 @@ class ReleasePackagingTests(unittest.TestCase):
         ]
         manifest = {
             "schema": "aipg-validator-release-v1",
-            "tag": "v0.1.0-preview",
+            "tag": tag,
             "version": "0.1.0",
             "commit": "a" * 40,
+            "release_class": "stable" if tag == "v0.1.0" else "preview",
+            "unsigned_warning": (
+                None
+                if tag == "v0.1.0"
+                else "UNSIGNED PREVIEW: macOS is not Developer ID signed or notarized; "
+                "Windows is not Authenticode signed. Verify SHA256SUMS and GitHub "
+                "provenance before running."
+            ),
             "platform_signing": {
                 "macos": {
                     "verified": False,
-                    "identity": "adhoc",
+                    "identity": "unsigned",
                     "notarized": False,
                     "team_id": None,
                 },
@@ -110,8 +118,11 @@ class ReleasePackagingTests(unittest.TestCase):
                 with self.subTest(workflow=path.name, action=action):
                     self.assertRegex(action, r"^[^@]+@[0-9a-f]{40}$")
 
-    def test_release_workflows_enforce_locked_signed_artifacts(self):
+    def test_release_workflows_enforce_locked_release_artifacts(self):
         binaries = (ROOT / ".github" / "workflows" / "release-binaries.yml").read_text(
+            encoding="utf-8"
+        )
+        verifier = (ROOT / "scripts" / "verify-release-assets.sh").read_text(
             encoding="utf-8"
         )
         docker = (ROOT / ".github" / "workflows" / "docker.yml").read_text(
@@ -132,9 +143,11 @@ class ReleasePackagingTests(unittest.TestCase):
         self.assertIn('"schema": "aipg-validator-release-v1"', binaries)
         self.assertIn('"commit": os.environ["RELEASE_COMMIT"]', binaries)
         self.assertIn('"platform_signing": {', binaries)
-        self.assertIn("Require verified platform signing", binaries)
-        self.assertIn("macOS Developer ID/notarization gate is not satisfied", binaries)
-        self.assertIn("Windows Authenticode gate is not satisfied", binaries)
+        self.assertIn('"release_class": release_class', binaries)
+        self.assertIn('"unsigned_warning": unsigned_warning', binaries)
+        self.assertIn("UNSIGNED PREVIEW:", binaries)
+        self.assertIn("macOS Developer ID/notarization gate is not satisfied", verifier)
+        self.assertIn("Windows Authenticode gate is not satisfied", verifier)
         self.assertIn('"validator-release.json"', binaries)
         self.assertIn("dist-artifacts/validator-release.json", binaries)
         self.assertIn("EXPECTED_RELEASE_COMMIT", binaries)
@@ -174,6 +187,69 @@ class ReleasePackagingTests(unittest.TestCase):
             self.assertNotEqual(failed.returncode, 0)
             self.assertIn("workflow source commit", failed.stderr)
 
+    def test_preview_release_accepts_explicit_unsigned_platforms(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self._write_release_payload(root)
+
+            result = self._run_release_verifier(root)
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_preview_release_rejects_missing_unsigned_warning(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self._write_release_payload(root)
+            manifest_path = root / "validator-release.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["unsigned_warning"] = None
+            self._rewrite_manifest_and_checksums(root, manifest)
+
+            result = self._run_release_verifier(root)
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("exact unsigned-platform warning", result.stderr)
+
+    def test_preview_release_rejects_misleading_signed_state(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self._write_release_payload(root)
+            manifest_path = root / "validator-release.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["platform_signing"]["windows"] = {
+                "verified": True,
+                "identity": "authenticode",
+                "subject": "CN=Unverified Example",
+            }
+            self._rewrite_manifest_and_checksums(root, manifest)
+
+            result = self._run_release_verifier(root)
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("must explicitly be unsigned", result.stderr)
+
+    def test_stable_release_rejects_unsigned_platforms(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self._write_release_payload(root, tag="v0.1.0")
+
+            result = self._run_release_verifier(root)
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("Developer ID/notarization gate", result.stderr)
+
+    @staticmethod
+    def _rewrite_manifest_and_checksums(root: Path, manifest: dict) -> None:
+        manifest_path = root / "validator-release.json"
+        manifest_path.write_text(json.dumps(manifest, sort_keys=True), encoding="utf-8")
+        checksums_path = root / "SHA256SUMS"
+        lines = []
+        for line in checksums_path.read_text(encoding="ascii").splitlines():
+            _, name = line.split(maxsplit=1)
+            path = root / name
+            lines.append(f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {name}")
+        checksums_path.write_text("\n".join(lines) + "\n", encoding="ascii")
+
     def test_release_asset_verifier_rejects_unexpected_files(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -202,14 +278,7 @@ class ReleasePackagingTests(unittest.TestCase):
                 if item["name"] == archive.name:
                     item["bytes"] = archive.stat().st_size
                     item["sha256"] = hashlib.sha256(archive.read_bytes()).hexdigest()
-            manifest_path.write_text(json.dumps(manifest, sort_keys=True), encoding="utf-8")
-            checksums_path = root / "SHA256SUMS"
-            lines = []
-            for line in checksums_path.read_text(encoding="ascii").splitlines():
-                _, name = line.split(maxsplit=1)
-                path = root / name
-                lines.append(f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {name}")
-            checksums_path.write_text("\n".join(lines) + "\n", encoding="ascii")
+            self._rewrite_manifest_and_checksums(root, manifest)
 
             failed = self._run_release_verifier(root)
 

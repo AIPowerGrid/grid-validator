@@ -231,12 +231,12 @@ Public release path:
    every non-tag publication attempt and release commits not reachable from
    reviewed `master`; these repository settings prevent an unreviewed tagged
    commit from replacing that workflow with a weaker one. The public release
-   remains blocked until
-   [issue #1](https://github.com/AIPowerGrid/grid-validator/issues/1) closes:
-   the macOS binary must carry a verified Developer ID identity and notarization,
-   and the Windows binary must carry a verified Authenticode identity. The
-   workflow records those facts in `validator-release.json` and fails closed
-   before publication while either is absent.
+   permits an explicitly unsigned prerelease such as `v0.1.0-preview`, but the
+   manifest and release page must warn that macOS lacks Developer ID signing and
+   notarization and Windows lacks Authenticode. Operators must verify checksums
+   and GitHub provenance. Stable releases remain blocked until
+   [issue #1](https://github.com/AIPowerGrid/grid-validator/issues/1) closes and
+   both platform-signing identities are verified.
 2. From the reviewed `master` commit, the designated release owner creates and
    pushes a protected `v*` release tag, for example `v0.1.0-preview`. This is the
    only binary publication trigger; a manual binary workflow run is always

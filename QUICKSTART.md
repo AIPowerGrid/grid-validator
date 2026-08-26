@@ -102,6 +102,11 @@ The released installer verifies the downloaded archive against `SHA256SUMS`.
 Download it from the exact preview release and verify its build provenance
 before running it:
 
+> **Unsigned preview:** the macOS binary is not Developer ID signed or
+> notarized, and the Windows binary is not Authenticode signed. Your OS will
+> warn before execution. Verify `SHA256SUMS` and GitHub provenance. Linux and
+> Docker are the least-friction preview paths.
+
 ```bash
 curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview/install-validator.sh
 gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator

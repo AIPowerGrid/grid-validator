@@ -19,7 +19,8 @@ installer generation.
   policy.
 - `test_release_packaging.py` - frozen container/release dependencies, action
   pinning, SBOM/provenance contracts, reviewed-source binding, hostile archive
-  rejection, and explicit publish gating.
+  rejection, explicit unsigned-preview disclosure, and strict stable signing
+  gates.
 
 ## Local Contracts
 

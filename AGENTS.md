@@ -138,9 +138,11 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   source commit, exact asset names, sizes, hashes, and platform-signing state;
   the aggregate checksum covers the manifest. The verifier checks archive
   contents and rejects missing, extra, mismatched, non-regular, encrypted, or
-  path-bearing archive entries before provenance is attested. Publication must
-  fail unless the manifest records verified macOS
-  Developer ID/notarization and Windows Authenticode identities.
+  path-bearing archive entries before provenance is attested. Tagged previews
+  may publish only when the manifest and release page explicitly disclose that
+  macOS lacks Developer ID signing/notarization and Windows lacks Authenticode;
+  checksums and GitHub provenance remain mandatory. Stable publication must
+  fail unless both platform-signing identities are verified.
 - **`scripts/classify-release-tag.sh`** — shared binary/Docker tag policy.
   Only stable `vX.Y.Z` tags may publish `latest`; bounded prerelease tags such
   as `v0.1.0-preview` remain explicitly versioned.
