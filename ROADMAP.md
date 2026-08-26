@@ -42,7 +42,7 @@ candidate worker against certified reference output.
 ## Phase 0: Preview Audit Runner
 
 Status: the production Core rollout, first-party text-quorum pilot, and public
-`v0.1.0-preview` distribution are live. Opaque common-control grouping, a
+`v0.1.0-preview.1` distribution path are live. Opaque common-control grouping, a
 72-hour sampled qualification, expiring reviews, and aggregate-only health are
 implemented; independent operator qualification remains pending. Registration
 quorum remains a separate non-economic signal.
@@ -117,9 +117,9 @@ Deliverables:
 Operator shape:
 
 ```bash
-curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview/install-validator.sh
+curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.1/install-validator.sh
 gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator
-AIPG_VALIDATOR_VERSION=v0.1.0-preview bash install-validator.sh
+AIPG_VALIDATOR_VERSION=v0.1.0-preview.1 bash install-validator.sh
 cd ~/.aipg-validator
 aipg-validator init
 aipg-validator check --no-probe

@@ -13,7 +13,7 @@ class UpdateCheckTests(unittest.IsolatedAsyncioTestCase):
             ]
 
         notice = await update_check.check_for_update(
-            current_tag="v0.1.0-preview",
+            current_tag="v0.1.0-preview.1",
             fetch_releases=releases,
         )
 
@@ -27,13 +27,14 @@ class UpdateCheckTests(unittest.IsolatedAsyncioTestCase):
     async def test_same_or_older_release_is_not_reported(self):
         async def releases():
             return [
+                {"tag_name": "v0.1.0-preview.1", "draft": False},
                 {"tag_name": "v0.1.0-preview", "draft": False},
                 {"tag_name": "v0.0.9", "draft": False},
             ]
 
         self.assertIsNone(
             await update_check.check_for_update(
-                current_tag="v0.1.0-preview",
+                current_tag="v0.1.0-preview.1",
                 fetch_releases=releases,
             )
         )
@@ -43,7 +44,7 @@ class UpdateCheckTests(unittest.IsolatedAsyncioTestCase):
             return [{"tag_name": "v0.1.0", "draft": False}]
 
         notice = await update_check.check_for_update(
-            current_tag="v0.1.0-preview",
+            current_tag="v0.1.0-preview.1",
             fetch_releases=releases,
         )
 

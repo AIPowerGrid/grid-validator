@@ -30,7 +30,7 @@ class ReleaseTagTests(unittest.TestCase):
         self.assertIn("latest=true", result.stdout)
 
     def test_preview_tag_is_prerelease(self):
-        result = classify("v0.1.0-preview")
+        result = classify("v0.1.0-preview.1")
 
         self.assertEqual(result.returncode, 0, result.stdout)
         self.assertIn("stable=false", result.stdout)
@@ -45,14 +45,14 @@ class ReleaseTagTests(unittest.TestCase):
         self.assertIn("prerelease=true", result.stdout)
 
     def test_preview_tag_cannot_publish_latest(self):
-        result = classify("--publish-latest", "v0.1.0-preview")
+        result = classify("--publish-latest", "v0.1.0-preview.1")
 
         self.assertEqual(result.returncode, 1)
         self.assertIn("cannot be published as latest", result.stdout)
 
     def test_tag_event_policy_only_updates_latest_for_stable_tags(self):
         stable = classify("--publish-latest-if-stable", "v0.1.0")
-        preview = classify("--publish-latest-if-stable", "v0.1.0-preview")
+        preview = classify("--publish-latest-if-stable", "v0.1.0-preview.1")
 
         self.assertEqual(stable.returncode, 0, stable.stdout)
         self.assertIn("latest=true", stable.stdout)

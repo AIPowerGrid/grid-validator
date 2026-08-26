@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class ReleasePackagingTests(unittest.TestCase):
     @staticmethod
-    def _write_release_payload(root: Path, *, tag: str = "v0.1.0-preview") -> None:
+    def _write_release_payload(root: Path, *, tag: str = "v0.1.0-preview.1") -> None:
         archives = {
             "aipg-validator-linux-x64.zip": "aipg-validator",
             "aipg-validator-linux-arm64.zip": "aipg-validator",
@@ -202,14 +202,14 @@ class ReleasePackagingTests(unittest.TestCase):
 
             passed = self._run_release_verifier(
                 root,
-                EXPECTED_RELEASE_TAG="v0.1.0-preview",
+                EXPECTED_RELEASE_TAG="v0.1.0-preview.1",
                 EXPECTED_RELEASE_COMMIT="a" * 40,
             )
             self.assertEqual(passed.returncode, 0, passed.stderr)
 
             failed = self._run_release_verifier(
                 root,
-                EXPECTED_RELEASE_TAG="v0.1.0-preview",
+                EXPECTED_RELEASE_TAG="v0.1.0-preview.1",
                 EXPECTED_RELEASE_COMMIT="b" * 40,
             )
             self.assertNotEqual(failed.returncode, 0)
