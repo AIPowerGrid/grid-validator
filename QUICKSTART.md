@@ -136,6 +136,13 @@ prints a notification only. It never self-updates. To upgrade, rerun the
 installer with the new exact `AIPG_VALIDATOR_VERSION`, then repeat
 `aipg-validator check --no-probe`. Set `VALIDATOR_UPDATE_CHECK=false` to opt out.
 
+For maintenance, `aipg-validator suspend` signs a request that stops new
+assignments; `aipg-validator check --no-probe` resumes the same wallet. Signing
+wallet recovery is a separate `aipg-validator rotate` workflow after the same
+Grid account links a different replacement wallet and issues a replacement
+validator API key. Follow [OPERATORS.md](OPERATORS.md) and revoke the old API
+key after the replacement checks healthy.
+
 Until the first public release exists, use the source preview or local Docker
 path.
 
@@ -207,6 +214,8 @@ V0 validator nodes rely on these Grid paths:
 | `GET /v1/validator/capabilities` | no | discover safe validator features |
 | `POST /v1/validator/register` | yes | register the linked signing identity |
 | `GET /v1/validator/registration` | yes | inspect registration state |
+| `POST /v1/validator/suspend` | for `suspend` | stop new assignments with a current-wallet signature |
+| `POST /v1/validator/rotate` | for `rotate` | preserve identity while binding a newly linked wallet |
 | `POST /v1/validator/heartbeat` | yes | refresh node liveness |
 | `GET /v1/validator/assignments` | yes | receive Grid-issued text assignments |
 | `POST /v1/validator/probe/{assignment_id}` | yes | execute an assignment against its bound worker |

@@ -6,7 +6,7 @@ import sys
 import tempfile
 import unittest
 from contextlib import redirect_stdout
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 from eth_account import Account
 
@@ -32,6 +32,8 @@ class CliCapabilityTests(unittest.TestCase):
             ["dashboard", "--help"],
             ["queue", "--help"],
             ["queue", "retry-dead", "--help"],
+            ["suspend", "--help"],
+            ["rotate", "--help"],
             ["run", "--help"],
         ):
             with self.subTest(args=args):
@@ -247,6 +249,76 @@ class CliCheckTests(unittest.TestCase):
         self.assertIn("Config:", result.stdout)
         self.assertIn("PROBE_INTERVAL_S must be an integer", result.stdout)
         self.assertNotIn("Traceback", result.stdout)
+
+    def test_suspend_signs_current_registration(self):
+        calls = []
+
+        class FakeGrid:
+            async def validator_registration(self):
+                return {
+                    "available": True,
+                    "validator_id": "val_1",
+                    "signing_wallet": "0x" + "12" * 20,
+                    "status": "active",
+                }
+
+            async def suspend_validator(self, envelope):
+                calls.append(envelope)
+                return {"validator_id": "val_1", "status": "suspended"}
+
+            async def aclose(self):
+                return None
+
+        with (
+            patch("validator.config.Settings.validate", return_value=None),
+            patch("validator.grid_client.GridClient", FakeGrid),
+            patch("validator.attest.build_suspension", return_value={"control": "suspend"}),
+            patch("validator.attest.sign", side_effect=lambda payload: {"payload": payload}),
+        ):
+            output = io.StringIO()
+            with redirect_stdout(output):
+                code = cli._cmd_lifecycle(argparse.Namespace(cmd="suspend"))
+
+        self.assertEqual(code, 0)
+        self.assertEqual(calls, [{"payload": {"control": "suspend"}}])
+        self.assertIn("Validator suspended", output.getvalue())
+
+    def test_rotate_uses_registered_previous_and_configured_replacement(self):
+        calls = []
+        old_wallet = "0x" + "12" * 20
+        new_wallet = "0x" + "34" * 20
+
+        class FakeGrid:
+            async def validator_registration(self):
+                return {
+                    "available": True,
+                    "validator_id": "val_1",
+                    "signing_wallet": old_wallet,
+                    "status": "active",
+                }
+
+            async def rotate_validator(self, envelope):
+                calls.append(envelope)
+                return {"validator_id": "val_1", "status": "active", "rotated": True}
+
+            async def aclose(self):
+                return None
+
+        with (
+            patch("validator.config.Settings.validate", return_value=None),
+            patch.object(Settings, "VALIDATOR_WALLET", new_wallet),
+            patch("validator.grid_client.GridClient", FakeGrid),
+            patch("validator.attest.build_rotation", return_value={"control": "rotate"}) as build,
+            patch("validator.attest.sign", side_effect=lambda payload: {"payload": payload}),
+        ):
+            output = io.StringIO()
+            with redirect_stdout(output):
+                code = cli._cmd_lifecycle(argparse.Namespace(cmd="rotate"))
+
+        self.assertEqual(code, 0)
+        build.assert_called_once_with("val_1", old_wallet, ANY)
+        self.assertEqual(calls, [{"payload": {"control": "rotate"}}])
+        self.assertIn("Revoke every previous validator API key", output.getvalue())
 
     def test_check_rejects_malformed_grid_url_before_http_client(self):
         with tempfile.TemporaryDirectory() as tmp:

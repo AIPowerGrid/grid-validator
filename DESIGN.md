@@ -396,6 +396,8 @@ Required identity and assignment endpoints are:
 
 - `POST /v1/validator/register`
 - `GET /v1/validator/registration`
+- `POST /v1/validator/suspend`
+- `POST /v1/validator/rotate`
 - `POST /v1/validator/heartbeat`
 - `GET /v1/validator/assignments`
 - `POST /v1/validator/probe/{assignment_id}`

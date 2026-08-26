@@ -1,13 +1,15 @@
 # SPDX-FileCopyrightText: 2026 AI Power Grid
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-"""Operator-friendly CLI: aipg-validator <init | check | run | dashboard | queue>
+"""Operator-friendly CLI: aipg-validator <init | check | run | dashboard | queue | suspend | rotate>
 
     init   one-time interactive setup -> writes .env (chmod 600)
     check  verify config + grid + stake + scorecards, run ONE probe round, print results
     run    start the validator loop
     dashboard  serve a read-only local status page
     queue  inspect or explicitly retry local dead letters
+    suspend  stop receiving new assignments with a signed control request
+    rotate  bind the stable validator identity to a newly linked signing wallet
 """
 
 import argparse
@@ -253,6 +255,64 @@ def _cmd_dashboard(args) -> int:
     return 0
 
 
+def _cmd_lifecycle(args) -> int:
+    from . import attest
+    from .config import Settings
+    from .grid_client import GridClient
+
+    try:
+        Settings.validate()
+    except RuntimeError as exc:
+        print(f"ERROR Config: {exc}")
+        return 1
+
+    async def _go() -> bool:
+        grid = GridClient()
+        try:
+            registration = await grid.validator_registration()
+            if not registration.get("available"):
+                print("ERROR Validator registration is unavailable for this account key.")
+                return False
+            validator_id = str(registration.get("validator_id") or "")
+            current_wallet = str(registration.get("signing_wallet") or "").lower()
+            if not validator_id or not current_wallet:
+                print("ERROR Core returned an incomplete validator registration.")
+                return False
+
+            if args.cmd == "suspend":
+                if registration.get("status") == "suspended":
+                    print(f"OK Validator already suspended: {validator_id}")
+                    return True
+                envelope = attest.sign(attest.build_suspension(validator_id, int(time.time())))
+                result = await grid.suspend_validator(envelope)
+                print(f"OK Validator suspended: {result.get('validator_id', validator_id)}")
+                print("   No new assignments will be issued. Run `aipg-validator check --no-probe` to resume.")
+                return True
+
+            replacement_wallet = Settings.VALIDATOR_WALLET.lower()
+            if current_wallet == replacement_wallet:
+                print(f"OK Validator already uses configured wallet: {validator_id}")
+                return True
+            envelope = attest.sign(
+                attest.build_rotation(validator_id, current_wallet, int(time.time()))
+            )
+            result = await grid.rotate_validator(envelope)
+            print(
+                f"OK Validator wallet rotated: {result.get('validator_id', validator_id)} "
+                f"({result.get('status', 'active')})"
+            )
+            print("   Revoke every previous validator API key in the Console after this node checks healthy.")
+            print("   Assignments issued to the previous wallet remain invalid and expire normally.")
+            return True
+        except Exception as exc:
+            print(f"ERROR Validator {args.cmd} failed: {exc}")
+            return False
+        finally:
+            await grid.aclose()
+
+    return 0 if asyncio.run(_go()) else 1
+
+
 def _cmd_queue(args) -> int:
     from .config import Settings
     from .outbox import AttestationOutbox
@@ -305,6 +365,8 @@ def main(argv=None) -> int:
         help="verify config/Grid/capabilities/scorecards without submitting a canary job",
     )
     sub.add_parser("run", help="start the validator loop")
+    sub.add_parser("suspend", help="stop new assignments with a signed request")
+    sub.add_parser("rotate", help="rotate to the configured, newly linked signing wallet")
     dashboard = sub.add_parser("dashboard", help="serve local read-only dashboard")
     dashboard.add_argument("--host", default=None, help="bind host (default: DASHBOARD_HOST)")
     dashboard.add_argument("--port", default=None, type=int, help="bind port (default: DASHBOARD_PORT)")
@@ -325,6 +387,8 @@ def main(argv=None) -> int:
         "run": _cmd_run,
         "dashboard": _cmd_dashboard,
         "queue": _cmd_queue,
+        "suspend": _cmd_lifecycle,
+        "rotate": _cmd_lifecycle,
     }[args.cmd](args)
 
 

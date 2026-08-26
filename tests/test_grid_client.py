@@ -32,6 +32,16 @@ class _HTTP:
         return self.response
 
 
+class _CaptureHTTP(_HTTP):
+    def __init__(self, response):
+        super().__init__(response)
+        self.posts = []
+
+    async def post(self, path, **kwargs):
+        self.posts.append((path, kwargs))
+        return self.response
+
+
 class GridClientTests(unittest.IsolatedAsyncioTestCase):
     async def test_client_sends_grid_native_and_bearer_auth_headers(self):
         old_key = Settings.VALIDATOR_API_KEY
@@ -200,6 +210,20 @@ class GridClientTests(unittest.IsolatedAsyncioTestCase):
         client._http = _HTTP(_Response(status_code=504, data={"detail": "timeout"}))
 
         self.assertIsNone(await client.probe_assignment("asg_1"))
+
+    async def test_lifecycle_requests_use_dedicated_endpoints(self):
+        client = GridClient.__new__(GridClient)
+        client._http = _CaptureHTTP(_Response(data={"validator_id": "val_1"}))
+        envelope = {"payload": {"ts": 1}, "signature": "0xsig"}
+
+        await client.suspend_validator(envelope)
+        await client.rotate_validator(envelope)
+
+        self.assertEqual(
+            [item[0] for item in client._http.posts],
+            ["/v1/validator/suspend", "/v1/validator/rotate"],
+        )
+        self.assertTrue(all(item[1]["json"] == envelope for item in client._http.posts))
 
 if __name__ == "__main__":
     unittest.main()
