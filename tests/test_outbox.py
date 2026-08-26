@@ -71,6 +71,68 @@ class AttestationOutboxTests(unittest.TestCase):
         self.assertEqual(json.loads(envelope), self._envelope())
         self.assertNotIn("private", envelope.lower())
 
+    def test_assignment_journal_survives_restart_and_promotes_atomically(self):
+        assignment = {
+            "assignment_id": "asg_1",
+            "grid_nonce": "nonce-1",
+            "challenge": {"prompt": "synthetic prompt"},
+        }
+        self.outbox.journal_assignment(assignment)
+
+        reopened = AttestationOutbox(self.path)
+        self.assertEqual(reopened.pending_assignments(), [assignment])
+        self.assertEqual(reopened.assignment_counts(), {"pending": 1, "dead": 0})
+
+        changed = {**assignment, "grid_nonce": "mutated"}
+        reopened.journal_assignment(changed)
+        self.assertEqual(reopened.pending_assignments(), [assignment])
+
+        item_id = reopened.promote_assignment("asg_1", self._envelope())
+        promoted = AttestationOutbox(self.path)
+        self.assertEqual(promoted.pending_assignments(), [])
+        self.assertEqual(promoted.assignment_counts(), {"pending": 0, "dead": 0})
+        self.assertEqual(promoted.get_pending(item_id)["envelope"], self._envelope())
+
+    def test_promotion_requires_matching_pending_assignment(self):
+        with self.assertRaisesRegex(ValueError, "does not match"):
+            self.outbox.promote_assignment("asg_other", self._envelope())
+        with self.assertRaisesRegex(ValueError, "not pending"):
+            self.outbox.promote_assignment("asg_1", self._envelope())
+
+    def test_dead_letters_require_explicit_retry(self):
+        assignment = {"assignment_id": "asg_1", "challenge": {}}
+        self.outbox.journal_assignment(assignment)
+        self.assertTrue(
+            self.outbox.assignment_failed(
+                "asg_1",
+                max_attempts=1,
+                max_age_seconds=3600,
+            )
+        )
+        item_id = self.outbox.enqueue(self._envelope())
+        self.assertTrue(
+            self.outbox.failed(item_id, max_attempts=1, max_age_seconds=3600)
+        )
+        self.assertEqual(self.outbox.pending_assignments(), [])
+        self.assertEqual(self.outbox.get_pending(item_id), None)
+        dead = self.outbox.dead_letters()
+        self.assertEqual(dead["assignments"][0]["assignment_id"], "asg_1")
+        self.assertEqual(dead["attestations"][0]["assignment_id"], "asg_1")
+        self.assertEqual(dead["assignments"][0]["attempts"], 1)
+
+        revived = self.outbox.retry_dead()
+        self.assertEqual(revived, {"attestations": 1, "assignments": 1})
+        self.assertEqual(self.outbox.pending_assignments(), [assignment])
+        self.assertIsNotNone(self.outbox.get_pending(item_id))
+
+    def test_assignment_journal_rejects_missing_id_and_oversize(self):
+        with self.assertRaisesRegex(ValueError, "assignment_id"):
+            self.outbox.journal_assignment({"challenge": {}})
+        with self.assertRaisesRegex(ValueError, "journal limit"):
+            self.outbox.journal_assignment(
+                {"assignment_id": "asg_large", "challenge": {"prompt": "x" * (1024 * 1024)}}
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -183,9 +183,12 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   bounds. A node advertises each capability only when its media dependencies
   and HTTPS origin allowlist are ready; Core must still withhold assignments
   until every media rollout gate is complete.
-- **Evidence delivery is durable:** persist the signed public envelope before
-  HTTP submission, replay pending evidence before new work, and remove it only
-  after Core accepts it. Never persist the private key in validator state.
+- **Evidence delivery is durable:** persist each Grid assignment before probing,
+  atomically replace it with the signed public envelope after local scoring,
+  replay pending evidence before new work, and remove evidence only after Core
+  accepts it. Core-completed replay responses must retain the original measured
+  latency. Never persist the private key in validator state. Exhausted rows stay
+  as dead letters until an operator explicitly retries them.
 - **Secrets:** `.env` may hold `VALIDATOR_PRIVATE_KEY` (signs attestations and later controls
   stake) — always chmod 600, never commit. The key never leaves the box; the grid receives only
   signed payloads. If the private key is configured, `VALIDATOR_WALLET` must be the derived

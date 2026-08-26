@@ -173,10 +173,13 @@ VALIDATOR_PRIVATE_KEY=0xYourLocalSigningKey
 VALIDATOR_REQUIRE_STAKE=false
 ```
 
-Signed attestations are persisted before delivery in
-`~/.aipg-validator/state.sqlite3`. A temporary Core or network failure is
-retried on later rounds without re-running the assignment. The database stores
-only public signed envelopes, never the validator private key.
+Assignments are persisted before probing in
+`~/.aipg-validator/state.sqlite3`, then atomically replaced by their signed
+attestations before delivery. If the node restarts after Core completes a probe,
+it requests Core's committed result instead of running the worker again. Failed
+attestation submissions are retried before new work. The database stores
+short-lived synthetic assignments and public signed envelopes, never the
+validator private key.
 
 `check` validates config, registers the node, prints validator capability flags,
 shows aggregate scorecard availability, runs one assigned probe round, and
@@ -192,6 +195,8 @@ First-run command meanings:
 | `aipg-validator init` | no | write local `.env` with `chmod 600` |
 | `aipg-validator check --no-probe` | no | config, Grid, capability, and scorecard smoke |
 | `aipg-validator dashboard` | no | local read-only status page |
+| `aipg-validator queue status` | no | inspect pending/dead assignments and attestations |
+| `aipg-validator queue retry-dead` | no | explicitly retry dead letters after review |
 | `aipg-validator check` | yes | register and run one assigned text probe round |
 | `aipg-validator run` | yes | continuous V0 probe loop |
 

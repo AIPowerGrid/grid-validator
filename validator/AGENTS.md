@@ -76,6 +76,8 @@ independent-reference and rollout gates pass.
   heartbeat, then assignment loop) and assignment-only `probe_round`. The loop
   polls text plus runtime-supported media modalities, independently verifies
   Core's challenge/witness commitment, and omits raw media URLs from signed evidence.
+  It journals assignments before concurrent probing, isolates sibling failures,
+  and uses Core's original `probe_latency_ms` for replayed completions.
   Tool-chain assignments verify and commit both hard-targeted stages before
   signing. A target worker's accepted-but-empty completion is failed evidence,
   not a transport error; coordinator dispatch failures remain inconclusive.
@@ -85,13 +87,13 @@ independent-reference and rollout gates pass.
   a startup error before the Grid client starts; do not silently return success.
   The direct `python -m validator.main` module path must also print clean
   startup errors and exit nonzero, not traceback.
-- **`cli.py`** — `aipg-validator init | check | dashboard | run` (interactive
+- **`cli.py`** — `aipg-validator init | check | dashboard | run | queue` (interactive
   `.env` at chmod 600; capability/scorecard-aware health check with
   `--no-probe`; check reports the locally usable scorer set before registration;
   stake-disabled preview check reports an explicit skip, while
   stake-required check fails closed on missing stake deps/config; startup
   config errors print one operator-facing line instead of tracebacks; the loop;
-  local dashboard command).
+  local dashboard command; and explicit queue status/dead-letter recovery).
 - **`__main__.py`** — module entrypoint for `python -m validator` and
   PyInstaller release binaries.
 - **`dashboard.py`** — read-only localhost operator status page and
@@ -107,9 +109,12 @@ independent-reference and rollout gates pass.
   matches the one signed. Do not change the field set or serialization without the grid side.
   Never sign raw prompts, expected answers, or raw responses in V0; sign compact
   hashes so scorecards can stay private while evidence is still committed.
-- **`outbox.py`** — private local SQLite delivery queue for signed public
-  envelopes. It deduplicates by assignment, survives restarts, retries before
-  new probes, and dead-letters after the configured attempt/age bounds.
+- **`outbox.py`** — private local SQLite state journal for Grid assignments and
+  signed public envelopes. It records an assignment before the probe, atomically
+  promotes it to a signed envelope, deduplicates by assignment, survives
+  restarts, retries before new probes, and dead-letters after separate configured
+  attempt/age bounds. `queue retry-dead` is the only automatic-state revival;
+  ordinary polling must not silently revive reviewed dead work.
   Assignment-bound attestations must echo the Grid's returned probe
   `evidence_hash`; do not let the node invent a different hash after a targeted
   probe.
@@ -175,9 +180,11 @@ independent-reference and rollout gates pass.
   required visible output is still independently scorable failed evidence.
 - **No green no-op checks:** `aipg-validator check` must fail clearly when no
   compatible text target exists and therefore no V0 canary was submitted.
-- **Persist before send:** an attestation must enter the outbox before the HTTP
-  request. Core acceptance deletes it; delivery failure keeps it for replay.
-  A queued assignment must not be probed again while its envelope is pending.
+- **Persist before send:** an assignment must enter the journal before the
+  targeted request, then its attestation must atomically replace it before HTTP
+  submission. Core acceptance deletes the envelope; delivery failure keeps it
+  for replay. A queued assignment must not be probed again while its envelope is
+  pending or dead-lettered.
 
 ## Work Guidance
 

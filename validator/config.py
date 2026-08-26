@@ -192,6 +192,12 @@ class Settings:
     )
     OUTBOX_MAX_ATTEMPTS = _env_int("VALIDATOR_OUTBOX_MAX_ATTEMPTS", 20, minimum=1)
     OUTBOX_MAX_AGE_S = _env_int("VALIDATOR_OUTBOX_MAX_AGE_S", 1800, minimum=60)
+    ASSIGNMENT_MAX_ATTEMPTS = _env_int(
+        "VALIDATOR_ASSIGNMENT_MAX_ATTEMPTS", 20, minimum=1
+    )
+    ASSIGNMENT_MAX_AGE_S = _env_int(
+        "VALIDATOR_ASSIGNMENT_MAX_AGE_S", 3600, minimum=60
+    )
 
     # ── Local dashboard ──
     DASHBOARD_HOST = _env_text("DASHBOARD_HOST", "127.0.0.1")

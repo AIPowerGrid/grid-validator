@@ -959,6 +959,92 @@ class ProbeRoundTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(grid.submissions, 2)
         self.assertEqual(self.outbox.counts(), {"pending": 0, "dead": 0})
 
+    async def test_completed_probe_is_recovered_from_assignment_journal_after_restart(self):
+        class FakeGrid:
+            def __init__(self):
+                self.assignment_polls = 0
+                self.probes = 0
+                self.submitted = []
+
+            async def validator_assignments(self, **_kwargs):
+                self.assignment_polls += 1
+                return [ProbeRoundTests._assignment()] if self.assignment_polls == 1 else []
+
+            async def probe_assignment(self, _assignment_id):
+                self.probes += 1
+                if self.probes == 1:
+                    return None
+                return ProbeRoundTests._result(
+                    replayed=True,
+                    probe_latency_ms=12_345,
+                )
+
+            async def submit_attestation(self, envelope):
+                self.submitted.append(envelope)
+                return True
+
+        grid = FakeGrid()
+        with (
+            patch.object(Settings, "VALIDATOR_WALLET", TEST_ACCOUNT.address.lower()),
+            patch.object(Settings, "VALIDATOR_PRIVATE_KEY", TEST_ACCOUNT.key.hex()),
+        ):
+            self.assertEqual(await main.probe_round(grid, 0, self.outbox), 0)
+            self.assertEqual(
+                self.outbox.assignment_counts(),
+                {"pending": 1, "dead": 0},
+            )
+
+            reopened = AttestationOutbox(self.outbox.path)
+            self.assertEqual(await main.probe_round(grid, 1, reopened), 1)
+
+        self.assertEqual(grid.probes, 2)
+        self.assertEqual(grid.submitted[0]["payload"]["latency_ms"], 12_345)
+        self.assertEqual(reopened.assignment_counts(), {"pending": 0, "dead": 0})
+        self.assertEqual(reopened.counts(), {"pending": 0, "dead": 0})
+
+    async def test_one_assignment_exception_does_not_cancel_siblings(self):
+        first = self._assignment()
+        second = {**self._assignment(), "assignment_id": "asg_2", "grid_nonce": "nonce-2"}
+
+        class FakeGrid:
+            async def validator_assignments(self, **_kwargs):
+                return [first, second]
+
+        async def fake_probe(_grid, assignment, outbox):
+            if assignment["assignment_id"] == "asg_1":
+                raise RuntimeError("synthetic probe crash")
+            outbox.promote_assignment(
+                "asg_2",
+                {"payload": {"assignment_id": "asg_2"}, "signature": "0x1234"},
+            )
+            return 1
+
+        with patch.object(main, "_probe_assignment", side_effect=fake_probe):
+            self.assertEqual(await main.probe_round(FakeGrid(), 0, self.outbox), 1)
+
+        self.assertEqual(self.outbox.journaled_assignment_ids(), {"asg_1"})
+        self.assertEqual(self.outbox.pending_assignment_ids(), {"asg_2"})
+
+    async def test_replayed_result_without_original_latency_is_not_signed(self):
+        class FakeGrid:
+            def __init__(self):
+                self.submitted = []
+
+            async def validator_assignments(self, **_kwargs):
+                return [ProbeRoundTests._assignment()]
+
+            async def probe_assignment(self, _assignment_id):
+                return ProbeRoundTests._result(replayed=True)
+
+            async def submit_attestation(self, envelope):
+                self.submitted.append(envelope)
+                return True
+
+        grid = FakeGrid()
+        self.assertEqual(await main.probe_round(grid, 0, self.outbox), 0)
+        self.assertEqual(grid.submitted, [])
+        self.assertEqual(self.outbox.assignment_counts(), {"pending": 1, "dead": 0})
+
 
 class RunStartupTests(unittest.IsolatedAsyncioTestCase):
     async def test_run_raises_when_required_stake_contract_is_missing(self):

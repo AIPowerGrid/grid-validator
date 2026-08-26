@@ -163,6 +163,7 @@ A healthy V0 node should show:
 - validator capability flags visible, or safely reported as unavailable
 - registration is active for the configured wallet
 - `check` reports at least one submitted assignment, or clearly says none are available
+- `aipg-validator queue status` reports no unexplained dead letters
 - dashboard reachable on localhost
 - scorecards visible when core exposes `/v1/validator/scorecards`
 
