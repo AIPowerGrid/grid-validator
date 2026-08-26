@@ -68,10 +68,13 @@ What is implemented and testable against production Core:
 
 Production preview status:
 
-- Production Core runs the shared-quorum validator API with migrations through
-  `0024`.
+- Production Core runs the shared-quorum validator API at immutable commit
+  `49a6eb00` with migrations through `0026`.
 - Three first-party pilot nodes completed two fresh groups with three distinct
   verified signatures and evidence commitments per group on 2026-08-21.
+- All three pilot nodes run the verified `v0.1.0-preview` payload from commit
+  `3a505d6`; the exact Linux artifact passed production check, signed suspend,
+  resume, and service rollout on Ubuntu 22.04 before publication.
 - Probe job IDs produced no credit, reservation, den, payout, or worker-ledger
   entries. Evidence remains economically inert.
 - The three nodes share one operator and hypervisor. They do not prove an
@@ -79,8 +82,6 @@ Production preview status:
 
 What is not production-live yet:
 
-- Public downloadable binary releases.
-- Published Docker image release.
 - Validator rewards.
 - Validator staking/slashing.
 - Core-issued media assignments and production media probe execution. The
@@ -92,14 +93,15 @@ What is not production-live yet:
   fingerprint.
 
 Runtime Core capability flags are the source of truth. Operators should run
-`check --no-probe` before their first assignment probe. The public release
-remains closed, current evidence has no economic authority, and independent
-operator operation is not yet proven.
+`check --no-probe` before their first assignment probe. The public preview is
+evidence-only: it has no economic authority, and independent operator operation
+is not yet proven.
 
 ## Download
 
-Public binary releases are planned for the V0 canary. Until the first release
-exists, use the source or local Docker paths below.
+The public V0 preview is published as
+[`v0.1.0-preview`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview).
+It is an unsigned, non-economic operator preview, not a stable release.
 
 Expected release assets:
 

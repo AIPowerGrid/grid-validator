@@ -41,11 +41,11 @@ candidate worker against certified reference output.
 
 ## Phase 0: Preview Audit Runner
 
-Status: the production Core rollout and first-party text-quorum pilot are live;
-public binary distribution and independent operator qualification are pending.
-Core candidate support for opaque common-control grouping, a 72-hour sampled
-qualification, expiring reviews, and aggregate-only health is under independent
-review; registration quorum remains a separate non-economic signal.
+Status: the production Core rollout, first-party text-quorum pilot, and public
+`v0.1.0-preview` distribution are live. Opaque common-control grouping, a
+72-hour sampled qualification, expiring reviews, and aggregate-only health are
+implemented; independent operator qualification remains pending. Registration
+quorum remains a separate non-economic signal.
 
 Goal: give operators something easy to run while the Grid learns from evidence
 without economic side effects.

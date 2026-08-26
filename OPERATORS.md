@@ -12,12 +12,12 @@ dispute tooling exist.
 For the shortest install path, start with [QUICKSTART.md](QUICKSTART.md). This
 file is the longer operator runbook.
 
-Current rollout: assignment-bound shared quorum is live on production Core with
-migrations through `0024`. Three first-party pilot nodes proved the signed
-3-of-5 text flow without economic side effects on 2026-08-21. Public enrollment
-is still controlled because those nodes share one operator and hypervisor and
-the public binary release is not published. Always run `check --no-probe`
-before operating the loop.
+Current rollout: assignment-bound shared quorum is live on production Core
+commit `49a6eb00` with migrations through `0026`. Three first-party pilot nodes
+proved the signed 3-of-5 text flow without economic side effects and now run the
+exact verified `v0.1.0-preview` payload. Public enrollment remains a no-reward
+qualification cohort because those nodes share one operator and hypervisor.
+Always run `check --no-probe` before operating the loop.
 
 ## System Requirements
 

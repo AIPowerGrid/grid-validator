@@ -39,11 +39,13 @@ concrete detail in children. Delete stale notes instead of explaining history.
 The Grid's validator node. In V0 it is a CPU-only distributed audit runner: it sends
 small canary jobs through the normal Grid path, scores replies (`healthy` / `slow` /
 `failed`), and submits signed attestations. Shared-quorum text validation is
-production-live on Core commit `0d850e73` with migrations through `0024`.
-Three first-party pilot nodes running validator commit `16e05327` completed two
-fresh 3-of-5 groups on 2026-08-21; all six signatures and evidence commitments
-verified, with no economic ledger side effects. This proves the protocol and
-deployment path, not independent operator control. Media assignments remain
+production-live on Core commit `49a6eb00` with migrations through `0026`.
+Three first-party pilot nodes run the verified `v0.1.0-preview` payload from
+validator commit `3a505d6`; signed check/suspend/resume and immutable binary
+rollout were proven against production on 2026-08-26. Earlier 3-of-5 groups
+verified distinct signatures and evidence commitments with no economic ledger
+side effects. This proves the protocol and deployment path, not independent
+operator control. Media assignments remain
 disabled. The live
 `GET /v1/validator/assignments`, `POST /v1/validator/probe/{assignment_id}`, and
 preview scorecards and distinct-validator 3-of-5 probe groups make evidence attributable, but still non-economic: no reward,
