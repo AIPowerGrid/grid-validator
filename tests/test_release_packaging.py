@@ -35,7 +35,17 @@ class ReleasePackagingTests(unittest.TestCase):
         (root / "install-validator.sh").write_text(
             "#!/usr/bin/env bash\nset -euo pipefail\n", encoding="utf-8"
         )
-        payloads = [*archives, "aipg-validator-release.spdx.json", "install-validator.sh"]
+        (root / "install-validator.ps1").write_text(
+            "# SPDX-License-Identifier: AGPL-3.0-or-later\n"
+            "param([switch]$AcceptUnsignedPreview)\n",
+            encoding="utf-8",
+        )
+        payloads = [
+            *archives,
+            "aipg-validator-release.spdx.json",
+            "install-validator.sh",
+            "install-validator.ps1",
+        ]
         assets = [
             {
                 "name": name,
@@ -138,6 +148,9 @@ class ReleasePackagingTests(unittest.TestCase):
         self.assertNotIn("inputs.release_tag", binaries)
         self.assertIn("environment: validator-release", binaries)
         self.assertIn("name: Assemble verified release payload", binaries)
+        self.assertIn("name: Clean install ${{ matrix.asset }}", binaries)
+        self.assertIn("install-validator.ps1", binaries)
+        self.assertIn("-AcceptUnsignedPreview", binaries)
         self.assertIn("PYTHONIOENCODING=cp1252", binaries)
         self.assertIn("subject-checksums: dist-artifacts/SHA256SUMS", binaries)
         self.assertIn('"schema": "aipg-validator-release-v1"', binaries)

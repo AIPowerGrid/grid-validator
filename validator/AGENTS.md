@@ -96,6 +96,10 @@ independent-reference and rollout gates pass.
   local dashboard command; and explicit queue status/dead-letter recovery).
 - **`__main__.py`** — module entrypoint for `python -m validator` and
   PyInstaller release binaries.
+- **`update_check.py`** — bounded, notification-only GitHub release check. It
+  validates tag syntax, ignores drafts, bypasses environment proxies, and
+  constructs its own canonical release URL. It never downloads or executes an
+  update; operators upgrade through the verified installer.
 - **`dashboard.py`** — read-only localhost operator status page and
   `/status.json`. Uses the Python standard library only; shows Grid validator
   capability flags and aggregate evidence scorecards; never render secrets or
@@ -185,6 +189,9 @@ independent-reference and rollout gates pass.
   submission. Core acceptance deletes the envelope; delivery failure keeps it
   for replay. A queued assignment must not be probed again while its envelope is
   pending or dead-lettered.
+- **Updates are notification-only:** a release-feed response may select a newer
+  syntactically valid tag, but it is never execution authority. Installation
+  remains an explicit operator action through checksums and GitHub provenance.
 
 ## Work Guidance
 

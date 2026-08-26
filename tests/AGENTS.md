@@ -14,13 +14,14 @@ installer generation.
   promotion, delivery, dead-letter recovery, and restart behavior.
 - `test_grid_client.py` - endpoint/capability contracts and fail-closed behavior.
 - `test_cli.py`, `test_dashboard.py`, `test_config.py` - operator surfaces.
+- `test_update_check.py` - bounded release selection and nonfatal update checks.
 - `test_systemd_installer.py` - generated service security and behavior.
 - `test_release_tag.py` - binary/Docker release-tag and `latest` publication
   policy.
 - `test_release_packaging.py` - frozen container/release dependencies, action
   pinning, SBOM/provenance contracts, reviewed-source binding, hostile archive
-  rejection, explicit unsigned-preview disclosure, and strict stable signing
-  gates.
+  rejection, native Windows installation, four-platform clean-install CI,
+  explicit unsigned-preview disclosure, and strict stable signing gates.
 
 ## Local Contracts
 

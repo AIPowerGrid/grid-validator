@@ -14,7 +14,7 @@ import logging
 import sys
 import time
 
-from . import attest, media_prober, prober, staking
+from . import attest, media_prober, prober, staking, update_check
 from .config import Settings
 from .grid_client import GridClient
 from .outbox import AttestationOutbox
@@ -638,6 +638,7 @@ async def run() -> None:
     )
     outbox = AttestationOutbox(Settings.STATE_DB_PATH)
     round_index = 0
+    next_update_check = 0.0
     try:
         while True:
             try:
@@ -645,6 +646,17 @@ async def run() -> None:
                 await probe_round(grid, round_index, outbox)
             except Exception as e:
                 logger.error(f"probe round failed: {e}", exc_info=True)
+            if Settings.UPDATE_CHECK_ENABLED and time.monotonic() >= next_update_check:
+                notice = await update_check.check_for_update()
+                if notice is not None:
+                    logger.warning(
+                        "Validator update available: %s -> %s (%s). Upgrade with the "
+                        "checksum-verifying installer; updates are never installed automatically.",
+                        notice.current_tag,
+                        notice.latest_tag,
+                        notice.url,
+                    )
+                next_update_check = time.monotonic() + Settings.UPDATE_CHECK_INTERVAL_S
             round_index += 1
             await asyncio.sleep(Settings.PROBE_INTERVAL_S)
     finally:

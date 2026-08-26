@@ -18,6 +18,7 @@ payloads=(
   aipg-validator-windows-x64.zip
   aipg-validator-release.spdx.json
   install-validator.sh
+  install-validator.ps1
 )
 checksummed=( "${payloads[@]}" validator-release.json )
 
@@ -212,6 +213,9 @@ for archive, expected in archives.items():
 sbom = json.loads((root / "aipg-validator-release.spdx.json").read_text(encoding="utf-8"))
 if not str(sbom.get("spdxVersion", "")).startswith("SPDX-"):
     raise SystemExit("release SBOM is not SPDX JSON")
+power_shell = (root / "install-validator.ps1").read_text(encoding="utf-8")
+if not power_shell.startswith("# SPDX-") or "AcceptUnsignedPreview" not in power_shell:
+    raise SystemExit("PowerShell installer is missing its preview safety contract")
 PY
 
 bash -n "$DIR/install-validator.sh"

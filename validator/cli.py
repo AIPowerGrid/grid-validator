@@ -292,7 +292,10 @@ def _cmd_queue(args) -> int:
 
 
 def main(argv=None) -> int:
+    from . import __release_tag__
+
     p = argparse.ArgumentParser(prog="aipg-validator", description="AIPG validator node")
+    p.add_argument("--version", action="version", version=f"%(prog)s {__release_tag__}")
     sub = p.add_subparsers(dest="cmd", required=True)
     sub.add_parser("init", help="interactive setup -> .env")
     check = sub.add_parser("check", help="verify config/grid/stake/scorecards + one probe round")

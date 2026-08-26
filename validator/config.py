@@ -198,6 +198,10 @@ class Settings:
     ASSIGNMENT_MAX_AGE_S = _env_int(
         "VALIDATOR_ASSIGNMENT_MAX_AGE_S", 3600, minimum=60
     )
+    UPDATE_CHECK_ENABLED = _env_bool("VALIDATOR_UPDATE_CHECK", True)
+    UPDATE_CHECK_INTERVAL_S = _env_int(
+        "VALIDATOR_UPDATE_CHECK_INTERVAL_S", 21600, minimum=3600
+    )
 
     # ── Local dashboard ──
     DASHBOARD_HOST = _env_text("DASHBOARD_HOST", "127.0.0.1")

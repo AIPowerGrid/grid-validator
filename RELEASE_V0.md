@@ -253,6 +253,7 @@ Public release path:
    - `SHA256SUMS`
    - `aipg-validator-release.spdx.json`
    - `install-validator.sh`
+   - `install-validator.ps1`
    Then run `./scripts/verify-release-assets.sh <download-directory>` against a
    clean download of the complete release.
 4. Confirm GitHub build provenance attestations exist and verify each binary
