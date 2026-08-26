@@ -72,6 +72,9 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
 - **`PREVIEW_COHORT.md`** — public recruitment and qualification contract for
   5-10 independent preview operators, including safe reporting and the
   distinction between node count and independently controlled quorum weight.
+- **`PRODUCTION_BASELINE.md`** — dated public capability, assignment, quorum,
+  independence, and network-capacity snapshots. It is historical evidence, not
+  a substitute for the live public status endpoints.
 - **`SECURITY.md`** — private vulnerability disclosure process and the
   validator-specific evidence, identity, and release-supply-chain scope.
 - **`pyproject.toml`** — package metadata and `aipg-validator` console script.
