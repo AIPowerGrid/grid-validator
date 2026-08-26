@@ -153,6 +153,21 @@ class ReleasePackagingTests(unittest.TestCase):
         self.assertIn("-AcceptUnsignedPreview", binaries)
         self.assertIn("PYTHONIOENCODING=cp1252", binaries)
         self.assertIn("subject-checksums: dist-artifacts/SHA256SUMS", binaries)
+        self.assertIn("id: release_draft", binaries)
+        self.assertIn("draft: true", binaries)
+        self.assertIn("fail_on_unmatched_files: true", binaries)
+        self.assertIn("Verify draft assets before immutable publication", binaries)
+        self.assertIn("diff -u expected-assets.txt uploaded-assets.txt", binaries)
+        self.assertIn("Publish verified immutable release", binaries)
+        self.assertIn("gh api --method PATCH", binaries)
+        self.assertLess(
+            binaries.index("Create draft and upload GitHub release assets"),
+            binaries.index("Verify draft assets before immutable publication"),
+        )
+        self.assertLess(
+            binaries.index("Verify draft assets before immutable publication"),
+            binaries.index("Publish verified immutable release"),
+        )
         self.assertIn('"schema": "aipg-validator-release-v1"', binaries)
         self.assertIn('"commit": os.environ["RELEASE_COMMIT"]', binaries)
         self.assertIn('"platform_signing": {', binaries)
