@@ -82,6 +82,28 @@ class ProbeRoundTests(unittest.IsolatedAsyncioTestCase):
         result.update(overrides)
         return result
 
+    @classmethod
+    def _sealed_text_pair(cls):
+        full = cls._assignment()
+        result = {
+            **cls._result(),
+            "scoring_policy_id": "text.batch.unique.v8",
+            "challenge": full["challenge"],
+        }
+        seal_payload = main._assignment_seal_payload(result)
+        assert seal_payload is not None
+        seal = hashlib.sha256(main._canonical(seal_payload).encode()).hexdigest()
+        result["assignment_seal"] = seal
+        assignment = {
+            "assignment_id": full["assignment_id"],
+            "modality": full["modality"],
+            "capability": full["capability"],
+            "scoring_policy_id": "text.batch.unique.v8",
+            "sealed": True,
+            "assignment_seal": seal,
+        }
+        return assignment, result
+
     @staticmethod
     def _image_assignment():
         return {
@@ -801,6 +823,61 @@ class ProbeRoundTests(unittest.IsolatedAsyncioTestCase):
         grid = FakeGrid()
         self.assertEqual(await main.probe_round(grid, 0, self.outbox), 0)
         self.assertEqual(grid.submitted, [])
+
+    async def test_sealed_assignment_is_disclosed_only_after_probe_and_verified(self):
+        assignment, result = self._sealed_text_pair()
+
+        class FakeGrid:
+            def __init__(self):
+                self.submitted = []
+
+            async def validator_assignments(self, **_kwargs):
+                return [assignment]
+
+            async def probe_assignment(self, _assignment_id):
+                return result
+
+            async def submit_attestation(self, envelope):
+                self.submitted.append(envelope)
+                return True
+
+        grid = FakeGrid()
+        with (
+            patch.object(Settings, "VALIDATOR_WALLET", TEST_ACCOUNT.address.lower()),
+            patch.object(Settings, "VALIDATOR_PRIVATE_KEY", TEST_ACCOUNT.key.hex()),
+        ):
+            self.assertEqual(await main.probe_round(grid, 0, self.outbox), 1)
+
+        payload = grid.submitted[0]["payload"]
+        self.assertEqual(payload["worker_id"], "worker-1")
+        self.assertEqual(payload["verdict"], "healthy")
+
+    async def test_sealed_assignment_rejects_mutated_terminal_disclosure(self):
+        assignment, result = self._sealed_text_pair()
+        result = {**result, "target_worker_id": "worker-attacker"}
+
+        class FakeGrid:
+            submitted = []
+
+            async def validator_assignments(self, **_kwargs):
+                return [assignment]
+
+            async def probe_assignment(self, _assignment_id):
+                return result
+
+            async def submit_attestation(self, envelope):
+                self.submitted.append(envelope)
+                return True
+
+        grid = FakeGrid()
+        self.assertEqual(await main.probe_round(grid, 0, self.outbox), 0)
+        self.assertEqual(grid.submitted, [])
+
+    def test_unsealed_assignment_ignores_unsolicited_result_seal(self):
+        assignment = self._assignment()
+        result = {**self._result(), "assignment_seal": "f" * 64}
+
+        self.assertIs(main._hydrate_assignment_disclosure(assignment, result), assignment)
 
     async def test_image_assignment_signs_hashes_without_witness_urls(self):
         class FakeGrid:

@@ -54,6 +54,11 @@ No generated public-template canary is quality-eligible.
 
 ## Known Fingerprints
 
+- Without sealed polling, the assignment API reveals the target, model, nonce,
+  and challenge before the validator invokes the probe, allowing a colluding
+  validator to warn the target. The staged sealed-assignment protocol withholds
+  those fields until the worker has produced the terminal result and binds the
+  disclosure to the earlier SHA-256 commitment.
 - Prompt families remain recognizable even when their values are random.
 - Production v7 text groups repeat one challenge across validators. Core v8
   changes the group into a capability batch with a unique challenge per member.
@@ -62,28 +67,34 @@ No generated public-template canary is quality-eligible.
 - First-party pilot validators share one operator and hypervisor.
 
 These are blockers for economic authority, not reasons to hide the source.
+Sealing closes advance API disclosure; it does not stop a worker from
+recognizing a prompt during execution or eliminate validator-controlled timing.
 
 ## Required Hardening
 
-1. **Unique batch work:** issue a distinct challenge and commitment to every
+1. **Sealed assignment polling:** give the validator only an opaque id,
+   capability, deadline, and commitment before execution; reveal and verify the
+   target, nonce, model, and challenge only with the terminal result. Preserve
+   compatibility until the public node fleet has upgraded.
+2. **Unique batch work:** issue a distinct challenge and commitment to every
    validator in a shared capability batch; aggregate the lane, not an identical
    exam prompt.
-2. **Ordinary worker economics:** pay bounded audit work through a reviewed
+3. **Ordinary worker economics:** pay bounded audit work through a reviewed
    network audit budget so dispatch and terminal acknowledgment match ordinary
    jobs. Do not fake den in the worker UI without a committed ledger movement.
-3. **Broad challenge packs:** combine generated code, hidden tests, stateful
+4. **Broad challenge packs:** combine generated code, hidden tests, stateful
    tools, long context, instruction hierarchy, extraction, reasoning, and
    multilingual surfaces. Public generators use unpredictable epoch inputs;
    secrecy is defense in depth, not the root control.
-4. **Blind workload audits:** use consented or synthetic production-shaped jobs,
+5. **Blind workload audits:** use consented or synthetic production-shaped jobs,
    compare anonymized results with rotating bonded references, and never reuse
    private user content without explicit consent.
-5. **Adversarial CI:** run regex solvers, prompt classifiers, replay caches, and
+6. **Adversarial CI:** run regex solvers, prompt classifiers, replay caches, and
    model-switching workers. A successful template solver must remain confined
    to protocol/capability evidence with no quality authority.
-6. **Independent cohort:** prove independently controlled operators before any
+7. **Independent cohort:** prove independently controlled operators before any
    validator reward or routing influence.
-7. **Conservative penalties:** subjective quality may affect scorecards and,
+8. **Conservative penalties:** subjective quality may affect scorecards and,
    later, routing. Only objective signed fraud may enter a dispute-backed
    slashing design.
 
@@ -98,4 +109,3 @@ measured in a production pilot:
 - independent validator quorum and operator diversity are proven
 - worker disputes and false-positive rollback are operational
 - quality scoring uses blind workloads rather than public canary templates
-

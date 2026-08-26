@@ -49,6 +49,10 @@ What is implemented and testable against production Core:
 - Targeted probe execution at
   `POST /v1/validator/probe/{assignment_id}`; the core, not the validator,
   selects the worker.
+- Compatible sealed-assignment execution: an updated Core may withhold the
+  target, model, nonce, and challenge until the worker finishes. The node
+  verifies their SHA-256 commitment before it scores or signs the result, while
+  retaining staged compatibility with the current unsealed Core.
 - Independent result binding and scoring: the node matches every returned
   assignment field, recomputes the prompt/response/evidence hashes, and applies
   its local scorer against an expected-answer hash before signing. Core does not

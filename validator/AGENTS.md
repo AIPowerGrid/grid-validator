@@ -187,6 +187,13 @@ independent-reference and rollout gates pass.
   canonical probe evidence hash; and score the returned output locally against
   Core's one-way expected-answer commitment. A binding mismatch is a skip. Core
   does not return its private verdict.
+- **Sealed assignment compatibility:** a sealed assignment journal entry may
+  contain only its opaque id, modality/capability metadata, and SHA-256 seal.
+  Request the probe before requiring target, model, nonce, or challenge; accept
+  those fields only from the terminal Core disclosure after recomputing and
+  constant-time comparing the seal. A missing, mismatched, or mutated
+  disclosure is a skip and must never produce signed evidence. Continue to
+  accept an older unsealed Core response during the staged rollout.
 - **No false targeted failures:** if a targeted probe endpoint is missing,
   disabled, or returns no committed output at all, skip attestation instead of
   recording `failed`. A verified token-limit result containing reasoning but no

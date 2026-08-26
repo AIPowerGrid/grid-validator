@@ -42,6 +42,9 @@ jobs:
       - name: Compile package
         run: uv run --frozen --extra media python -m compileall validator
 
+      - name: Run validator unit and adversarial tests
+        run: uv run --frozen --extra media --with pytest==8.4.2 python -m pytest -q
+
       - name: Validate shell scripts
         run: bash -n install.sh scripts/classify-release-tag.sh scripts/install-binary.sh scripts/install-systemd.sh scripts/smoke-release.sh scripts/verify-release-assets.sh
 
