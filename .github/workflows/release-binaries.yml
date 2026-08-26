@@ -205,6 +205,15 @@ jobs:
               tag,
           ):
               raise SystemExit("release tag does not match project version")
+          stable_tag = bool(tag and re.fullmatch(rf"v{re.escape(version)}", tag))
+          release_class = "stable" if stable_tag else "preview" if tag else "build"
+          unsigned_warning = None
+          if release_class == "preview":
+              unsigned_warning = (
+                  "UNSIGNED PREVIEW: macOS is not Developer ID signed or notarized; "
+                  "Windows is not Authenticode signed. Verify SHA256SUMS and GitHub "
+                  "provenance before running."
+              )
 
           assets = []
           for name in names:
@@ -219,10 +228,12 @@ jobs:
               "tag": tag,
               "version": version,
               "commit": os.environ["RELEASE_COMMIT"],
+              "release_class": release_class,
+              "unsigned_warning": unsigned_warning,
               "platform_signing": {
                   "macos": {
                       "verified": False,
-                      "identity": "adhoc",
+                      "identity": "unsigned",
                       "notarized": False,
                       "team_id": None,
                   },
@@ -291,38 +302,6 @@ jobs:
           EXPECTED_RELEASE_TAG: ${{ needs.validate.outputs.tag }}
         run: ./scripts/verify-release-assets.sh dist-artifacts
 
-      - name: Require verified platform signing
-        shell: bash
-        run: |
-          python - <<'PY'
-          import json
-          import pathlib
-
-          manifest = json.loads(
-              pathlib.Path("dist-artifacts/validator-release.json").read_text(
-                  encoding="utf-8"
-              )
-          )
-          signing = manifest.get("platform_signing") or {}
-          macos = signing.get("macos") or {}
-          windows = signing.get("windows") or {}
-          if not (
-              macos.get("verified") is True
-              and macos.get("identity") == "developer_id_application"
-              and macos.get("notarized") is True
-              and isinstance(macos.get("team_id"), str)
-              and macos["team_id"]
-          ):
-              raise SystemExit("macOS Developer ID/notarization gate is not satisfied")
-          if not (
-              windows.get("verified") is True
-              and windows.get("identity") == "authenticode"
-              and isinstance(windows.get("subject"), str)
-              and windows["subject"]
-          ):
-              raise SystemExit("Windows Authenticode gate is not satisfied")
-          PY
-
       - name: Attest release provenance
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
@@ -334,6 +313,8 @@ jobs:
           tag_name: ${{ needs.validate.outputs.tag }}
           target_commitish: ${{ github.sha }}
           prerelease: ${{ needs.validate.outputs.prerelease == 'true' }}
+          body: >-
+            ${{ needs.validate.outputs.prerelease == 'true' && '**UNSIGNED PREVIEW:** The macOS binary is not Developer ID signed or notarized, and the Windows binary is not Authenticode signed. Verify `SHA256SUMS` and GitHub provenance before running.' || '' }}
           generate_release_notes: true
           files: |
             dist-artifacts/*.zip

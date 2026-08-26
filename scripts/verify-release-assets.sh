@@ -82,6 +82,11 @@ if tag and not re.fullmatch(
     tag,
 ):
     raise SystemExit("release tag does not match version")
+stable_tag = bool(tag and re.fullmatch(rf"v{re.escape(version)}", tag))
+preview_tag = bool(tag and not stable_tag)
+expected_release_class = "stable" if stable_tag else "preview" if preview_tag else "build"
+if manifest.get("release_class") != expected_release_class:
+    raise SystemExit("release manifest class does not match tag")
 if not re.fullmatch(r"[0-9a-f]{40}", str(manifest.get("commit") or "")):
     raise SystemExit("release commit is invalid")
 expected_tag = os.environ.get("EXPECTED_RELEASE_TAG")
@@ -115,6 +120,47 @@ if (
     )
 ):
     raise SystemExit("Windows signing state is invalid")
+unsigned_warning = manifest.get("unsigned_warning")
+expected_unsigned_warning = (
+    "UNSIGNED PREVIEW: macOS is not Developer ID signed or notarized; Windows is "
+    "not Authenticode signed. Verify SHA256SUMS and GitHub provenance before running."
+)
+macos_signed = (
+    macos.get("verified") is True
+    and macos.get("identity") == "developer_id_application"
+    and macos.get("notarized") is True
+    and isinstance(macos.get("team_id"), str)
+    and bool(macos["team_id"])
+)
+windows_signed = (
+    windows.get("verified") is True
+    and windows.get("identity") == "authenticode"
+    and isinstance(windows.get("subject"), str)
+    and bool(windows["subject"])
+)
+if stable_tag:
+    if unsigned_warning is not None:
+        raise SystemExit("stable release must not carry an unsigned-preview warning")
+    if not macos_signed:
+        raise SystemExit("macOS Developer ID/notarization gate is not satisfied")
+    if not windows_signed:
+        raise SystemExit("Windows Authenticode gate is not satisfied")
+elif preview_tag:
+    if unsigned_warning != expected_unsigned_warning:
+        raise SystemExit("preview release must carry the exact unsigned-platform warning")
+    if not (
+        macos.get("verified") is False
+        and macos.get("identity") == "unsigned"
+        and macos.get("notarized") is False
+        and macos.get("team_id") is None
+    ):
+        raise SystemExit("preview macOS signing state must explicitly be unsigned")
+    if not (
+        windows.get("verified") is False
+        and windows.get("identity") == "unsigned"
+        and windows.get("subject") is None
+    ):
+        raise SystemExit("preview Windows signing state must explicitly be unsigned")
 assets = manifest.get("assets")
 asset_names = [item.get("name") for item in assets] if isinstance(assets, list) else []
 if (
