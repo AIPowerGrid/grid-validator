@@ -162,7 +162,8 @@ Production evidence captured on 2026-08-26:
   media issuance disabled.
 
 The capability response continues to report that independence is not required
-for ordinary preview acceptance. Use the public network status and authenticated
+for ordinary preview acceptance. Use the public
+[network status](https://console.aipowergrid.io/network) and authenticated
 assignment-health response for the separate, current verified/participating
 operator aggregates and per-group independent quorum. Never infer independence
 from registered-validator count.
