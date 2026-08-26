@@ -90,6 +90,37 @@ hours. They do not download or execute updates. When notified, set
 repeat `aipg-validator check --no-probe`. Disable the check with
 `VALIDATOR_UPDATE_CHECK=false` when outbound GitHub access is not desired.
 
+### Suspend, Resume, Or Rotate
+
+Stop new assignments before planned maintenance:
+
+```bash
+aipg-validator suspend
+```
+
+The request is signed by the registered wallet. Resume the same identity with a
+fresh registration and health check:
+
+```bash
+aipg-validator check --no-probe
+```
+
+To replace the signing wallet, first stop the node. In the Console, keep the
+same Grid account, link a different replacement wallet, and issue a new
+validator API key. Update `VALIDATOR_WALLET`, `VALIDATOR_PRIVATE_KEY`, and
+`VALIDATOR_API_KEY` locally, keep `.env` mode `0600`, then run:
+
+```bash
+aipg-validator rotate
+aipg-validator check --no-probe
+```
+
+Rotation preserves the validator ID and historical attribution. It does not
+move old in-flight assignments; they expire. After the replacement checks
+healthy, revoke every old validator API key in the Console. If compromise is
+suspected, request maintainer revocation too: an attacker holding both old keys
+can otherwise resume a merely self-suspended registration.
+
 ### Source Install
 
 ```bash
@@ -297,6 +328,8 @@ The node is intentionally defensive around new Grid endpoints:
 | `/v1/validator/capabilities` | reads non-economic feature flags |
 | `/v1/validator/register` | registers the linked signing wallet and capabilities |
 | `/v1/validator/registration` | reports current registration state |
+| `/v1/validator/suspend` | accepts signed self-suspension for maintenance or exit |
+| `/v1/validator/rotate` | binds the stable validator ID to a linked replacement wallet |
 | `/v1/validator/heartbeat` | refreshes node liveness |
 | `/v1/validator/assignments` | supplies the only valid probe targets |
 | `/v1/validator/probe/{assignment_id}` | targeted execution for an assignment |

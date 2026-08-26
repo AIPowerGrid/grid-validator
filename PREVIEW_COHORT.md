@@ -70,7 +70,17 @@ above. Report suspected security issues privately using the process in
 
 ## Exit And Revocation
 
-Stop the process or service to leave the cohort. If a signing key or validator
-API key may have leaked, revoke the API key in the Console, rotate the signing
-wallet, and ask an operator to revoke the validator registration. Deleting
-local files does not revoke server-side credentials.
+Run `aipg-validator suspend` before stopping the process or service to leave the
+cohort cleanly. A later `aipg-validator check --no-probe` submits a fresh signed
+registration and resumes the same wallet.
+
+For planned signing-wallet rotation, stop the node, link a different replacement
+wallet to the same canonical Grid account, issue a new validator API key, update
+the local wallet/private-key/API-key settings, and run `aipg-validator rotate`.
+After `aipg-validator check --no-probe` succeeds, revoke every previous validator
+API key in the Console. The stable validator ID and historical evidence remain
+unchanged; old in-flight assignments expire rather than moving to the new key.
+
+If either key may have leaked, self-suspension is not sufficient: revoke the old
+API key in the Console and ask a maintainer for hard registration revocation.
+Deleting local files does not revoke server-side credentials.

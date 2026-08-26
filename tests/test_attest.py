@@ -43,6 +43,28 @@ class AttestationTests(unittest.TestCase):
 
         self.assertNotIn("text.token_limit.v1", payload["capabilities"])
 
+    def test_lifecycle_payloads_bind_stable_id_and_wallets(self):
+        replacement = "0x" + "34" * 20
+        previous = "0x" + "12" * 20
+        with (
+            patch.object(Settings, "VALIDATOR_WALLET", replacement),
+            patch("validator.attest.runtime_capabilities", return_value=["text.code.v1"]),
+        ):
+            suspension = attest.build_suspension("val_1", 123456)
+            rotation = attest.build_rotation("val_1", previous.upper(), 123456)
+
+        self.assertEqual(suspension, {
+            "suspension_schema": "aipg.validator.suspension.v1",
+            "validator_id": "val_1",
+            "validator": replacement,
+            "ts": 123456,
+        })
+        self.assertEqual(rotation["rotation_schema"], "aipg.validator.rotation.v1")
+        self.assertEqual(rotation["validator_id"], "val_1")
+        self.assertEqual(rotation["previous_signing_wallet"], previous)
+        self.assertEqual(rotation["validator"], replacement)
+        self.assertEqual(rotation["capabilities"], ["text.code.v1"])
+
     def test_registration_advertises_image_only_when_runtime_is_ready(self):
         with (
             patch.object(Settings, "VALIDATOR_WALLET", "0x" + "12" * 20),

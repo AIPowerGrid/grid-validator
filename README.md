@@ -158,6 +158,13 @@ log a notice when a newer valid tag exists. They never download or install an
 update. Set `VALIDATOR_UPDATE_CHECK=false` to disable the notification. Upgrade
 by rerunning the exact-version installer and verifying checksum/provenance again.
 
+Operators can stop new assignments with a signed `aipg-validator suspend` and
+resume through `aipg-validator check --no-probe`. `aipg-validator rotate`
+preserves the stable validator ID while binding a different signing wallet that
+has already been linked to the same Grid account. Wallet rotation and API-key
+rotation are separate: replace and revoke the old validator API key in the
+Console as part of the same procedure. See [OPERATORS.md](OPERATORS.md).
+
 ## Quick Start
 
 Requires Python 3.10+.

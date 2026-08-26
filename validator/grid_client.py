@@ -155,7 +155,7 @@ class GridClient:
         return r.json()
 
     async def validator_registration(self) -> dict:
-        """Return this key's active registration, or an unavailable status."""
+        """Return this key's active/suspended registration, or an unavailable status."""
         try:
             r = await self._http.get("/v1/validator/registration", timeout=10)
             if r.status_code in (403, 404):
@@ -164,6 +164,18 @@ class GridClient:
             return {"available": True, **r.json()}
         except httpx.HTTPError as exc:
             return {"available": False, "status": "unavailable", "error": str(exc)}
+
+    async def suspend_validator(self, envelope: dict) -> dict:
+        """Self-suspend using the registered signing wallet."""
+        r = await self._http.post("/v1/validator/suspend", json=envelope, timeout=10)
+        r.raise_for_status()
+        return r.json()
+
+    async def rotate_validator(self, envelope: dict) -> dict:
+        """Rotate to the configured wallet after it is linked to this Grid account."""
+        r = await self._http.post("/v1/validator/rotate", json=envelope, timeout=10)
+        r.raise_for_status()
+        return r.json()
 
     async def heartbeat(self) -> dict:
         """Refresh the active validator's liveness and software metadata."""

@@ -61,6 +61,8 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   source preview, future binary install, Docker, systemd, health checks, and V0
   safety boundaries.
 - **`OPERATORS.md`** — plain-language run guide (install, systemd, troubleshooting, FAQ).
+  It owns the signed suspend/resume and account-bound signing-wallet/API-key
+  rotation runbooks; do not describe local file deletion as credential revocation.
 - **`DESIGN.md`** — source of truth for validator phases, proof lanes, modality scoring,
   reference pool, future economics, Base anchoring, and Grid-side dependencies.
 - **`ADVERSARIAL_VALIDATION.md`** — attacker model, evidence-dimension boundaries,
@@ -197,6 +199,11 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   accepts it. Core-completed replay responses must retain the original measured
   latency. Never persist the private key in validator state. Exhausted rows stay
   as dead letters until an operator explicitly retries them.
+- **Lifecycle controls preserve identity:** self-suspension is signed by the
+  current registered wallet; rotation is signed by a different replacement
+  wallet already linked to the same canonical Grid account and preserves the
+  validator ID. Wallet rotation never substitutes for revoking the previous
+  validator API key.
 - **Secrets:** `.env` may hold `VALIDATOR_PRIVATE_KEY` (signs attestations and later controls
   stake) — always chmod 600, never commit. The key never leaves the box; the grid receives only
   signed payloads. If the private key is configured, `VALIDATOR_WALLET` must be the derived

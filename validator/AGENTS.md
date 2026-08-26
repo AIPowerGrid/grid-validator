@@ -27,7 +27,7 @@ independent-reference and rollout gates pass.
 - **`staking.py`** — on-chain stake gate (`stake_of`, `assert_eligible`). Raises `NotDeployed`
   until `VALIDATOR_STAKING_ADDR` is set; honors `REQUIRE_STAKE=false` for pre-launch/dev.
 - **`grid_client.py`** — async httpx client for validator registration,
-  heartbeat, capabilities, scorecards, assignments, assignment-bound targeted
+  suspension, signing-wallet rotation, heartbeat, capabilities, scorecards, assignments, assignment-bound targeted
   probes, worker inventory, and attestation submission.
   Each grid-only endpoint degrades gracefully (conservative capabilities,
   unavailable scorecards, empty list, `None`, or `False`) when not yet deployed.
@@ -64,7 +64,7 @@ independent-reference and rollout gates pass.
   does not follow redirects or environment proxies, rejects encoded/oversized/MIME-
   mismatched bodies, and recomputes Core's SHA-256 commitment before decoding.
   Heavy deps imported lazily; missing dep → skip, never crash.
-- **`attest.py`** — build canonical registration/attestation bodies + `sign()` (EIP-191 over sorted-key
+- **`attest.py`** — build canonical registration, suspension, rotation, and attestation bodies + `sign()` (EIP-191 over sorted-key
   compact JSON). Text V0 attestations include `modality`, `capability`,
   `assignment_id`, `epoch`, prompt/response hashes, an `evidence_hash`, and a
   coarse score for scorecard aggregation. Runtime capability advertisement is
@@ -87,13 +87,15 @@ independent-reference and rollout gates pass.
   a startup error before the Grid client starts; do not silently return success.
   The direct `python -m validator.main` module path must also print clean
   startup errors and exit nonzero, not traceback.
-- **`cli.py`** — `aipg-validator init | check | dashboard | run | queue` (interactive
+- **`cli.py`** — `aipg-validator init | check | dashboard | run | queue | suspend | rotate` (interactive
   `.env` at chmod 600; capability/scorecard-aware health check with
   `--no-probe`; check reports the locally usable scorer set before registration;
   stake-disabled preview check reports an explicit skip, while
   stake-required check fails closed on missing stake deps/config; startup
   config errors print one operator-facing line instead of tracebacks; the loop;
   local dashboard command; and explicit queue status/dead-letter recovery).
+  `suspend` signs with the current registered wallet; `rotate` signs with the
+  configured replacement wallet after Core reports the previous registration.
 - **`__main__.py`** — module entrypoint for `python -m validator` and
   PyInstaller release binaries.
 - **`update_check.py`** — bounded, notification-only GitHub release check. It
@@ -192,6 +194,11 @@ independent-reference and rollout gates pass.
 - **Updates are notification-only:** a release-feed response may select a newer
   syntactically valid tag, but it is never execution authority. Installation
   remains an explicit operator action through checksums and GitHub provenance.
+- **Lifecycle controls are not magic recovery:** suspension requires the current
+  signing key and ordinary registration resumes it. Rotation requires a
+  different configured key whose wallet has already been linked to the same
+  Grid account. Operators must replace and revoke the previous scoped API key
+  separately; a suspected compromise requires server-side revocation.
 
 ## Work Guidance
 

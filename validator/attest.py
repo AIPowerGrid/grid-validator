@@ -88,6 +88,29 @@ def build_registration(ts: int) -> dict:
     }
 
 
+def build_suspension(validator_id: str, ts: int) -> dict:
+    """Build a signed request that stops this validator receiving new work."""
+    return {
+        "suspension_schema": "aipg.validator.suspension.v1",
+        "validator_id": validator_id,
+        "validator": Settings.VALIDATOR_WALLET,
+        "ts": ts,
+    }
+
+
+def build_rotation(validator_id: str, previous_signing_wallet: str, ts: int) -> dict:
+    """Build a new-wallet-signed replacement for one stable validator identity."""
+    return {
+        "rotation_schema": "aipg.validator.rotation.v1",
+        "validator_id": validator_id,
+        "previous_signing_wallet": previous_signing_wallet.lower(),
+        "validator": Settings.VALIDATOR_WALLET,
+        "software_version": __version__,
+        "capabilities": runtime_capabilities(),
+        "ts": ts,
+    }
+
+
 def _assignment_id(model: str, canary: dict, ts: int, explicit: str | None) -> str:
     if explicit:
         return explicit
