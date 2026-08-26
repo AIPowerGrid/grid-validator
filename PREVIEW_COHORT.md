@@ -34,9 +34,9 @@ increase quorum weight.
 Independence means separate practical control of the validator key, host, and
 operating decisions. A second wallet, process, VM, cloud account, or family
 member acting under the same operational control is not a second operator.
-Operators must disclose common control privately to maintainers; Core records
-only an opaque group, never the operator's name, email, IP, hostname, or review
-notes.
+Operators must disclose common control privately to the project maintainer;
+Core records only an opaque group, never the operator's name, email, IP,
+hostname, or review notes.
 
 ## Join
 
@@ -51,7 +51,7 @@ notes.
 4. Wait for enrollment approval and a dedicated scoped validator key before
    running an assignment probe. Link the dedicated signing wallet to the same
    Grid account through the authenticated account flow; never send a private key
-   to a maintainer.
+   to the project maintainer.
 5. Install the exact preview release, verify its checksum and GitHub provenance,
    and run `aipg-validator check --no-probe` before starting the assignment loop.
 
@@ -85,16 +85,18 @@ The operator should then run the node continuously for at least 72 hours:
 aipg-validator run
 ```
 
-After enrollment, a maintainer places the registration into candidate status.
-Core samples at most one qualifying heartbeat every five minutes. Verification
-requires at least 72 hours, at least 80% sample coverage, a fresh heartbeat, and
-a maintainer review. A verified review expires after 30 days by default and
-must be renewed; operators cannot self-certify through the node or API.
+After enrollment, the project maintainer places the registration into candidate
+status. Core samples at most one qualifying heartbeat every five minutes.
+Verification requires at least 72 hours, at least 80% sample coverage, a fresh
+heartbeat, and a project-maintainer review. A verified review expires after 30
+days by default and must be renewed; operators cannot self-certify through the
+node or API.
 
 The cohort is proven only when Core reports at least five recently active,
 verified independent operator groups and real shared groups receive at least
-three reviewed independent votes. The public status exposes aggregate verified
-and participating counts but no group identifiers. A successful install,
+three reviewed independent votes. The public
+[network status](https://console.aipowergrid.io/network) exposes aggregate
+verified and participating counts but no group identifiers. A successful install,
 registration, wallet, heartbeat, or ordinary 3-of-5 registration quorum alone
 does not prove independence. Until both conditions hold, validator evidence
 remains preview-only and economically inert.
@@ -124,5 +126,5 @@ API key in the Console. The stable validator ID and historical evidence remain
 unchanged; old in-flight assignments expire rather than moving to the new key.
 
 If either key may have leaked, self-suspension is not sufficient: revoke the old
-API key in the Console and ask a maintainer for hard registration revocation.
-Deleting local files does not revoke server-side credentials.
+API key in the Console and ask the project maintainer for hard registration
+revocation. Deleting local files does not revoke server-side credentials.
