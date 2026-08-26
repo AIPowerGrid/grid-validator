@@ -36,7 +36,7 @@ if ($env:PROCESSOR_ARCHITECTURE -notin @("AMD64", "x86_64")) {
 }
 
 $repo = Get-Setting "AIPG_VALIDATOR_REPO" "AIPowerGrid/grid-validator"
-$version = Get-Setting "AIPG_VALIDATOR_VERSION" "v0.1.0-preview.1"
+$version = Get-Setting "AIPG_VALIDATOR_VERSION" "v0.1.0-preview.2"
 $installDir = Get-Setting "AIPG_VALIDATOR_INSTALL_DIR" (Join-Path $HOME ".local\bin")
 $configDir = Get-Setting "AIPG_VALIDATOR_CONFIG_DIR" (Join-Path $HOME ".aipg-validator")
 $asset = "aipg-validator-windows-x64.zip"
