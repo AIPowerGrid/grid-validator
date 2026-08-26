@@ -43,6 +43,9 @@ candidate worker against certified reference output.
 
 Status: the production Core rollout and first-party text-quorum pilot are live;
 public binary distribution and independent operator qualification are pending.
+Core candidate support for opaque common-control grouping, a 72-hour sampled
+qualification, expiring reviews, and aggregate-only health is under independent
+review; registration quorum remains a separate non-economic signal.
 
 Goal: give operators something easy to run while the Grid learns from evidence
 without economic side effects.
@@ -350,12 +353,13 @@ Definition of done:
 
 ## Immediate Next Build Order
 
-1. Deploy migrations through `0024` and the immutable Core candidate; smoke every
-   assignment-bound endpoint while keeping the path evidence-only.
-2. Publish the already-scaffolded binaries and Docker image only after that gate.
-3. Prove self-validation exclusion and adversarial multi-validator behavior.
-4. Add text capability policies before media/video economic effects.
-5. Add deterministic image workflow certification before any product-level
-   minting or marketplace trust gate depends on validator evidence.
-6. Add validator stake/rewards after evidence, scorecards, and references are
-   proven operationally.
+1. Merge the independently reviewed public-release, durable-journal, lifecycle,
+   and Core operator-qualification changes while keeping economics disabled.
+2. Publish the protected unsigned preview tag and independently verify clean
+   installs on all four platforms plus Docker.
+3. Recruit 5-10 unrelated operators and complete the 72-hour qualification;
+   ordinary registration quorum remains a separate preview signal.
+4. Calibrate deterministic image fidelity with independent bonded references,
+   then pilot objective video contract checks without economic effects.
+5. Add validator stake/rewards only after evidence, scorecards, references,
+   dispute handling, and a purpose-built Base contract audit are proven.

@@ -24,6 +24,13 @@ One organization or person counts as one independent operator, regardless of
 how many nodes they run. Multiple nodes controlled by the same operator do not
 increase quorum weight.
 
+Independence means separate practical control of the validator key, host, and
+operating decisions. A second wallet, process, VM, cloud account, or family
+member acting under the same operational control is not a second operator.
+Operators must disclose common control privately to maintainers; Core records
+only an opaque group, never the operator's name, email, IP, hostname, or review
+notes.
+
 ## Join
 
 1. Join the [AI Power Grid Discord](https://discord.gg/W9D8j6HCtC).
@@ -56,10 +63,22 @@ The operator should then run the node continuously for at least 72 hours:
 aipg-validator run
 ```
 
+After enrollment, a maintainer places the registration into candidate status.
+Core samples at most one qualifying heartbeat every five minutes. Verification
+requires at least 72 hours, at least 80% sample coverage, a fresh heartbeat, and
+a maintainer review. A verified review expires after 30 days by default and
+must be renewed; operators cannot self-certify through the node or API.
+
 The cohort is proven only when Core reports at least five recently active,
-distinct registered validators and shared groups receive independent votes
-from unrelated operators. A successful install or heartbeat alone does not
-prove quorum.
+verified independent operator groups and real shared groups receive at least
+three reviewed independent votes. The public status exposes aggregate verified
+and participating counts but no group identifiers. A successful install,
+registration, wallet, heartbeat, or ordinary 3-of-5 registration quorum alone
+does not prove independence.
+
+The 72-hour run qualifies basic operation and control separation. It does not
+prove every model claim, authorize rewards, or make subjective evidence
+slashable.
 
 ## Report Problems
 

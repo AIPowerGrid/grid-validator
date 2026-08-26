@@ -97,9 +97,10 @@ surface.
 
 Required code:
 
-- Alembic migrations through `0024_validator_group_witnesses`; `0022` adds
-  shared quorum and `0023`-`0024` keep the current Core candidate schema-complete
-  while media assignments remain disabled
+- Alembic migrations through `0026_validator_operator_independence`; `0022`
+  adds shared quorum, `0023`-`0024` keep the dark media schema complete, `0025`
+  adds completed-result recovery, and `0026` adds privacy-safe operator
+  qualification while media assignments remain disabled
 - `grid_api/v2/schema.py` validator registration, assignment, and attestation tables
 - `grid_api/services/validators.py`
 - `grid_api/routers/validator.py`
@@ -147,6 +148,12 @@ Production evidence captured on 2026-08-21:
 
 These three nodes share one operator and hypervisor. This is a deployment
 canary, not the independent cohort required for decentralization or economics.
+
+The capability response continues to report that independence is not required
+for ordinary preview acceptance. Use the public network status and authenticated
+assignment-health response for the separate, current verified/participating
+operator aggregates and per-group independent quorum. Never infer independence
+from registered-validator count.
 
 With an authenticated Console session, create a validator-purpose API key. It
 must contain exactly `validator.assignments`, `validator.probe`,
