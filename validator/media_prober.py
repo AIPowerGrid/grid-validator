@@ -62,12 +62,28 @@ class VideoDecodeTimeout(MediaWitnessError):
     """The local bounded decoder exceeded its resource deadline."""
 
 
+class ImageDecodeTimeout(MediaWitnessError):
+    """The local bounded image decoder exceeded its resource deadline."""
+
+
+class ImageWitnessInvalid(MediaWitnessError):
+    """The committed image bytes are structurally invalid worker output."""
+
+
 @dataclass(frozen=True)
 class VerifiedMediaWitness:
     body: bytes
     sha256: str
     byte_count: int
     content_type: str
+
+
+@dataclass(frozen=True)
+class ImageProfile:
+    width: int
+    height: int
+    phash: str
+    grayscale_stddev: float
 
 
 @dataclass(frozen=True)
@@ -296,13 +312,18 @@ async def score_image_fidelity_witnesses(
     allowed_origins: Collection[str],
     max_bytes: int,
     timeout_s: float,
+    decode_timeout_s: float,
     phash_tolerance: int,
     latency_budget_s: float,
     transport: httpx.AsyncBaseTransport | None = None,
 ) -> tuple[str, dict[str, Any]]:
     """Verify three witnesses and independently score deterministic image fidelity."""
     detail: dict[str, Any] = {"policy": "image.fidelity.v1"}
-    if not 0 <= phash_tolerance <= 64 or latency_budget_s < 0:
+    if (
+        not 0 <= phash_tolerance <= 64
+        or latency_budget_s < 0
+        or decode_timeout_s <= 0
+    ):
         return "inconclusive", {**detail, "reason": "invalid-local-policy"}
     if not media_dependencies_available():
         return "inconclusive", {**detail, "reason": "media-dependencies-unavailable"}
@@ -334,22 +355,45 @@ async def score_image_fidelity_witnesses(
     if len(verified) != 3:
         return "inconclusive", {**detail, "reason": "witness-fetch-or-commitment-failed"}
 
-    candidate, reference_a, reference_b = verified
-    for label, reference in (("reference_a", reference_a), ("reference_b", reference_b)):
-        ok, reason = check_structure(canary, reference.body)
-        if not ok or reason != "ok":
-            return "inconclusive", {**detail, "reason": f"{label}-structure-unusable"}
-    candidate_ok, candidate_reason = check_structure(canary, candidate.body)
-    if not candidate_ok:
-        return "failed", {**detail, "reason": f"candidate-{candidate_reason}"}
-    if candidate_reason != "ok":
-        return "inconclusive", {**detail, "reason": "candidate-decoder-unavailable"}
+    decoded: list[ImageProfile | ImageWitnessInvalid] = []
+    for witness in verified:
+        try:
+            decoded.append(
+                await asyncio.to_thread(
+                    decode_image_bounded,
+                    witness,
+                    timeout_s=decode_timeout_s,
+                )
+            )
+        except ImageDecodeTimeout:
+            return "inconclusive", {**detail, "reason": "local-image-decoder-timeout"}
+        except ImageWitnessInvalid as exc:
+            decoded.append(exc)
+        except Exception:  # local decoder/process failure is not worker evidence
+            return "inconclusive", {**detail, "reason": "local-image-decoder-failed"}
 
-    candidate_hash = phash(candidate.body)
-    reference_hash_a = phash(reference_a.body)
-    reference_hash_b = phash(reference_b.body)
-    if not candidate_hash or not reference_hash_a or not reference_hash_b:
-        return "inconclusive", {**detail, "reason": "phash-unavailable"}
+    for label, result in (("reference_a", decoded[1]), ("reference_b", decoded[2])):
+        if isinstance(result, ImageWitnessInvalid):
+            return "inconclusive", {**detail, "reason": f"{label}-structure-unusable"}
+        if (
+            (result.width, result.height) != (canary["expect_w"], canary["expect_h"])
+            or result.grayscale_stddev < 3
+        ):
+            return "inconclusive", {**detail, "reason": f"{label}-structure-unusable"}
+    if isinstance(decoded[0], ImageWitnessInvalid):
+        return "failed", {**detail, "reason": f"candidate-{decoded[0]}"}
+    profiles = [result for result in decoded if isinstance(result, ImageProfile)]
+    if len(profiles) != 3:
+        return "inconclusive", {**detail, "reason": "image-decode-incomplete"}
+    candidate, reference_a, reference_b = profiles
+    if (candidate.width, candidate.height) != (canary["expect_w"], canary["expect_h"]):
+        return "failed", {**detail, "reason": "candidate-wrong-dimensions"}
+    if candidate.grayscale_stddev < 3:
+        return "failed", {**detail, "reason": "candidate-blank-or-solid"}
+
+    candidate_hash = candidate.phash
+    reference_hash_a = reference_a.phash
+    reference_hash_b = reference_b.phash
     reference_distance = phash_distance(reference_hash_a, reference_hash_b)
     detail["reference_distance"] = reference_distance
     if reference_distance > phash_tolerance:
@@ -472,7 +516,7 @@ def _video_contract(
     }, ordered, fidelity
 
 
-def _limit_video_decoder(timeout_s: float) -> None:
+def _limit_media_decoder(timeout_s: float, memory_bytes: int) -> None:
     """Bound a native decoder process where the host supports rlimits."""
     if not sys.platform.startswith("linux"):
         return
@@ -481,10 +525,117 @@ def _limit_video_decoder(timeout_s: float) -> None:
 
         cpu_soft = max(1, math.ceil(timeout_s))
         resource.setrlimit(resource.RLIMIT_CPU, (cpu_soft, max(2, cpu_soft + 1)))
-        memory = 2 * 1024 * 1024 * 1024
-        resource.setrlimit(resource.RLIMIT_AS, (memory, memory))
+        resource.setrlimit(resource.RLIMIT_AS, (memory_bytes, memory_bytes))
     except (ImportError, OSError, ValueError):
         return
+
+
+def _decode_image_profile(body: bytes, content_type: str) -> ImageProfile:
+    import imagehash
+    from PIL import Image, ImageStat, UnidentifiedImageError
+
+    expected_format = {
+        "image/jpeg": "JPEG",
+        "image/png": "PNG",
+        "image/webp": "WEBP",
+    }.get(content_type)
+    if expected_format is None:
+        raise ImageWitnessInvalid("unsupported-image-type")
+    Image.MAX_IMAGE_PIXELS = _MAX_IMAGE_PIXELS
+    try:
+        with Image.open(io.BytesIO(body)) as image:
+            width, height = int(image.width), int(image.height)
+            if (
+                not 1 <= width <= _MAX_IMAGE_DIMENSION
+                or not 1 <= height <= _MAX_IMAGE_DIMENSION
+                or width * height > _MAX_IMAGE_PIXELS
+            ):
+                raise ImageWitnessInvalid("unsafe-dimensions")
+            if str(image.format or "").upper() != expected_format:
+                raise ImageWitnessInvalid("mime-mismatch")
+            if int(getattr(image, "n_frames", 1)) != 1:
+                raise ImageWitnessInvalid("animated-image")
+            image.load()
+            rgb = image.convert("RGB")
+            grayscale = rgb.convert("L").resize((64, 64))
+            stddev = float(ImageStat.Stat(grayscale).stddev[0])
+            return ImageProfile(
+                width=width,
+                height=height,
+                phash=str(imagehash.phash(rgb)),
+                grayscale_stddev=stddev,
+            )
+    except ImageWitnessInvalid:
+        raise
+    except (UnidentifiedImageError, OSError, SyntaxError, ValueError) as exc:
+        raise ImageWitnessInvalid("undecodable") from exc
+
+
+def _image_decode_worker(
+    send_conn,
+    body: bytes,
+    content_type: str,
+    timeout_s: float,
+) -> None:
+    try:
+        _limit_media_decoder(timeout_s, 1024 * 1024 * 1024)
+        send_conn.send(("ok", asdict(_decode_image_profile(body, content_type))))
+    except ImageWitnessInvalid as exc:
+        send_conn.send(("invalid", str(exc)))
+    except Exception as exc:  # noqa: BLE001 - decoder/library failures are isolated
+        send_conn.send(("error", type(exc).__name__))
+    finally:
+        send_conn.close()
+
+
+def decode_image_bounded(
+    witness: VerifiedMediaWitness,
+    *,
+    timeout_s: float,
+) -> ImageProfile:
+    """Decode and hash untrusted image bytes in a killable child process."""
+    if timeout_s <= 0:
+        raise ValueError("image decoder timeout must be positive")
+    context = multiprocessing.get_context("spawn")
+    receive_conn, send_conn = context.Pipe(duplex=False)
+    process = context.Process(
+        target=_image_decode_worker,
+        args=(send_conn, witness.body, witness.content_type, timeout_s),
+        daemon=True,
+    )
+    process.start()
+    send_conn.close()
+    try:
+        if not receive_conn.poll(timeout_s):
+            process.terminate()
+            process.join(2)
+            if process.is_alive():
+                process.kill()
+                process.join(2)
+            raise ImageDecodeTimeout("image decoder timed out")
+        status, payload = receive_conn.recv()
+    except EOFError as exc:
+        raise MediaWitnessError("image decoder exited without a result") from exc
+    finally:
+        receive_conn.close()
+        if process.is_alive():
+            process.join(2)
+        if process.is_alive():
+            process.terminate()
+            process.join(2)
+    if status == "invalid" and isinstance(payload, str):
+        raise ImageWitnessInvalid(payload)
+    if status != "ok" or not isinstance(payload, dict):
+        raise MediaWitnessError("image decoder failed")
+    try:
+        return ImageProfile(
+            width=int(payload["width"]),
+            height=int(payload["height"]),
+            phash=str(payload["phash"]),
+            grayscale_stddev=float(payload["grayscale_stddev"]),
+        )
+    except (KeyError, TypeError, ValueError) as exc:
+        raise MediaWitnessError("image decoder returned an invalid profile") from exc
 
 
 def _decode_video_profile(body: bytes, content_type: str, max_frames: int) -> VideoProfile:
@@ -560,7 +711,7 @@ def _video_decode_worker(
     timeout_s: float,
 ) -> None:
     try:
-        _limit_video_decoder(timeout_s)
+        _limit_media_decoder(timeout_s, 2 * 1024 * 1024 * 1024)
         send_conn.send(("ok", asdict(_decode_video_profile(body, content_type, max_frames))))
     except Exception as exc:  # noqa: BLE001 - native decoders expose library-specific errors
         send_conn.send(("error", type(exc).__name__))

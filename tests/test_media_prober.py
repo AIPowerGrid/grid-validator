@@ -300,6 +300,7 @@ class ImageFidelityTests(unittest.IsolatedAsyncioTestCase):
             allowed_origins=[self.ORIGIN],
             max_bytes=1024 * 1024,
             timeout_s=2,
+            decode_timeout_s=5,
             phash_tolerance=tolerance,
             latency_budget_s=2,
             transport=httpx.MockTransport(handler),
@@ -315,6 +316,37 @@ class ImageFidelityTests(unittest.IsolatedAsyncioTestCase):
         slow = self._witnesses(latency_ms=3000)
         outcome, _ = await self._score(slow)
         self.assertEqual(outcome, "slow")
+
+    def test_bounded_image_decoder_reports_profile(self):
+        witness = media_prober.VerifiedMediaWitness(
+            self.reference,
+            hashlib.sha256(self.reference).hexdigest(),
+            len(self.reference),
+            "image/png",
+        )
+        profile = media_prober.decode_image_bounded(witness, timeout_s=5)
+        self.assertEqual((profile.width, profile.height), (64, 64))
+        self.assertTrue(profile.phash)
+        self.assertGreaterEqual(profile.grayscale_stddev, 3)
+
+        wrong_mime = media_prober.VerifiedMediaWitness(
+            self.reference,
+            hashlib.sha256(self.reference).hexdigest(),
+            len(self.reference),
+            "image/jpeg",
+        )
+        with self.assertRaisesRegex(media_prober.ImageWitnessInvalid, "mime-mismatch"):
+            media_prober.decode_image_bounded(wrong_mime, timeout_s=5)
+
+    async def test_local_image_decoder_failure_is_inconclusive(self):
+        with patch.object(
+            media_prober,
+            "decode_image_bounded",
+            side_effect=media_prober.ImageDecodeTimeout("deadline"),
+        ):
+            outcome, detail = await self._score(self._witnesses())
+        self.assertEqual(outcome, "inconclusive")
+        self.assertEqual(detail["reason"], "local-image-decoder-timeout")
 
     async def test_reference_disagreement_is_inconclusive(self):
         witnesses = self._witnesses(reference_b=self.outlier)
@@ -400,6 +432,7 @@ class ImageFidelityTests(unittest.IsolatedAsyncioTestCase):
                 allowed_origins=[self.ORIGIN],
                 max_bytes=1024 * 1024,
                 timeout_s=2,
+                decode_timeout_s=5,
                 phash_tolerance=0,
                 latency_budget_s=2,
             )

@@ -44,6 +44,8 @@ installer generation.
 - Deterministic image tests must use generated local fixtures and prove two
   references agree before an outlier candidate can fail. Reference disagreement,
   missing decoders, unsafe transport, and oversized contracts are inconclusive.
+  Exercise the real bounded image child process and prove local decoder timeout
+  is inconclusive rather than a worker failure.
 - Video tests must generate local MP4 fixtures, exercise the real bounded PyAV
   decoder, reject inconsistent assignment timing and static/corrupt candidates,
   and prove reference agreement precedes candidate fidelity failure. They do

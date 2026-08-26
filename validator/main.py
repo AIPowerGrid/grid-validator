@@ -377,6 +377,7 @@ async def _probe_image_assignment(
         allowed_origins=Settings.MEDIA_ALLOWED_ORIGINS,
         max_bytes=Settings.MEDIA_MAX_BYTES,
         timeout_s=Settings.MEDIA_FETCH_TIMEOUT_S,
+        decode_timeout_s=Settings.IMAGE_DECODE_TIMEOUT_S,
         phash_tolerance=Settings.PHASH_TOLERANCE,
         latency_budget_s=Settings.MEDIA_LATENCY_BUDGET_S,
     )
