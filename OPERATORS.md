@@ -65,11 +65,30 @@ AIPG_VALIDATOR_INSTALL_DIR=/usr/local/bin \
   ./scripts/install-binary.sh
 ```
 
+On Windows x64, use the native PowerShell installer:
+
+```powershell
+Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview/install-validator.ps1 -OutFile install-validator.ps1
+gh attestation verify install-validator.ps1 --repo AIPowerGrid/grid-validator
+$env:AIPG_VALIDATOR_VERSION = "v0.1.0-preview"
+.\install-validator.ps1 -AcceptUnsignedPreview
+```
+
+The acknowledgement is required because this preview is not Authenticode
+signed. SHA-256 is verified before installation or execution. Stable releases
+remain blocked on signing.
+
 After a GitHub release exists, the same installer can be run from a checkout:
 
 ```bash
 ./scripts/install-binary.sh
 ```
+
+Running nodes perform a notification-only release check at most every six
+hours. They do not download or execute updates. When notified, set
+`AIPG_VALIDATOR_VERSION` to that exact tag, rerun the verified installer, and
+repeat `aipg-validator check --no-probe`. Disable the check with
+`VALIDATOR_UPDATE_CHECK=false` when outbound GitHub access is not desired.
 
 ### Source Install
 

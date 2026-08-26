@@ -110,7 +110,7 @@ Expected release assets:
 | Linux x64 | `aipg-validator-linux-x64.zip` |
 | Linux ARM64 | `aipg-validator-linux-arm64.zip` |
 
-Every release also carries `install-validator.sh`, `validator-release.json`,
+Every release also carries `install-validator.sh`, `install-validator.ps1`, `validator-release.json`,
 `SHA256SUMS`, an SPDX JSON SBOM, and GitHub build provenance. The release
 manifest binds the exact version, tag, source commit, asset sizes, and asset
 hashes, plus the platform-signing state; `SHA256SUMS` covers the manifest
@@ -141,6 +141,22 @@ aipg-validator check --no-probe
 aipg-validator dashboard
 aipg-validator run
 ```
+
+On Windows x64, use PowerShell. The required switch acknowledges that the
+preview executable is not Authenticode signed; the installer verifies SHA-256
+before installing or executing it:
+
+```powershell
+Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview/install-validator.ps1 -OutFile install-validator.ps1
+gh attestation verify install-validator.ps1 --repo AIPowerGrid/grid-validator
+$env:AIPG_VALIDATOR_VERSION = "v0.1.0-preview"
+.\install-validator.ps1 -AcceptUnsignedPreview
+```
+
+Running nodes check the public GitHub release feed at most every six hours and
+log a notice when a newer valid tag exists. They never download or install an
+update. Set `VALIDATOR_UPDATE_CHECK=false` to disable the notification. Upgrade
+by rerunning the exact-version installer and verifying checksum/provenance again.
 
 ## Quick Start
 

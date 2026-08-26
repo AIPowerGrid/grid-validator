@@ -118,6 +118,24 @@ aipg-validator dashboard
 aipg-validator run
 ```
 
+Windows x64 PowerShell:
+
+```powershell
+Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview/install-validator.ps1 -OutFile install-validator.ps1
+gh attestation verify install-validator.ps1 --repo AIPowerGrid/grid-validator
+$env:AIPG_VALIDATOR_VERSION = "v0.1.0-preview"
+.\install-validator.ps1 -AcceptUnsignedPreview
+```
+
+The acknowledgement switch is mandatory because the preview executable is not
+Authenticode signed. The installer verifies its SHA-256 checksum before the
+binary is installed or executed.
+
+The running node checks for a newer public release at most every six hours and
+prints a notification only. It never self-updates. To upgrade, rerun the
+installer with the new exact `AIPG_VALIDATOR_VERSION`, then repeat
+`aipg-validator check --no-probe`. Set `VALIDATOR_UPDATE_CHECK=false` to opt out.
+
 Until the first public release exists, use the source preview or local Docker
 path.
 

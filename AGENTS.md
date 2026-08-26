@@ -97,8 +97,8 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   Ordinary CI installs from the frozen `uv.lock` and audits the complete locked
   graph, including every optional dependency lane; it must not resolve the
   broad `pyproject.toml` ranges independently with pip.
-  Pull requests and `master` pushes assemble and verify the exact four-platform
-  binary payload without publishing it. Protected `v*` tag pushes are the only
+  Pull requests and `master` pushes assemble, verify, and clean-install the exact
+  four-platform binary payload without publishing it. Protected `v*` tag pushes are the only
   binary and container publication path; manual binary and Docker dispatches
   are build-only. `latest` is allowed only for stable tags.
   Preview/alpha/beta/RC images must never replace `latest`. A build-only binary
@@ -124,6 +124,9 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   the private config directory unless overridden.
   It verifies the selected archive against the release `SHA256SUMS`; signed
   GitHub provenance is verified separately with `gh attestation verify`.
+- **`scripts/install-validator.ps1`** — native Windows x64 installer. It
+  requires explicit acknowledgement of the unsigned preview and verifies the
+  archive checksum before installation or execution.
 - **`scripts/install-systemd.sh`** — Linux systemd service installer for source
   or released-binary validator nodes. Dry-run safe; generated unit must keep
   secrets in `.env`, not in the unit file.
@@ -133,7 +136,7 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   packaged token-limit scorer loads. Use `SKIP_DOCKER=1` or `SKIP_BINARY=1`
   only when the local machine genuinely cannot run that lane.
 - **`scripts/verify-release-assets.sh`** — publication gate for the exact four
-  platform archives, checksum-covered installer, SPDX JSON SBOM, and
+  platform archives, checksum-covered shell and PowerShell installers, SPDX JSON SBOM, and
   `validator-release.json` plus `SHA256SUMS`. The manifest binds version, tag,
   source commit, exact asset names, sizes, hashes, and platform-signing state;
   the aggregate checksum covers the manifest. The verifier checks archive
