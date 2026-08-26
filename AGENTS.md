@@ -100,9 +100,11 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   exact reviewed fingerprints only. Global placeholder words, lockfiles, and
   generated-directory names are not secret-scan exemptions; CI proves an
   `example_private_key` label cannot suppress a committed synthetic secret.
-  Ordinary CI installs from the frozen `uv.lock` and audits the complete locked
-  graph, including every optional dependency lane; it must not resolve the
-  broad `pyproject.toml` ranges independently with pip.
+  Ordinary CI installs from the frozen `uv.lock`, executes the complete Python
+  unit/adversarial suite on every supported Python version, and audits the
+  complete locked graph, including every optional dependency lane; it must not
+  resolve the broad `pyproject.toml` ranges independently with pip. A job named
+  `test` that only compiles or smoke-tests the CLI is not a test gate.
   Pull requests and `master` pushes assemble, verify, and clean-install the exact
   four-platform binary payload without publishing it. Linux x64 and ARM64
   binaries are built and clean-installed on Ubuntu 22.04 runners, establishing

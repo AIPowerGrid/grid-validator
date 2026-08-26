@@ -90,6 +90,69 @@ def _prompt_commitment_text(assignment: dict) -> str:
     return prompt
 
 
+def _assignment_seal_payload(result: dict) -> dict | None:
+    challenge = result.get("challenge")
+    values = {
+        "schema": "aipg.validator.assignment.seal.v1",
+        "assignment_id": str(result.get("assignment_id") or ""),
+        "probe_group_id": str(result.get("probe_group_id") or ""),
+        "grid_nonce": str(result.get("grid_nonce") or ""),
+        "target_worker_id": str(result.get("target_worker_id") or ""),
+        "model": str(result.get("model") or ""),
+        "modality": str(result.get("modality") or ""),
+        "capability": str(result.get("capability") or ""),
+        "canary_kind": str(result.get("canary_kind") or ""),
+        "scoring_policy_id": str(result.get("scoring_policy_id") or ""),
+        "challenge": challenge,
+    }
+    if not all(value for key, value in values.items() if key != "challenge"):
+        return None
+    if not isinstance(challenge, dict):
+        return None
+    return values
+
+
+def _hydrate_assignment_disclosure(assignment: dict, result: dict) -> dict | None:
+    """Verify a terminal disclosure and merge it into its journaled assignment."""
+    sealed = assignment.get("sealed") is True
+    expected_seal = str(assignment.get("assignment_seal") or "").lower()
+    result_seal = str(result.get("assignment_seal") or "").lower()
+    if sealed or expected_seal:
+        payload = _assignment_seal_payload(result)
+        if (
+            payload is None
+            or not expected_seal
+            or not result_seal
+            or not hmac.compare_digest(expected_seal, result_seal)
+            or not hmac.compare_digest(_sha256_text(_canonical(payload)), expected_seal)
+        ):
+            logger.warning("assignment disclosure seal does not verify; skipping")
+            return None
+        if (
+            str(assignment.get("assignment_id") or "") != payload["assignment_id"]
+            or str(assignment.get("modality") or "") != payload["modality"]
+            or str(assignment.get("capability") or "") != payload["capability"]
+        ):
+            logger.warning("assignment disclosure does not match its sealed envelope; skipping")
+            return None
+        disclosure = {
+            key: payload[key]
+            for key in (
+                "probe_group_id",
+                "grid_nonce",
+                "target_worker_id",
+                "model",
+                "modality",
+                "capability",
+                "canary_kind",
+                "scoring_policy_id",
+                "challenge",
+            )
+        }
+        return {**assignment, **disclosure}
+    return assignment
+
+
 def _verified_probe_evidence(
     assignment: dict,
     result: dict,
@@ -243,20 +306,28 @@ async def _probe_assignment(
         return 0
 
     assignment_id = assignment.get("assignment_id")
-    grid_nonce = assignment.get("grid_nonce")
-    canary = _assignment_canary(assignment)
-    if not assignment_id or not grid_nonce or not canary:
-        logger.info("grid assignment missing id, nonce, or challenge; skipping")
+    if not assignment_id:
+        logger.info("grid assignment missing id; skipping")
         return 0
 
-    model = assignment.get("model") or "unknown"
-    worker_id = assignment.get("target_worker_id") or ""
     t0 = time.time()
     res = await grid.probe_assignment(str(assignment_id))
     latency = time.time() - t0
     if not res:
-        logger.info(f"[{str(worker_id)[:8]} {model}] assignment probe unavailable; skipping")
+        logger.info("assignment %s probe unavailable; skipping", str(assignment_id)[:12])
         return 0
+    hydrated = _hydrate_assignment_disclosure(assignment, res)
+    if hydrated is None:
+        return 0
+    assignment = hydrated
+    grid_nonce = assignment.get("grid_nonce")
+    canary = _assignment_canary(assignment)
+    if not grid_nonce or not canary:
+        logger.info("grid assignment disclosure is missing nonce or challenge; skipping")
+        return 0
+
+    model = assignment.get("model") or "unknown"
+    worker_id = assignment.get("target_worker_id") or ""
 
     text = str(res.get("output_text") or res.get("text") or "")
     tool_calls = res.get("tool_calls")
@@ -340,19 +411,9 @@ async def _probe_image_assignment(
 ) -> int:
     """Fetch, verify, and score one Core-issued three-worker image witness set."""
     assignment_id = str(assignment.get("assignment_id") or "")
-    grid_nonce = str(assignment.get("grid_nonce") or "")
-    worker_id = str(assignment.get("target_worker_id") or "")
-    model = str(assignment.get("model") or "")
-    challenge = assignment.get("challenge") or {}
     if (
         not assignment_id
-        or not grid_nonce
-        or not worker_id
-        or not model
         or assignment.get("capability") != "image.fidelity.v1"
-        or assignment.get("canary_kind") != "image.fidelity"
-        or not isinstance(challenge, dict)
-        or challenge.get("schema") != "aipg.validator.media.challenge.v1"
         or not Settings.MEDIA_ALLOWED_ORIGINS
     ):
         logger.info("image assignment is unsupported or incomplete; skipping")
@@ -360,7 +421,25 @@ async def _probe_image_assignment(
 
     result = await grid.probe_assignment(assignment_id)
     if not result:
-        logger.info("[%s %s] image assignment probe unavailable; skipping", worker_id[:8], model)
+        logger.info("image assignment %s probe unavailable; skipping", assignment_id[:12])
+        return 0
+    hydrated = _hydrate_assignment_disclosure(assignment, result)
+    if hydrated is None:
+        return 0
+    assignment = hydrated
+    grid_nonce = str(assignment.get("grid_nonce") or "")
+    worker_id = str(assignment.get("target_worker_id") or "")
+    model = str(assignment.get("model") or "")
+    challenge = assignment.get("challenge") or {}
+    if (
+        not grid_nonce
+        or not worker_id
+        or not model
+        or assignment.get("canary_kind") != "image.fidelity"
+        or not isinstance(challenge, dict)
+        or challenge.get("schema") != "aipg.validator.media.challenge.v1"
+    ):
+        logger.info("image assignment disclosure is unsupported or incomplete; skipping")
         return 0
     response_commitment = _media_response_commitment(result)
     if response_commitment is None:
@@ -447,19 +526,35 @@ async def _probe_video_assignment(
 ) -> int:
     """Fetch, verify, and score one Core-issued video witness set."""
     assignment_id = str(assignment.get("assignment_id") or "")
-    grid_nonce = str(assignment.get("grid_nonce") or "")
-    worker_id = str(assignment.get("target_worker_id") or "")
-    model = str(assignment.get("model") or "")
     capability = str(assignment.get("capability") or "")
-    canary_kind = str(assignment.get("canary_kind") or "")
-    challenge = assignment.get("challenge") or {}
     expected = {
         "video.contract.v1": "video.contract",
         "video.fidelity.v1": "video.fidelity",
     }
     if (
         not assignment_id
-        or not grid_nonce
+        or capability not in expected
+        or not Settings.MEDIA_ALLOWED_ORIGINS
+    ):
+        logger.info("video assignment is unsupported or incomplete; skipping")
+        return 0
+
+    result = await grid.probe_assignment(assignment_id)
+    if not result:
+        logger.info("video assignment %s probe unavailable; skipping", assignment_id[:12])
+        return 0
+    hydrated = _hydrate_assignment_disclosure(assignment, result)
+    if hydrated is None:
+        return 0
+    assignment = hydrated
+    grid_nonce = str(assignment.get("grid_nonce") or "")
+    worker_id = str(assignment.get("target_worker_id") or "")
+    model = str(assignment.get("model") or "")
+    capability = str(assignment.get("capability") or "")
+    canary_kind = str(assignment.get("canary_kind") or "")
+    challenge = assignment.get("challenge") or {}
+    if (
+        not grid_nonce
         or not worker_id
         or not model
         or capability not in expected
@@ -468,14 +563,8 @@ async def _probe_video_assignment(
         or challenge.get("schema") != "aipg.validator.media.challenge.v1"
         or challenge.get("kind") != canary_kind
         or challenge.get("scoring_policy_id") != capability
-        or not Settings.MEDIA_ALLOWED_ORIGINS
     ):
-        logger.info("video assignment is unsupported or incomplete; skipping")
-        return 0
-
-    result = await grid.probe_assignment(assignment_id)
-    if not result:
-        logger.info("[%s %s] video assignment probe unavailable; skipping", worker_id[:8], model)
+        logger.info("video assignment disclosure is unsupported or incomplete; skipping")
         return 0
     response_commitment = _media_response_commitment(result)
     if response_commitment is None:

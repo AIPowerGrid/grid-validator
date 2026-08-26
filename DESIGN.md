@@ -83,15 +83,16 @@ independently operated validators and a dispute process.
 
 ```mermaid
 flowchart TD
-  A["Grid core challenge and batch scheduler"] --> B["Signed assignment<br/>worker, modality, policy, nonce, deadline"]
+  A["Grid core challenge and batch scheduler"] --> B["Sealed assignment<br/>opaque id, capability, commitment, deadline"]
   B --> C["Validator node"]
   C --> E["Targeted probe endpoint"]
   E --> F["Assigned worker"]
   E --> G["Reference worker pool<br/>bonded, highly validated"]
   F --> H["Candidate output"]
   G --> I["Reference output(s)"]
-  H --> J["Independent validator scorer"]
-  I --> J
+  H --> D["Terminal disclosure<br/>target, challenge, nonce"]
+  I --> D
+  D --> J["Validator verifies seal<br/>then scores independently"]
   J --> K["Evidence package<br/>prompt hash, response hash, verdict"]
   K --> L["Signed attestation"]
   L --> M["Grid core evidence store"]
@@ -214,10 +215,14 @@ Current V0 lifecycle:
 2. Register the linked signing wallet and advertised capabilities.
 3. Optionally check local stake configuration; preview requires no stake.
 4. Fetch assignments from the Grid and persist them in the private local journal.
-5. Submit the assignment through the validator-only targeted endpoint. After a
-   restart, request Core's committed result rather than dispatching the worker again.
-6. Match the returned assignment, worker, model, nonce, and capability; then
-   recompute the prompt, response, and canonical evidence hashes.
+   In sealed mode this reveals no target, model, nonce, or challenge.
+5. Submit the opaque assignment id through the validator-only targeted endpoint.
+   After a restart, request Core's committed result rather than dispatching the
+   worker again.
+6. Verify that the terminal target, model, nonce, capability, and challenge
+   disclosure matches the assignment's SHA-256 seal; then recompute the prompt,
+   response, and canonical evidence hashes. During rollout, nodes also accept
+   the older full-assignment response when no seal is present.
 7. Score the result locally as `healthy`, `slow`, or `failed` against Core's
    expected-answer commitment. Core does not return its private verdict.
 8. Sign the probe group, assignment id, Grid nonce, verified evidence hash, and local verdict.
@@ -232,6 +237,12 @@ validator inside that family; already-open v7 groups retain their shared
 challenge during rollout. Evidence still cannot influence routing or money
 until those nodes are proven independently operated, probes are not
 fingerprintable, and a dispute process exists.
+
+Sealed assignment polling is a compatibility-gated anti-collusion improvement,
+not blind validation. It prevents a validator from learning the target and
+challenge before invoking the probe, but the worker can still recognize a public
+prompt family while executing it. Scheduler-owned production-shaped audits and
+measured probe indistinguishability remain economic-authority gates.
 
 ## Text Validation
 
