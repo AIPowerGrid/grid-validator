@@ -98,6 +98,9 @@ This is the intended public path once release artifacts are published:
 | Linux x64 | `aipg-validator-linux-x64.zip` |
 | Linux ARM64 | `aipg-validator-linux-arm64.zip` |
 
+The Linux binaries target glibc 2.35 or newer (Ubuntu 22.04 or a comparable
+distribution). Use Docker or the source install on Alpine/musl.
+
 The released installer verifies the downloaded archive against `SHA256SUMS`.
 Download it from the exact preview release and verify its build provenance
 before running it:

@@ -35,6 +35,10 @@ A small VPS, Raspberry Pi 4, or spare always-on machine is enough for V0 text
 probing. Future media/video scorers are designed to stay CPU-only where possible,
 but may need extra optional packages.
 
+Released Linux binaries target glibc 2.35 or newer (Ubuntu 22.04 or a
+comparable distribution). Alpine/musl operators should use Docker or the source
+install.
+
 ## Install
 
 ### Binary Install
