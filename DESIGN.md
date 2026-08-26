@@ -39,11 +39,12 @@ Status: current repo direction.
 - CPU-only.
 - Mandatory linked-wallet registration and assignment-bound text canaries.
 - Mandatory signed registration, heartbeat, and attestations.
-- Candidate Core implements capabilities, worker discovery, assignments,
+- Production Core implements capabilities, worker discovery, assignments,
   targeted text probes, attestations, scorecards, assignment health, and
-  non-economic shared 3-of-5 quorum states. Production remains gated on migration
-  `0024`, immutable deployment, and endpoint smoke tests. Independent operator
-  control is not proven by registration alone.
+  non-economic shared 3-of-5 quorum states through migration `0024`. Candidate
+  Core adds durable completed-result recovery and privacy-safe operator
+  qualification in `0025`-`0026`. Independent operator control is not proven by
+  registration alone.
 - Missing required validator endpoints fail closed; read-only metadata may
   degrade gracefully.
 - No rewards, routing effects, strikes, or slashing. Targeted attribution is
@@ -480,8 +481,8 @@ Going offline should stop rewards, not slash stake.
 - [x] Cross-platform binary packaging and build-only release qualification.
 - [ ] Publish Docker image on release.
 - [x] Grid validator assignment endpoint.
-- [ ] Deploy migrations through `0024` and the immutable Core candidate to production.
-- [ ] Prove registration, assignment, targeted-probe, attestation, and scorecard
+- [x] Deploy migrations through `0024` and the immutable Core candidate to production.
+- [x] Prove registration, assignment, targeted-probe, attestation, and scorecard
   endpoints against production.
 - [x] `POST /v1/validator/probe/{assignment_id}` targeted text execution.
 - [x] Assignment health, scorecards, and non-economic evidence lifecycle.
