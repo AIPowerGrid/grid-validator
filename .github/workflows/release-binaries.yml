@@ -310,15 +310,18 @@ jobs:
         with:
           subject-checksums: dist-artifacts/SHA256SUMS
 
-      - name: Publish GitHub release assets
-        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+      - name: Create draft and upload GitHub release assets
+        id: release_draft
+        uses: softprops/action-gh-release@fe965f7af51af5f2602596916f38a38df2e33de0 # v3.0.2
         with:
           tag_name: ${{ needs.validate.outputs.tag }}
           target_commitish: ${{ github.sha }}
+          draft: true
           prerelease: ${{ needs.validate.outputs.prerelease == 'true' }}
           body: >-
             ${{ needs.validate.outputs.prerelease == 'true' && '**UNSIGNED PREVIEW:** The macOS binary is not Developer ID signed or notarized, and the Windows binary is not Authenticode signed. Verify `SHA256SUMS` and GitHub provenance before running.' || '' }}
           generate_release_notes: true
+          fail_on_unmatched_files: true
           files: |
             dist-artifacts/*.zip
             dist-artifacts/*.spdx.json
@@ -326,6 +329,37 @@ jobs:
             dist-artifacts/install-validator.sh
             dist-artifacts/install-validator.ps1
             dist-artifacts/SHA256SUMS
+
+      - name: Verify draft assets before immutable publication
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_ID: ${{ steps.release_draft.outputs.id }}
+          RELEASE_PRERELEASE: ${{ needs.validate.outputs.prerelease }}
+        run: |
+          test -n "$RELEASE_ID"
+          release="$(gh api "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID")"
+          test "$(jq -r '.draft' <<< "$release")" = "true"
+          test "$(jq -r '.prerelease' <<< "$release")" = "$RELEASE_PRERELEASE"
+
+          find dist-artifacts -maxdepth 1 -type f -exec basename {} \; | sort \
+            > expected-assets.txt
+          gh api --paginate "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID/assets" \
+            --jq '.[].name' | sort > uploaded-assets.txt
+          diff -u expected-assets.txt uploaded-assets.txt
+
+      - name: Publish verified immutable release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_ID: ${{ steps.release_draft.outputs.id }}
+          RELEASE_PRERELEASE: ${{ needs.validate.outputs.prerelease }}
+        run: |
+          gh api --method PATCH \
+            "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID" \
+            -F draft=false \
+            -F prerelease="$RELEASE_PRERELEASE" \
+            --jq '{id, tag_name, draft, prerelease, immutable}'
 
   install-smoke:
     name: Clean install ${{ matrix.asset }}

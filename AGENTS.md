@@ -118,7 +118,10 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   the protected tag-publish job.
   GitHub immutable releases must remain enabled. After a release is published,
   its tag and assets are permanent; corrections publish a new version instead
-  of replacing an operator-visible artifact.
+  of replacing an operator-visible artifact. Binary publication must create a
+  draft, upload and remotely enumerate the complete verified payload, and only
+  then publish the draft; publishing a prerelease before its assets exist is a
+  release-blocking failure.
   Binary publication must use an owner-created protected `v*` tag on a commit
   reachable from reviewed `master`, pass the protected `validator-release`
   environment, and reverify the downloaded
