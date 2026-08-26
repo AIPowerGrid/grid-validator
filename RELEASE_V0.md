@@ -149,6 +149,18 @@ Production evidence captured on 2026-08-21:
 These three nodes share one operator and hypervisor. This is a deployment
 canary, not the independent cohort required for decentralization or economics.
 
+Production evidence captured on 2026-08-26:
+
+- immutable Core commit `49a6eb00`, Alembic `0026`, and zero restore/migration
+  drift against a fresh production backup;
+- three active first-party validators running the exact verified
+  `v0.1.0-preview` payload from validator commit `3a505d6`;
+- the Linux x64 payload ran on Ubuntu 22.04/glibc 2.35 and passed registration,
+  no-probe diagnostics, signed suspension, immediate resume, and service
+  rollout; and
+- Core still reported `economic_effect: none`, no independent operators, and
+  media issuance disabled.
+
 The capability response continues to report that independence is not required
 for ordinary preview acceptance. Use the public network status and authenticated
 assignment-health response for the separate, current verified/participating
