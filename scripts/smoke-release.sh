@@ -213,10 +213,13 @@ if [ "$SKIP_BINARY" != "1" ]; then
   "$install_dir/aipg-validator" self-test
   [ "$(stat_mode "$config_dir")" = "700" ] || die "installer config dir is not mode 700"
   grep -F "cd '$config_dir'" "$tmp/install.out" >/dev/null
-  grep -F "prepare-wallet" "$tmp/install.out" >/dev/null
-  prepare_line="$(grep -n -m1 -F "prepare-wallet" "$tmp/install.out" | cut -d: -f1)"
-  init_line="$(grep -n -m1 -F " init" "$tmp/install.out" | cut -d: -f1)"
-  [ "$prepare_line" -lt "$init_line" ] || die "installer must print prepare-wallet before init"
+  enroll_line="$(grep -n -m1 -F " enroll" "$tmp/install.out" | cut -d: -f1)"
+  check_line="$(grep -n -m1 -F " check --no-probe" "$tmp/install.out" | cut -d: -f1)"
+  [ "$enroll_line" -lt "$check_line" ] || die "installer must print enroll before check"
+  # Prove the packaged enrollment imports work, without creating a live account.
+  printf 'n\n' | "$install_dir/aipg-validator" enroll --env "$config_dir/.env" > "$tmp/enroll.out"
+  grep -F "Cancelled" "$tmp/enroll.out" >/dev/null
+  [ ! -e "$config_dir/.env" ] || die "cancelled enrollment created an identity"
 fi
 
 status "Smoke release checks passed"
