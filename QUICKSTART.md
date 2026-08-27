@@ -25,8 +25,7 @@ an assignment probe.
 
 - A machine that can stay online.
 - Python 3.10+ for the source preview.
-- A Grid API key.
-- A dedicated validator signing wallet linked to the same Grid account.
+- A Grid account you can sign into at the Console.
 - No GPU.
 - No Base stake requirement during the V0 preview.
 
@@ -48,9 +47,11 @@ VALIDATOR_REQUIRE_STAKE=false
 
 `VALIDATOR_PRIVATE_KEY` is required and stays on the node. It signs registration
 and attestations locally; Core receives only signatures and the public wallet.
-The wallet must already be linked to the account that issued the dedicated
-validator key. `aipg-validator init` derives `VALIDATOR_WALLET` from the key.
-This evidence identity is mandatory even while `VALIDATOR_REQUIRE_STAKE=false`.
+Create it with `aipg-validator prepare-wallet`, link the printed address at
+`https://console.aipowergrid.io/dashboard/validators`, create the scoped
+validator key there, and then run `aipg-validator init`. The command reuses the
+prepared identity without printing or re-requesting its private key. This
+evidence identity is mandatory even while `VALIDATOR_REQUIRE_STAKE=false`.
 
 ## Source Preview
 
@@ -59,15 +60,17 @@ git clone https://github.com/AIPowerGrid/grid-validator
 cd grid-validator
 
 ./install.sh
+./.venv/bin/aipg-validator prepare-wallet
+# Link the printed address and create a validator key in the Console.
+./.venv/bin/aipg-validator init
 ./.venv/bin/aipg-validator check --no-probe
 ./.venv/bin/aipg-validator dashboard
 ```
 
-`./install.sh` creates `.venv` and installs the package. If it is run from a
-terminal and `.env` is missing, it starts `aipg-validator init` for you. If it
-is run by automation or another non-interactive shell, it skips setup; run
-`./.venv/bin/aipg-validator init` yourself, or copy `.env.template` to `.env`
-and set `chmod 600 .env`.
+`./install.sh` creates `.venv` and installs the package. It does not generate an
+identity automatically. `prepare-wallet` writes the private identity locally
+with mode `0600` and prints only the address needed by the Console. `init`
+completes that same file after the wallet is linked and the scoped key exists.
 
 Open `http://127.0.0.1:8790/`.
 
@@ -87,6 +90,7 @@ Command safety:
 
 | Command | Sends canary jobs? | Notes |
 |---|---:|---|
+| `prepare-wallet` | no | creates the local signing identity and prints only its address |
 | `init` | no | writes local `.env`; no network call |
 | `check --no-probe` | no | validates config and Grid reachability |
 | `dashboard` | no | read-only localhost view |
@@ -117,10 +121,12 @@ before running it:
 > Docker are the least-friction preview paths.
 
 ```bash
-curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.3/install-validator.sh
+curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.4/install-validator.sh
 gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator
-AIPG_VALIDATOR_VERSION=v0.1.0-preview.3 bash install-validator.sh
+AIPG_VALIDATOR_VERSION=v0.1.0-preview.4 bash install-validator.sh
 cd ~/.aipg-validator
+aipg-validator prepare-wallet
+# Link the printed address and create a validator key in the Console.
 aipg-validator init
 aipg-validator check --no-probe
 aipg-validator dashboard
@@ -130,9 +136,9 @@ aipg-validator run
 Windows x64 PowerShell:
 
 ```powershell
-Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.3/install-validator.ps1 -OutFile install-validator.ps1
+Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.4/install-validator.ps1 -OutFile install-validator.ps1
 gh attestation verify install-validator.ps1 --repo AIPowerGrid/grid-validator
-$env:AIPG_VALIDATOR_VERSION = "v0.1.0-preview.3"
+$env:AIPG_VALIDATOR_VERSION = "v0.1.0-preview.4"
 .\install-validator.ps1 -AcceptUnsignedPreview
 ```
 
@@ -153,16 +159,16 @@ validator API key. Follow [OPERATORS.md](OPERATORS.md) and revoke the old API
 key after the replacement checks healthy.
 
 The versioned GitHub binaries and exact preview container are public. Anonymous
-GHCR access to `v0.1.0-preview.3` is verified for Linux x64 and ARM64. Keep the
+GHCR access to `v0.1.0-preview.4` is verified for Linux x64 and ARM64. Keep the
 version explicit: prereleases never publish or replace `latest`.
 
 ## Docker
 
 ```bash
-docker pull ghcr.io/aipowergrid/validator:v0.1.0-preview.3
+docker pull ghcr.io/aipowergrid/validator:v0.1.0-preview.4
 docker run --rm \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.3 check --no-probe
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.4 check --no-probe
 ```
 
 Run the loop:
@@ -170,7 +176,7 @@ Run the loop:
 ```bash
 docker run -d --name aipg-validator --restart unless-stopped \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.3
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.4
 ```
 
 Run the dashboard:
@@ -178,7 +184,7 @@ Run the dashboard:
 ```bash
 docker run --rm -p 8790:8790 \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.3 \
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.4 \
   dashboard --host 0.0.0.0
 ```
 

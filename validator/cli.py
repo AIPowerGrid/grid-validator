@@ -18,8 +18,11 @@ import getpass
 import os
 import stat
 import sys
+import tempfile
 import time
 from pathlib import Path
+
+from dotenv import dotenv_values
 
 
 def _enabled(value: object) -> str:
@@ -92,52 +95,189 @@ def _scorecard_lines(scorecards: dict, *, max_items: int = 3) -> list[str]:
     return lines
 
 
+def _env_path(args=None) -> Path:
+    configured = getattr(args, "env", None) or os.getenv("VALIDATOR_ENV")
+    return Path(configured).expanduser() if configured else Path.cwd() / ".env"
+
+
+def _write_private_env(path: Path, lines: list[str]) -> None:
+    """Atomically write validator configuration without a world-readable window."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temporary = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent, text=True)
+    try:
+        os.fchmod(fd, stat.S_IRUSR | stat.S_IWUSR)
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            handle.write("\n".join(lines) + "\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, path)
+        os.chmod(path, stat.S_IRUSR | stat.S_IWUSR)
+    except BaseException:
+        try:
+            os.close(fd)
+        except OSError:
+            pass
+        try:
+            os.unlink(temporary)
+        except FileNotFoundError:
+            pass
+        raise
+
+
+def _upsert_env(path: Path, updates: dict[str, str], *, fresh_lines: list[str]) -> None:
+    if path.exists():
+        source = path.read_text(encoding="utf-8").splitlines()
+    else:
+        source = list(fresh_lines)
+    pending = dict(updates)
+    output: list[str] = []
+    for line in source:
+        key = line.split("=", 1)[0].strip() if "=" in line else ""
+        if key not in updates:
+            output.append(line)
+            continue
+        if key in pending:
+            output.append(f"{key}={pending.pop(key)}")
+    output.extend(f"{key}={value}" for key, value in pending.items())
+    _write_private_env(path, output)
+
+
+def _cmd_prepare_wallet(args) -> int:
+    """Create the validator signing identity before Console enrollment."""
+    from eth_account import Account
+
+    from .config import normalize_wallet, wallet_from_private_key
+
+    env_path = _env_path(args)
+    existing = dotenv_values(env_path) if env_path.exists() else {}
+    private_key = str(existing.get("VALIDATOR_PRIVATE_KEY") or "").strip()
+    configured_wallet = str(existing.get("VALIDATOR_WALLET") or "").strip()
+
+    if private_key:
+        try:
+            wallet = wallet_from_private_key(private_key)
+            if configured_wallet and normalize_wallet(configured_wallet) != wallet:
+                raise RuntimeError("VALIDATOR_WALLET does not match VALIDATOR_PRIVATE_KEY.")
+        except RuntimeError as exc:
+            print(f"ERROR Existing validator identity is invalid: {exc}")
+            return 1
+        os.chmod(env_path, stat.S_IRUSR | stat.S_IWUSR)
+        print(f"OK Validator signing wallet already prepared: {wallet}")
+        print(f"   Identity file: {env_path} (chmod 600)")
+        return 0
+
+    account = Account.create()
+    wallet = account.address.lower()
+    private_key = "0x" + bytes(account.key).hex()
+    fresh = [
+        "GRID_API_URL=https://api.aipowergrid.io",
+        "VALIDATOR_API_KEY=",
+        f"VALIDATOR_WALLET={wallet}",
+        f"VALIDATOR_PRIVATE_KEY={private_key}",
+        "VALIDATOR_REQUIRE_STAKE=false",
+        "BASE_RPC_URL=https://mainnet.base.org",
+        "AIPG_TOKEN_ADDR=0xa1c0deCaFE3E9Bf06A5F29B7015CD373a9854608",
+        "VALIDATOR_STAKING_ADDR=",
+        "VALIDATOR_MIN_STAKE=50000",
+        "PROBE_INTERVAL_S=60",
+        "DASHBOARD_HOST=127.0.0.1",
+        "DASHBOARD_PORT=8790",
+    ]
+    _upsert_env(
+        env_path,
+        {
+            "VALIDATOR_WALLET": wallet,
+            "VALIDATOR_PRIVATE_KEY": private_key,
+        },
+        fresh_lines=fresh,
+    )
+    print(f"OK Created validator signing wallet: {wallet}")
+    print(f"   Private key saved only in {env_path} (chmod 600); it was not printed.")
+    print("   Next: link this public address in the Console, create a validator key,")
+    print("   then run `aipg-validator init` to complete setup.")
+    return 0
+
+
 def _cmd_init(args) -> int:
     """Interactive .env creation — no prior knowledge required."""
     from .config import normalize_grid_url, normalize_wallet, wallet_from_private_key
 
-    env_path = Path.cwd() / ".env"
+    env_path = _env_path(args)
+    existing = dotenv_values(env_path) if env_path.exists() else {}
+    existing_pk = str(existing.get("VALIDATOR_PRIVATE_KEY") or "").strip()
+    existing_wallet = str(existing.get("VALIDATOR_WALLET") or "").strip()
     try:
-        if env_path.exists() and input(f"{env_path} exists. Overwrite? [y/N] ").lower() != "y":
+        if (
+            env_path.exists()
+            and not existing_pk
+            and input(f"{env_path} exists. Overwrite? [y/N] ").lower() != "y"
+        ):
             print("Keeping existing .env.")
             return 0
 
         print("\nAIPG Validator setup - press Enter to accept [defaults].\n")
-        grid = input("Grid API URL [https://api.aipowergrid.io]: ").strip() or "https://api.aipowergrid.io"
+        grid_default = str(existing.get("GRID_API_URL") or "https://api.aipowergrid.io").strip()
+        grid = input(f"Grid API URL [{grid_default}]: ").strip() or grid_default
         try:
             grid = normalize_grid_url(grid)
         except RuntimeError as exc:
             print(f"ERROR {exc}")
             return 1
-        api_key = input("Validator grid API key (required): ").strip()
+        existing_api_key = str(existing.get("VALIDATOR_API_KEY") or "").strip()
+        if existing_api_key:
+            keep = input("Keep the existing validator API key? [Y/n] ").strip().lower()
+            api_key = existing_api_key if keep not in {"n", "no"} else ""
+        else:
+            api_key = ""
+        if not api_key:
+            api_key = input("Validator grid API key (required): ").strip()
         if not api_key:
             print("ERROR Validator grid API key is required.")
             return 1
-        wallet = input("Validator wallet address 0x... (must be linked to your Grid account): ").strip()
-        if wallet:
+        if existing_pk:
+            pk = existing_pk
             try:
-                wallet = normalize_wallet(wallet)
+                derived_wallet = wallet_from_private_key(pk)
+                if existing_wallet and normalize_wallet(existing_wallet) != derived_wallet:
+                    raise RuntimeError("VALIDATOR_WALLET does not match VALIDATOR_PRIVATE_KEY.")
+            except RuntimeError as exc:
+                print(f"ERROR Existing validator identity is invalid: {exc}")
+                return 1
+            wallet = derived_wallet
+            print(f"Using prepared validator wallet: {wallet}")
+        else:
+            wallet = input(
+                "Validator wallet address 0x... (must be linked to your Grid account): "
+            ).strip()
+            if wallet:
+                try:
+                    wallet = normalize_wallet(wallet)
+                except RuntimeError as exc:
+                    print(f"ERROR {exc}")
+                    return 1
+            pk = getpass.getpass("Validator private key (kept local, chmod 600): ").strip()
+            if not pk:
+                print("ERROR Validator private key is required for registration and evidence signing.")
+                return 1
+            try:
+                derived_wallet = wallet_from_private_key(pk)
             except RuntimeError as exc:
                 print(f"ERROR {exc}")
                 return 1
-        staked = input("Run with on-chain stake required? [y/N] ").lower() == "y"
-        pk = getpass.getpass("Validator private key (kept local, chmod 600): ").strip()
-        if not pk:
-            print("ERROR Validator private key is required for registration and evidence signing.")
-            return 1
-        try:
-            derived_wallet = wallet_from_private_key(pk)
-        except RuntimeError as exc:
-            print(f"ERROR {exc}")
-            return 1
-        if wallet and wallet.lower() != derived_wallet:
-            print("ERROR Validator wallet does not match the private key.")
-            print(f"   Configured wallet: {wallet}")
-            print(f"   Key wallet:        {derived_wallet}")
-            return 1
-        if not wallet:
-            wallet = derived_wallet
-            print(f"Derived validator wallet: {wallet}")
+            if wallet and wallet.lower() != derived_wallet:
+                print("ERROR Validator wallet does not match the private key.")
+                print(f"   Configured wallet: {wallet}")
+                print(f"   Key wallet:        {derived_wallet}")
+                return 1
+            if not wallet:
+                wallet = derived_wallet
+                print(f"Derived validator wallet: {wallet}")
+        staked_default = str(existing.get("VALIDATOR_REQUIRE_STAKE") or "false").lower() in {
+            "1", "true", "yes", "y", "on"
+        }
+        stake_prompt = "[Y/n]" if staked_default else "[y/N]"
+        stake_answer = input(f"Run with on-chain stake required? {stake_prompt} ").strip().lower()
+        staked = staked_default if not stake_answer else stake_answer in {"y", "yes"}
     except EOFError:
         print("ERROR Interactive setup requires a terminal.")
         print("   Run `aipg-validator init` from a shell, or create `.env` from `.env.template`.")
@@ -157,8 +297,11 @@ def _cmd_init(args) -> int:
         "DASHBOARD_HOST=127.0.0.1",
         "DASHBOARD_PORT=8790",
     ]
-    env_path.write_text("\n".join(lines) + "\n")
-    os.chmod(env_path, stat.S_IRUSR | stat.S_IWUSR)  # 600 — protects the private key
+    _upsert_env(
+        env_path,
+        {line.split("=", 1)[0]: line.split("=", 1)[1] for line in lines},
+        fresh_lines=lines,
+    )
     print(f"\nOK Wrote {env_path} (chmod 600). Next: `aipg-validator check`")
     return 0
 
@@ -357,6 +500,11 @@ def main(argv=None) -> int:
     p = argparse.ArgumentParser(prog="aipg-validator", description="AIPG validator node")
     p.add_argument("--version", action="version", version=f"%(prog)s {__release_tag__}")
     sub = p.add_subparsers(dest="cmd", required=True)
+    prepare = sub.add_parser(
+        "prepare-wallet",
+        help="create a local signing wallet before Console enrollment",
+    )
+    prepare.add_argument("--env", default=None, help="identity/config file (default: .env)")
     sub.add_parser("init", help="interactive setup -> .env")
     check = sub.add_parser("check", help="verify config/grid/stake/scorecards + one probe round")
     check.add_argument(
@@ -383,6 +531,7 @@ def main(argv=None) -> int:
     args = p.parse_args(argv)
     return {
         "init": _cmd_init,
+        "prepare-wallet": _cmd_prepare_wallet,
         "check": _cmd_check,
         "run": _cmd_run,
         "dashboard": _cmd_dashboard,

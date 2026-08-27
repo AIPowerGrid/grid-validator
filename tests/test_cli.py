@@ -1,6 +1,7 @@
 import argparse
 import io
 import os
+import stat
 import subprocess
 import sys
 import tempfile
@@ -9,6 +10,7 @@ from contextlib import redirect_stdout
 from unittest.mock import ANY, patch
 
 from eth_account import Account
+from dotenv import dotenv_values
 
 from validator import cli
 from validator.config import Settings
@@ -27,6 +29,7 @@ class CliCapabilityTests(unittest.TestCase):
 
         for args in (
             ["--help"],
+            ["prepare-wallet", "--help"],
             ["init", "--help"],
             ["check", "--help"],
             ["dashboard", "--help"],
@@ -47,6 +50,65 @@ class CliCapabilityTests(unittest.TestCase):
                 )
                 self.assertEqual(result.returncode, 0, result.stdout.decode("cp1252"))
                 self.assertNotIn(b"Traceback", result.stdout)
+
+    def test_prepare_wallet_writes_private_identity_once_without_printing_secret(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            old_cwd = os.getcwd()
+            os.chdir(tmp)
+            try:
+                first_output = io.StringIO()
+                with redirect_stdout(first_output):
+                    self.assertEqual(cli.main(["prepare-wallet"]), 0)
+                first = dotenv_values(os.path.join(tmp, ".env"))
+                private_key = str(first["VALIDATOR_PRIVATE_KEY"])
+                wallet = str(first["VALIDATOR_WALLET"])
+
+                self.assertEqual(Account.from_key(private_key).address.lower(), wallet)
+                self.assertNotIn(private_key, first_output.getvalue())
+                self.assertIn(wallet, first_output.getvalue())
+                self.assertEqual(
+                    stat.S_IMODE(os.stat(os.path.join(tmp, ".env")).st_mode),
+                    stat.S_IRUSR | stat.S_IWUSR,
+                )
+
+                second_output = io.StringIO()
+                with redirect_stdout(second_output):
+                    self.assertEqual(cli.main(["prepare-wallet"]), 0)
+                second = dotenv_values(os.path.join(tmp, ".env"))
+                self.assertEqual(second["VALIDATOR_PRIVATE_KEY"], private_key)
+                self.assertEqual(second["VALIDATOR_WALLET"], wallet)
+                self.assertIn("already prepared", second_output.getvalue())
+            finally:
+                os.chdir(old_cwd)
+
+    def test_init_completes_prepared_wallet_without_reentering_private_key(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            old_cwd = os.getcwd()
+            os.chdir(tmp)
+            try:
+                with redirect_stdout(io.StringIO()):
+                    self.assertEqual(cli.main(["prepare-wallet"]), 0)
+                prepared = dotenv_values(".env")
+                with open(".env", "a", encoding="utf-8") as handle:
+                    handle.write("MEDIA_FETCH_MAX_BYTES=12345\n")
+
+                with (
+                    patch("builtins.input", side_effect=["", "grid_validator_test", ""]),
+                    patch("getpass.getpass", side_effect=AssertionError("must reuse prepared key")),
+                    redirect_stdout(io.StringIO()),
+                ):
+                    self.assertEqual(cli.main(["init"]), 0)
+
+                completed = dotenv_values(".env")
+                self.assertEqual(completed["VALIDATOR_API_KEY"], "grid_validator_test")
+                self.assertEqual(
+                    completed["VALIDATOR_PRIVATE_KEY"],
+                    prepared["VALIDATOR_PRIVATE_KEY"],
+                )
+                self.assertEqual(completed["VALIDATOR_WALLET"], prepared["VALIDATOR_WALLET"])
+                self.assertEqual(completed["MEDIA_FETCH_MAX_BYTES"], "12345")
+            finally:
+                os.chdir(old_cwd)
 
     def test_queue_status_and_explicit_dead_letter_retry(self):
         with tempfile.TemporaryDirectory() as tmp:

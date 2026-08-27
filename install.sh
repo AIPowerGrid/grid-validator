@@ -25,18 +25,17 @@ python3 -m venv .venv
 echo "OK Dependencies installed."
 
 if [ ! -f .env ]; then
-  if [ -t 0 ]; then
-    ./.venv/bin/aipg-validator init
-  else
-    echo "INFO No .env found, and stdin is not interactive - skipping setup."
-    echo "   Run this from a terminal when ready: ./.venv/bin/aipg-validator init"
-  fi
+  echo "INFO No validator identity found. Prepare one locally before Console enrollment:"
+  echo "   ./.venv/bin/aipg-validator prepare-wallet"
 else
-  echo "INFO .env already exists - skipping setup. Edit it or run: ./.venv/bin/aipg-validator init"
+  echo "INFO .env already exists - preserving it."
 fi
 
 echo
 echo "Next steps:"
+echo "  ./.venv/bin/aipg-validator prepare-wallet    # local signing identity"
+echo "  Link the printed address and create a validator key in the Console"
+echo "  ./.venv/bin/aipg-validator init              # add the scoped API key"
 echo "  ./.venv/bin/aipg-validator check --no-probe  # verify install + API"
 echo "  ./.venv/bin/aipg-validator dashboard         # local status page"
 echo "  ./.venv/bin/aipg-validator run               # start validating"
