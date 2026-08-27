@@ -162,11 +162,6 @@ class Settings:
     REQUIRE_STAKE = _env_bool("VALIDATOR_REQUIRE_STAKE", False)
 
     # ── Probing ──
-    MEDIA_LATENCY_BUDGET_S = _env_float("MEDIA_LATENCY_BUDGET_S", 60, minimum=0)
-    VIDEO_LATENCY_BUDGET_S = _env_float("VIDEO_LATENCY_BUDGET_S", 120, minimum=0)
-    PHASH_TOLERANCE = _env_int("PHASH_TOLERANCE", 12, minimum=0)
-    VIDEO_PHASH_TOLERANCE = _env_int("VIDEO_PHASH_TOLERANCE", 12, minimum=0)
-    VIDEO_MOTION_TOLERANCE = _env_float("VIDEO_MOTION_TOLERANCE", 8, minimum=0)
     MEDIA_ALLOWED_ORIGINS = tuple(
         part.strip()
         for part in _env_text("VALIDATOR_MEDIA_ALLOWED_ORIGINS", "").split(",")

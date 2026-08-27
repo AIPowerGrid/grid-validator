@@ -114,6 +114,12 @@ class ReleasePackagingTests(unittest.TestCase):
         for line in from_lines:
             self.assertRegex(line, r"@sha256:[0-9a-f]{64}")
         self.assertIn("COPY pyproject.toml uv.lock README.md ./", dockerfile)
+        self.assertIn('ARG AIPG_VALIDATOR_RELEASE_TAG=""', dockerfile)
+        self.assertIn("COPY scripts/stamp-release-tag.py", dockerfile)
+        self.assertIn(
+            'python scripts/stamp-release-tag.py "$AIPG_VALIDATOR_RELEASE_TAG"',
+            dockerfile,
+        )
         self.assertIn("uv sync --frozen --no-dev --no-editable", dockerfile)
         self.assertIn("COPY --from=builder /app /app", dockerfile)
         self.assertIn("USER validator", dockerfile)
@@ -141,6 +147,8 @@ class ReleasePackagingTests(unittest.TestCase):
 
         self.assertIn("uv sync --frozen --extra release", binaries)
         self.assertIn("uv run --frozen --extra release pyinstaller", binaries)
+        self.assertIn("python scripts/stamp-release-tag.py", binaries)
+        self.assertIn('aipg-validator $EXPECTED_RELEASE_TAG', binaries)
         self.assertIn("pull_request:", binaries)
         self.assertIn("branches: [master]", binaries)
         self.assertIn("git merge-base --is-ancestor", binaries)
@@ -194,6 +202,10 @@ class ReleasePackagingTests(unittest.TestCase):
         self.assertNotIn("inputs.publish_latest", docker)
         self.assertIn("scripts/classify-release-tag.sh", binaries)
         self.assertIn("scripts/classify-release-tag.sh", docker)
+        self.assertEqual(docker.count("AIPG_VALIDATOR_RELEASE_TAG="), 3)
+        self.assertIn(
+            'aipg-validator ${{ needs.validate.outputs.tag }}', docker
+        )
 
     def test_release_asset_verifier_binds_workflow_identity(self):
         with tempfile.TemporaryDirectory() as tmp:

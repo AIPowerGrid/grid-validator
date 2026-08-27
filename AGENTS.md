@@ -87,7 +87,9 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   validator-specific evidence, identity, and release-supply-chain scope.
 - **`pyproject.toml`** — package metadata and `aipg-validator` console script.
   Default dependencies cover V0 text probing plus signing; heavier future-lane
-  dependencies live under `media` and `stake` extras. Do not reintroduce a
+  dependencies live under `media` and `stake` extras. Python 3.10 installs the
+  small `tomli` compatibility dependency used by release identity validation;
+  Python 3.11+ uses the standard-library parser. Do not reintroduce a
   parallel `requirements.txt`; it drifts from release builds.
 - **`uv.lock`** — cross-platform dependency lock for release binaries. Release
   builds must use it with `uv sync --frozen`; update it deliberately with the
@@ -165,6 +167,10 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
 - **`scripts/classify-release-tag.sh`** — shared binary/Docker tag policy.
   Only stable `vX.Y.Z` tags may publish `latest`; bounded prerelease tags such
   as `v0.1.0-preview.3` remain explicitly versioned.
+- **`scripts/stamp-release-tag.py`** — deterministic build identity stamping.
+  Moving source and branch builds identify as `v<project-version>-dev`; only a
+  release workflow may stamp its already validated tag, and packaged binary and
+  container smoke tests must require that exact identity.
 - **`install.sh` / `aipg-validator.service` / `.env.template`** — source-checkout
   install + run-as-service. `install.sh` may launch interactive setup only when
   stdin is a terminal; non-interactive runs must skip setup and point operators
@@ -204,7 +210,9 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   bounded bytes/time/MIME, SHA-256 recomputation, structural checks, and
   reference comparison only after two references agree. Video decoding runs in
   a killable child process with time, frame, dimension, and Linux resource
-  bounds. A node advertises each capability only when its media dependencies
+  bounds. Consensus-affecting pHash, motion, and latency thresholds are fixed
+  by the versioned policy; only local limits that yield inconclusive evidence
+  are operator configurable. A node advertises each capability only when its media dependencies
   and HTTPS origin allowlist are ready; Core must still withhold assignments
   until every media rollout gate is complete.
 - **Evidence delivery is durable:** persist each Grid assignment before probing,

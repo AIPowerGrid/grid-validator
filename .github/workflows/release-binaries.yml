@@ -80,6 +80,12 @@ jobs:
           version: "0.12.5"
           enable-cache: true
 
+      - name: Stamp validated build identity
+        shell: bash
+        run: |
+          tag="$(python scripts/stamp-release-tag.py '${{ needs.validate.outputs.tag }}')"
+          echo "EXPECTED_RELEASE_TAG=$tag" >> "$GITHUB_ENV"
+
       - name: Install locked release dependencies
         run: uv sync --frozen --extra release --python 3.11
 
@@ -93,6 +99,8 @@ jobs:
           if [[ "$RUNNER_OS" == "Windows" ]]; then
             BIN="dist/aipg-validator.exe"
           fi
+          version="$(PYTHONIOENCODING=cp1252 "$BIN" --version)"
+          test "$version" = "aipg-validator $EXPECTED_RELEASE_TAG"
           PYTHONIOENCODING=cp1252 "$BIN" --help
           BIN_ABS="$(pwd)/$BIN"
           tmp="$(mktemp -d)"

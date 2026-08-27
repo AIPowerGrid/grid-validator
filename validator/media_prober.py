@@ -53,6 +53,15 @@ _ALLOWED_MEDIA_TYPES = frozenset(
     }
 )
 
+# Consensus-affecting thresholds belong to the versioned scoring policies, not
+# operator configuration. Local safety limits remain configurable because an
+# exceeded limit is inconclusive rather than a worker verdict.
+IMAGE_FIDELITY_V1_PHASH_TOLERANCE = 12
+IMAGE_FIDELITY_V1_LATENCY_BUDGET_S = 60.0
+VIDEO_V1_LATENCY_BUDGET_S = 120.0
+VIDEO_FIDELITY_V1_PHASH_TOLERANCE = 12
+VIDEO_FIDELITY_V1_MOTION_TOLERANCE = 8.0
+
 
 class MediaWitnessError(ValueError):
     """A media witness is unsafe, malformed, or does not match its commitment."""
@@ -313,17 +322,15 @@ async def score_image_fidelity_witnesses(
     max_bytes: int,
     timeout_s: float,
     decode_timeout_s: float,
-    phash_tolerance: int,
-    latency_budget_s: float,
     transport: httpx.AsyncBaseTransport | None = None,
 ) -> tuple[str, dict[str, Any]]:
     """Verify three witnesses and independently score deterministic image fidelity."""
-    detail: dict[str, Any] = {"policy": "image.fidelity.v1"}
-    if (
-        not 0 <= phash_tolerance <= 64
-        or latency_budget_s < 0
-        or decode_timeout_s <= 0
-    ):
+    detail: dict[str, Any] = {
+        "policy": "image.fidelity.v1",
+        "phash_tolerance": IMAGE_FIDELITY_V1_PHASH_TOLERANCE,
+        "latency_budget_ms": int(IMAGE_FIDELITY_V1_LATENCY_BUDGET_S * 1000),
+    }
+    if decode_timeout_s <= 0:
         return "inconclusive", {**detail, "reason": "invalid-local-policy"}
     if not media_dependencies_available():
         return "inconclusive", {**detail, "reason": "media-dependencies-unavailable"}
@@ -396,7 +403,7 @@ async def score_image_fidelity_witnesses(
     reference_hash_b = reference_b.phash
     reference_distance = phash_distance(reference_hash_a, reference_hash_b)
     detail["reference_distance"] = reference_distance
-    if reference_distance > phash_tolerance:
+    if reference_distance > IMAGE_FIDELITY_V1_PHASH_TOLERANCE:
         return "inconclusive", {**detail, "reason": "references-disagree"}
 
     candidate_distances = [
@@ -404,11 +411,13 @@ async def score_image_fidelity_witnesses(
         phash_distance(candidate_hash, reference_hash_b),
     ]
     detail["candidate_distances"] = candidate_distances
-    if any(distance > phash_tolerance for distance in candidate_distances):
+    if any(distance > IMAGE_FIDELITY_V1_PHASH_TOLERANCE for distance in candidate_distances):
         return "failed", {**detail, "reason": "candidate-outlier"}
     latency_s = int(ordered[0]["latency_ms"]) / 1000
     detail["latency_ms"] = int(ordered[0]["latency_ms"])
-    return ("slow" if latency_s > latency_budget_s else "healthy"), detail
+    return (
+        "slow" if latency_s > IMAGE_FIDELITY_V1_LATENCY_BUDGET_S else "healthy"
+    ), detail
 
 
 def _video_contract(
@@ -567,6 +576,8 @@ def _decode_image_profile(body: bytes, content_type: str) -> ImageProfile:
             )
     except ImageWitnessInvalid:
         raise
+    except Image.DecompressionBombError as exc:
+        raise ImageWitnessInvalid("unsafe-dimensions") from exc
     except (UnidentifiedImageError, OSError, SyntaxError, ValueError) as exc:
         raise ImageWitnessInvalid("undecodable") from exc
 
@@ -823,19 +834,14 @@ async def score_video_witnesses(
     max_bytes: int,
     fetch_timeout_s: float,
     decode_timeout_s: float,
-    phash_tolerance: int,
-    motion_tolerance: float,
-    latency_budget_s: float,
     transport: httpx.AsyncBaseTransport | None = None,
 ) -> tuple[str, dict[str, Any]]:
     """Verify and score a Core-issued video contract or fidelity witness set."""
-    detail: dict[str, Any] = {"policy": str(challenge.get("scoring_policy_id") or "")}
-    if (
-        not 0 <= phash_tolerance <= 64
-        or motion_tolerance < 0
-        or latency_budget_s < 0
-        or decode_timeout_s <= 0
-    ):
+    detail: dict[str, Any] = {
+        "policy": str(challenge.get("scoring_policy_id") or ""),
+        "latency_budget_ms": int(VIDEO_V1_LATENCY_BUDGET_S * 1000),
+    }
+    if decode_timeout_s <= 0:
         return "inconclusive", {**detail, "reason": "invalid-local-policy"}
     if not video_dependencies_available():
         return "inconclusive", {**detail, "reason": "video-dependencies-unavailable"}
@@ -847,6 +853,11 @@ async def score_video_witnesses(
         )
     except MediaWitnessError:
         return "inconclusive", {**detail, "reason": "invalid-challenge-or-witness-set"}
+    if fidelity:
+        detail.update({
+            "phash_tolerance": VIDEO_FIDELITY_V1_PHASH_TOLERANCE,
+            "motion_tolerance": VIDEO_FIDELITY_V1_MOTION_TOLERANCE,
+        })
 
     fetched = await asyncio.gather(
         *(
@@ -927,20 +938,23 @@ async def score_video_witnesses(
             "candidate_frame_distance_maxes": [candidate_a[1], candidate_b[1]],
             "candidate_motion_deltas": [round(candidate_a[2], 3), round(candidate_b[2], 3)],
         })
-        if reference_max > phash_tolerance or reference_motion > motion_tolerance:
+        if (
+            reference_max > VIDEO_FIDELITY_V1_PHASH_TOLERANCE
+            or reference_motion > VIDEO_FIDELITY_V1_MOTION_TOLERANCE
+        ):
             return "inconclusive", {**detail, "reason": "references-disagree"}
         if (
-            candidate_a[1] > phash_tolerance
-            or candidate_b[1] > phash_tolerance
-            or candidate_a[2] > motion_tolerance
-            or candidate_b[2] > motion_tolerance
+            candidate_a[1] > VIDEO_FIDELITY_V1_PHASH_TOLERANCE
+            or candidate_b[1] > VIDEO_FIDELITY_V1_PHASH_TOLERANCE
+            or candidate_a[2] > VIDEO_FIDELITY_V1_MOTION_TOLERANCE
+            or candidate_b[2] > VIDEO_FIDELITY_V1_MOTION_TOLERANCE
         ):
             return "failed", {**detail, "reason": "candidate-outlier"}
 
     detail["latency_ms"] = int(ordered[0]["latency_ms"])
     return (
         "slow"
-        if int(ordered[0]["latency_ms"]) / 1000 > latency_budget_s
+        if int(ordered[0]["latency_ms"]) / 1000 > VIDEO_V1_LATENCY_BUDGET_S
         else "healthy"
     ), detail
 # This generator is local preview scaffolding only. Authoritative media prompts

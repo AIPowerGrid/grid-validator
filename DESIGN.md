@@ -393,9 +393,9 @@ verified validator signature.
 
 The public repo can contain the attestation format and scoring engines. It must
 not contain live answer keys, static private challenge prompts, golden pHashes,
-live scoring secrets, or private policy thresholds. Public default tolerances are
-fine for local preview scorers; production assignment policies should be
-versioned and rotated from the Grid side.
+or live scoring secrets. Consensus-affecting media thresholds are public,
+immutable constants of their versioned policy; operators cannot tune verdicts.
+A threshold change requires a new policy id and a staged network upgrade.
 
 ## Grid Dependencies
 
