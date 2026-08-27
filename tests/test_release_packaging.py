@@ -1,7 +1,9 @@
 import hashlib
 import json
 import os
+import platform
 import re
+import shutil
 import stat
 import subprocess
 import tempfile
@@ -291,6 +293,111 @@ class ReleasePackagingTests(unittest.TestCase):
                 body = (root / name).read_text(encoding="utf-8")
                 self.assertEqual(body.count("v0.1.0-preview.7"), 1)
                 self.assertNotIn("__AIPG_VALIDATOR_RELEASE_TAG__", body)
+
+    def test_stamped_shell_installer_defaults_to_its_own_release(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            package = root / "package"
+            package.mkdir()
+            shutil.copy2(ROOT / "scripts" / "install-binary.sh", package / "install-validator.sh")
+            shutil.copy2(ROOT / "scripts" / "install-validator.ps1", package / "install-validator.ps1")
+            stamped = subprocess.run(
+                [
+                    "python3",
+                    str(ROOT / "scripts" / "stamp-release-installers.py"),
+                    "--root",
+                    str(package),
+                    "v0.1.0-preview.8",
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(stamped.returncode, 0, stamped.stderr)
+            shell_body = (package / "install-validator.sh").read_text(encoding="utf-8")
+            powershell_body = (package / "install-validator.ps1").read_text(encoding="utf-8")
+            self.assertIn('DEFAULT_VERSION="v0.1.0-preview.8"', shell_body)
+            self.assertIn(
+                'RELEASE_TAG_PLACEHOLDER="${RELEASE_TAG_PLACEHOLDER}VALIDATOR_RELEASE_TAG__"',
+                shell_body,
+            )
+            self.assertIn('$defaultVersion = "v0.1.0-preview.8"', powershell_body)
+            self.assertIn(
+                '$releaseTagPlaceholder = "__AIPG_" + "VALIDATOR_RELEASE_TAG__"',
+                powershell_body,
+            )
+
+            os_name = "macos" if platform.system() == "Darwin" else "linux"
+            machine = platform.machine().lower()
+            arch = "arm64" if machine in {"arm64", "aarch64"} else "x64"
+            asset = f"aipg-validator-{os_name}-{arch}.zip"
+            fixture = root / "fixture"
+            fixture.mkdir()
+            info = zipfile.ZipInfo("aipg-validator")
+            info.create_system = 3
+            info.external_attr = (stat.S_IFREG | 0o755) << 16
+            archive = fixture / asset
+            with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as bundle:
+                bundle.writestr(info, b"#!/bin/sh\nexit 0\n")
+            (fixture / "SHA256SUMS").write_text(
+                f"{hashlib.sha256(archive.read_bytes()).hexdigest()}  {asset}\n",
+                encoding="ascii",
+            )
+
+            fake_bin = root / "fake-bin"
+            fake_bin.mkdir()
+            fake_curl = fake_bin / "curl"
+            fake_curl.write_text(
+                "#!/bin/sh\n"
+                "set -eu\n"
+                "out=\nurl=\n"
+                "while [ \"$#\" -gt 0 ]; do\n"
+                "  case \"$1\" in\n"
+                "    -o) out=$2; shift 2 ;;\n"
+                "    http*) url=$1; shift ;;\n"
+                "    *) shift ;;\n"
+                "  esac\n"
+                "done\n"
+                "printf '%s\\n' \"$url\" >> \"$CURL_LOG\"\n"
+                "case \"$url\" in\n"
+                "  */SHA256SUMS) cp \"$FIXTURE_DIR/SHA256SUMS\" \"$out\" ;;\n"
+                "  *) cp \"$FIXTURE_DIR/$ASSET_NAME\" \"$out\" ;;\n"
+                "esac\n",
+                encoding="utf-8",
+            )
+            fake_curl.chmod(0o755)
+            home = root / "home"
+            home.mkdir()
+            curl_log = root / "curl.log"
+            env = os.environ.copy()
+            env.update(
+                {
+                    "PATH": f"{fake_bin}:{env['PATH']}",
+                    "HOME": str(home),
+                    "FIXTURE_DIR": str(fixture),
+                    "ASSET_NAME": asset,
+                    "CURL_LOG": str(curl_log),
+                }
+            )
+            for name in (
+                "AIPG_VALIDATOR_VERSION",
+                "AIPG_VALIDATOR_URL",
+                "AIPG_VALIDATOR_CHECKSUMS_URL",
+            ):
+                env.pop(name, None)
+
+            installed = subprocess.run(
+                ["bash", str(package / "install-validator.sh")],
+                check=False,
+                capture_output=True,
+                env=env,
+                text=True,
+            )
+
+            self.assertEqual(installed.returncode, 0, installed.stderr)
+            urls = curl_log.read_text(encoding="utf-8")
+            self.assertEqual(urls.count("/v0.1.0-preview.8/"), 2)
+            self.assertTrue((home / ".local" / "bin" / "aipg-validator").is_file())
 
     def test_preview_release_accepts_explicit_unsigned_platforms(self):
         with tempfile.TemporaryDirectory() as tmp:
