@@ -43,11 +43,12 @@ production-live on Core commit `e18b38f9` with migrations through `0026`.
 Three first-party pilot nodes run the verified `v0.1.0-preview.5` payload from
 validator commit `07190da8`; checksum-gated staging, no-probe registration,
 rolling symlink rollout, immutable release reporting, and clean service recovery
-were proven against production on 2026-08-27. Earlier `v0.1.0-preview.3`
-post-rollout 3-of-5 groups verified distinct signatures and evidence commitments
-with no economic ledger side effects; no fresh probe was issued during the
-`preview.5` rollout observation window. This proves the protocol and deployment
-path, not independent operator control. Media assignments remain
+were proven against production on 2026-08-27. After the one-hour preview
+cooldown elapsed, the `preview.5` fleet completed a healthy 3-of-5 16K-context
+group and a correctly disputed token-limit group. Both groups carried three
+distinct nonces, evidence commitments, and verified signatures, with no credit,
+reservation, den, or worker-ledger side effects. This proves the protocol and
+deployment path, not independent operator control. Media assignments remain
 disabled. The live
 `GET /v1/validator/assignments`, `POST /v1/validator/probe/{assignment_id}`, and
 preview scorecards and distinct-validator 3-of-5 probe groups make evidence attributable, but still non-economic: no reward,

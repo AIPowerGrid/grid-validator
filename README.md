@@ -78,15 +78,19 @@ Production preview status:
 
 - Production Core runs the sealed shared-quorum validator API at immutable
   commit `e18b38f9` with migrations through `0026`.
-- Three first-party pilot nodes completed two fresh groups with three distinct
-  verified signatures and evidence commitments per group on 2026-08-21.
-- All three pilot nodes run the published `v0.1.0-preview.3` payload from commit
-  `7ba18a52`; that exact Linux artifact passed a one-node-at-a-time production
-  check and service rollout on Ubuntu 22.04. Core reports the immutable release
-  tag for all three nodes. A fresh sealed echo group reached healthy 3-of-5
-  quorum after the rollout while validator economic effect remained `none`.
-- Probe job IDs produced no credit, reservation, den, payout, or worker-ledger
-  entries. Evidence remains economically inert.
+- All three pilot nodes run the published `v0.1.0-preview.5` payload from
+  validator commit `07190da8`; the checksummed Linux x64 artifact passed a
+  one-node-at-a-time production rollout and Core reports the immutable release
+  tag for all three nodes.
+- After the one-hour worker/model preview cooldown elapsed on 2026-08-27, those
+  nodes completed two fresh sealed groups. A 16K-context group reached
+  `accepted / healthy` with three authoritative votes. A token-limit group
+  reached `disputed` after one healthy and two failed votes; disagreement is
+  retained rather than forced into consensus.
+- Each fresh group has three assignments, three distinct Grid nonces, three
+  evidence commitments, and three verified signatures. Their six probe job IDs
+  produced zero credit-ledger, reservation, den-event, or worker-ledger rows.
+  Evidence remains economically inert.
 - The three nodes share one operator and hypervisor. They do not prove an
   independent or decentralized validator cohort.
 
