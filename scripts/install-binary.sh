@@ -2,14 +2,14 @@
 # Install the pinned AIPG validator preview binary from GitHub Releases.
 #
 # Released installer form:
-#   AIPG_VALIDATOR_VERSION=v0.1.0-preview.4 bash install-validator.sh
+#   AIPG_VALIDATOR_VERSION=v0.1.0-preview.5 bash install-validator.sh
 #
 # Checkout/dev form:
 #   ./scripts/install-binary.sh
 set -euo pipefail
 
 REPO="${AIPG_VALIDATOR_REPO:-AIPowerGrid/grid-validator}"
-VERSION="${AIPG_VALIDATOR_VERSION:-v0.1.0-preview.4}"
+VERSION="${AIPG_VALIDATOR_VERSION:-v0.1.0-preview.5}"
 INSTALL_DIR="${AIPG_VALIDATOR_INSTALL_DIR:-$HOME/.local/bin}"
 BINARY_NAME="${AIPG_VALIDATOR_BINARY_NAME:-aipg-validator}"
 ASSET_URL="${AIPG_VALIDATOR_URL:-}"
@@ -159,6 +159,8 @@ esac
 echo
 echo "Next steps:"
 echo "  cd $(shell_quote "$CONFIG_DIR")"
+echo "  $run_cmd prepare-wallet"
+echo "  Link the printed public address in Console, then create a validator API key."
 echo "  $run_cmd init"
 echo "  $run_cmd check --no-probe"
 echo "  $run_cmd dashboard"

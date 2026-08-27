@@ -121,9 +121,9 @@ before running it:
 > Docker are the least-friction preview paths.
 
 ```bash
-curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.4/install-validator.sh
+curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.5/install-validator.sh
 gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator
-AIPG_VALIDATOR_VERSION=v0.1.0-preview.4 bash install-validator.sh
+AIPG_VALIDATOR_VERSION=v0.1.0-preview.5 bash install-validator.sh
 cd ~/.aipg-validator
 aipg-validator prepare-wallet
 # Link the printed address and create a validator key in the Console.
@@ -136,9 +136,9 @@ aipg-validator run
 Windows x64 PowerShell:
 
 ```powershell
-Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.4/install-validator.ps1 -OutFile install-validator.ps1
+Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.5/install-validator.ps1 -OutFile install-validator.ps1
 gh attestation verify install-validator.ps1 --repo AIPowerGrid/grid-validator
-$env:AIPG_VALIDATOR_VERSION = "v0.1.0-preview.4"
+$env:AIPG_VALIDATOR_VERSION = "v0.1.0-preview.5"
 .\install-validator.ps1 -AcceptUnsignedPreview
 ```
 
@@ -159,16 +159,16 @@ validator API key. Follow [OPERATORS.md](OPERATORS.md) and revoke the old API
 key after the replacement checks healthy.
 
 The versioned GitHub binaries and exact preview container are public. Anonymous
-GHCR access to `v0.1.0-preview.4` is verified for Linux x64 and ARM64. Keep the
+GHCR access to `v0.1.0-preview.5` is verified for Linux x64 and ARM64. Keep the
 version explicit: prereleases never publish or replace `latest`.
 
 ## Docker
 
 ```bash
-docker pull ghcr.io/aipowergrid/validator:v0.1.0-preview.4
+docker pull ghcr.io/aipowergrid/validator:v0.1.0-preview.5
 docker run --rm \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.4 check --no-probe
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.5 check --no-probe
 ```
 
 Run the loop:
@@ -176,7 +176,7 @@ Run the loop:
 ```bash
 docker run -d --name aipg-validator --restart unless-stopped \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.4
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.5
 ```
 
 Run the dashboard:
@@ -184,7 +184,7 @@ Run the dashboard:
 ```bash
 docker run --rm -p 8790:8790 \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.4 \
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.5 \
   dashboard --host 0.0.0.0
 ```
 

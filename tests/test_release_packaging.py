@@ -33,11 +33,14 @@ class ReleasePackagingTests(unittest.TestCase):
             json.dumps({"spdxVersion": "SPDX-2.3"}), encoding="utf-8"
         )
         (root / "install-validator.sh").write_text(
-            "#!/usr/bin/env bash\nset -euo pipefail\n", encoding="utf-8"
+            "#!/usr/bin/env bash\nset -euo pipefail\n"
+            "echo prepare-wallet\necho ' init'\n",
+            encoding="utf-8",
         )
         (root / "install-validator.ps1").write_text(
             "# SPDX-License-Identifier: AGPL-3.0-or-later\n"
-            "param([switch]$AcceptUnsignedPreview)\n",
+            "param([switch]$AcceptUnsignedPreview)\n"
+            "Write-Host prepare-wallet\nWrite-Host ' init'\n",
             encoding="utf-8",
         )
         payloads = [
@@ -182,6 +185,14 @@ class ReleasePackagingTests(unittest.TestCase):
         self.assertIn('"release_class": release_class', binaries)
         self.assertIn('"unsigned_warning": unsigned_warning', binaries)
         self.assertIn("UNSIGNED PREVIEW:", binaries)
+        self.assertLess(
+            (ROOT / "scripts" / "install-binary.sh").read_text().index("prepare-wallet"),
+            (ROOT / "scripts" / "install-binary.sh").read_text().index('"  $run_cmd init"'),
+        )
+        self.assertLess(
+            (ROOT / "scripts" / "install-validator.ps1").read_text().index("prepare-wallet"),
+            (ROOT / "scripts" / "install-validator.ps1").read_text().index(" init"),
+        )
         self.assertIn("macOS Developer ID/notarization gate is not satisfied", verifier)
         self.assertIn("Windows Authenticode gate is not satisfied", verifier)
         self.assertIn('"validator-release.json"', binaries)

@@ -216,6 +216,14 @@ if not str(sbom.get("spdxVersion", "")).startswith("SPDX-"):
 power_shell = (root / "install-validator.ps1").read_text(encoding="utf-8")
 if not power_shell.startswith("# SPDX-") or "AcceptUnsignedPreview" not in power_shell:
     raise SystemExit("PowerShell installer is missing its preview safety contract")
+shell_installer = (root / "install-validator.sh").read_text(encoding="utf-8")
+for name, body in (("shell", shell_installer), ("PowerShell", power_shell)):
+    prepare = body.find("prepare-wallet")
+    initialize = body.find(" init")
+    if prepare < 0 or initialize < 0 or prepare > initialize:
+        raise SystemExit(
+            f"{name} installer must direct operators to prepare-wallet before init"
+        )
 PY
 
 bash -n "$DIR/install-validator.sh"
