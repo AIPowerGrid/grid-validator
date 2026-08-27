@@ -29,6 +29,23 @@ installer generation.
   diagnostics, invalid-credential child recovery, owned-process stop, OS lock
   exclusion, and runtime acknowledgement/cancellation contracts. No live Grid
   keys or operator home-directory writes.
+- `test_account_pairing.py` - synthetic Core responses with real EIP-191
+  signature recovery, exact contract validation, prior-review/fresh-read consent,
+  stale/replaced approvals, cancellation, expired attempts, response-loss/restart
+  recovery, exact-association unlink, config preservation and transport limits.
+  No mock result proves Core's transaction or authorization implementation.
+- `test_core_pairing_integration.py` - opt-in tests against the actual reviewed
+  Core service, using only an in-memory SQLite database. Set
+  `VALIDATOR_CORE_SOURCE` and use a Core dependency environment. Verify link,
+  private list, exact unlink, unchanged account/credit/registration state, and
+  recovery after a real commit followed by response loss. Registration reads
+  and transport are fixtures; human approval calls the service directly, so
+  this does not prove fresh Google/SIWE HTTP authentication or native live use.
+- `pairing_app_fixture.py` - manual, loopback browser QA with temporary random
+  credentials and stdin-controlled mock approval/expiry/outage; never contacts
+  production or runs a validator. Remove its temporary state on shutdown.
+  Local pairing HTTP tests also prove origin/token/body guards, cached-only
+  reads, metadata exclusion from diagnostics and runtime-control isolation.
 - `test_self_test.py` - offline, real-process image/video decoder qualification
   for source and packaged runtimes.
 - `test_systemd_installer.py` - generated service security and behavior.

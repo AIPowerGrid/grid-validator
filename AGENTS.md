@@ -84,6 +84,10 @@ generator here or imply that passing public templates proves model quality.
 - **`OPERATORS.md`** — plain-language run guide (install, systemd, troubleshooting, FAQ).
   It owns the signed suspend/resume and account-bound signing-wallet/API-key
   rotation runbooks; do not describe local file deletion as credential revocation.
+- **`ACCOUNT_PAIRING.md`** - existing-account visibility association contract,
+  explicit two-sided consent, failure recovery, and cross-repo rollout gates.
+  Local app support is unreleased source work; preview.12 does not include it.
+  Core PR #58 and Console PR #21 remain separate deployment dependencies.
 - **`DESIGN.md`** — source of truth for validator phases, proof lanes, modality scoring,
   reference pool, future economics, Base anchoring, and Grid-side dependencies.
 - **`ADVERSARIAL_VALIDATION.md`** — attacker model, evidence-dimension boundaries,

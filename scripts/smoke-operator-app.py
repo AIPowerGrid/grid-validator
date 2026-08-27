@@ -79,6 +79,15 @@ def smoke(binary: Path) -> None:
                 code, payload = request(asset)
                 assert code == 200 and payload, "Packaged UI asset missing"
             assert request("/status.json", auth=False)[0] == 401
+            assert request("/pairing.json", auth=False)[0] == 401
+            assert json.loads(request("/pairing.json")[1]) == {
+                "status": "idle",
+                "busy": False,
+            }
+            # Invalid local config must fail before any Core call, including in
+            # a frozen build. Polling the page itself never starts pairing.
+            code, body = request("/pairing", "refresh")
+            assert code == 200 and json.loads(body)["error"] == "configuration_invalid"
             print("Packaged assets and session guard passed.", flush=True)
             for _ in range(2):
                 assert request("/control", "run")[0] == 202

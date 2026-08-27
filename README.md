@@ -132,6 +132,10 @@ creates a dedicated local signer, authenticates a separate node account, and
 saves a validator-only API key without private-key entry. Existing-account pairing remains separate;
 do not export a personal wallet key or replace a running node's identity.
 
+Source development adds an optional **Account link** flow in the local app.
+It is **not in preview.12 or enabled in production**. See
+[Account Pairing](ACCOUNT_PAIRING.md) for its consent, recovery and rollout gates.
+
 The current public V0 preview is
 [`v0.1.0-preview.12`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.12).
 It is an unsigned, non-economic operator preview, not a stable release.

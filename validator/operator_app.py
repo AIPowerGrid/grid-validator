@@ -20,11 +20,10 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
 
-from dotenv import dotenv_values
-
 from . import __release_tag__
+from .account_pairing import Identity, PairingController, _unique_object
 from .file_lock import exclusive_lock
-from .launcher import command_prefix, config_path
+from .launcher import command_prefix, config_path, operator_config
 
 PHASES = {
     "starting",
@@ -70,6 +69,9 @@ class Supervisor:
         self.reader: threading.Thread | None = None
         self.action: str | None = None
         self.closed = False
+        self.pairing = PairingController(
+            lambda: Identity.from_values(operator_config(self.path))
+        )
         self.events: deque[dict[str, Any]] = deque(maxlen=40)
         self.state: dict[str, Any] = {
             "phase": "stopped",
@@ -114,13 +116,9 @@ class Supervisor:
     def snapshot(self) -> dict[str, Any]:
         with self.lock:
             try:
-                values = (
-                    dotenv_values(self.path, interpolate=False)
-                    if self.path.is_file()
-                    else {}
-                )
+                values = operator_config(self.path)
                 configured = all(
-                    values.get(k) or os.environ.get(k)
+                    values.get(k)
                     for k in (
                         "VALIDATOR_API_KEY",
                         "VALIDATOR_PRIVATE_KEY",
@@ -249,6 +247,7 @@ class Supervisor:
     def close(self) -> bool:
         with self.lock:
             self.closed = True
+        self.pairing.close()
         self.stop()
         if self.reader:
             self.reader.join(timeout=45)
@@ -318,11 +317,17 @@ class OperatorHandler(BaseHTTPRequestHandler):
         elif self.path in ASSETS:
             name, kind = ASSETS[self.path]
             self._send(200, (Path(__file__).parent / "ui" / name).read_bytes(), kind)
-        elif self.path in {"/status.json", "/diagnostics.json"}:
+        elif self.path in {"/status.json", "/diagnostics.json", "/pairing.json"}:
             if not self._authorized():
                 self._send(401, {"error": "local_session_required"})
                 return
-            self._send(200, self.server.supervisor.snapshot())
+            # Account association metadata never enters shareable diagnostics.
+            data = (
+                self.server.supervisor.pairing.snapshot()
+                if self.path == "/pairing.json"
+                else self.server.supervisor.snapshot()
+            )
+            self._send(200, data)
         else:
             self._send(404, {"error": "not_found"})
 
@@ -330,23 +335,30 @@ class OperatorHandler(BaseHTTPRequestHandler):
         if not self._allowed(write=True) or not self._authorized():
             self._send(403, {"error": "local_session_required"})
             return
-        if self.path != "/control":
+        if self.path not in {"/control", "/pairing"}:
             self._send(404, {"error": "not_found"})
             return
         lengths = self.headers.get_all("Content-Length", [])
         if (
             self.headers.get("Transfer-Encoding")
             or len(lengths) != 1
+            or len(lengths[0]) > 3
             or not lengths[0].isdigit()
-            or not 0 < int(lengths[0]) <= 128
-            or self.headers.get("Content-Type") != "application/json"
+            or not 0 < int(lengths[0]) <= (256 if self.path == "/pairing" else 128)
+            or self.headers.get_all("Content-Type") != ["application/json"]
         ):
             self._send(400, {"error": "invalid_request"})
             return
         try:
-            body = json.loads(self.rfile.read(int(lengths[0])))
+            body = json.loads(
+                self.rfile.read(int(lengths[0])), object_pairs_hook=_unique_object
+            )
         except (ValueError, TimeoutError):
             self._send(400, {"error": "invalid_request"})
+            return
+        if self.path == "/pairing":
+            status, result = self.server.supervisor.pairing.perform(body)
+            self._send(status, result)
             return
         if (
             not isinstance(body, dict)
