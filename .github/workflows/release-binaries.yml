@@ -437,6 +437,10 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "Decoder self-test failed" }
           $binary = Join-Path $env:AIPG_VALIDATOR_INSTALL_DIR "aipg-validator.exe"
           $env:VALIDATOR_ENV = Join-Path $env:AIPG_VALIDATOR_CONFIG_DIR ".env"
+          # Import and cancel the packaged enrollment path without live credentials.
+          "n" | & $binary enroll
+          if ($LASTEXITCODE -ne 0) { throw "Enrollment cancellation failed" }
+          if (Test-Path $env:VALIDATOR_ENV) { throw "Cancelled enrollment created an identity" }
           # Exercise the operator path, not only help/decoder imports.
           @("7", "0") | & $binary menu
           if ($LASTEXITCODE -ne 0) { throw "First-run menu failed" }

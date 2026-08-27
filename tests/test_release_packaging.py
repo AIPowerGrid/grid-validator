@@ -162,6 +162,8 @@ class ReleasePackagingTests(unittest.TestCase):
         self.assertIn("environment: validator-release", binaries)
         self.assertIn("name: Assemble verified release payload", binaries)
         self.assertIn("name: Clean install ${{ matrix.asset }}", binaries)
+        self.assertIn('"n" | & $binary enroll', binaries)
+        self.assertIn("Cancelled enrollment created an identity", binaries)
         self.assertIn("install-validator.ps1", binaries)
         self.assertIn("scripts/stamp-release-installers.py", binaries)
         self.assertIn("-AcceptUnsignedPreview", binaries)
