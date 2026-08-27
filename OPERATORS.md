@@ -78,8 +78,9 @@ PowerShell is optional.
 
 Preview.13 includes `aipg-validator app` (menu option 8). Native packaged-app
 and clean-install tests pass on Windows x64, macOS ARM64, and Linux x64/ARM64.
-These offline gates are not a claim of complete live Windows qualification;
-registration through accepted signed evidence still needs that real-host proof.
+Published preview.13 also passed a hosted Windows Server runtime journey through
+accepted signed evidence and recovery. That HTTP-driven test does not replace
+ordinary-user double-click/browser qualification; see [PRODUCTION_BASELINE.md](PRODUCTION_BASELINE.md).
 
 The app opens a private localhost page. On an empty configuration, choose
 **Set up node** and confirm dedicated-account creation. Existing operators

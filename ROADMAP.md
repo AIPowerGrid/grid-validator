@@ -15,8 +15,8 @@ longer architecture, not permission to activate paid audits or economics.
 1. Reconcile reviewed source, published artifacts, deployed versions, and local
    work. Preserve the unfinished video-decoder fairness patch separately.
    The reviewed harness/docs are merged as `35b4e04`; public binaries remain
-   preview.13. Live Core is `407f2984` with migration `0030`. Pilot-capable Core
-   `f51875ce` is staged and passed a fresh backup/restore proof, but is not live.
+   preview.13. Live Core is `f51875ce` with migration `0030`, deployed dark after
+   a fresh backup/restore proof. Pairing and its pilot allowlist remain off.
 2. PR #48's Windows launcher/identity fix shipped in preview.11; preview.12
    introduced the local app, retained in current preview.13. Native build/install
    and published Windows Server runtime tests pass; ordinary-user double-click
@@ -53,8 +53,10 @@ longer architecture, not permission to activate paid audits or economics.
 7. Qualify at least five independently controlled operators for 72 hours;
    registration, wallets, and first-party canaries do not prove independence.
    At 20:57 UTC on 2026-08-27, Peteq's node was healthy with 33 verified reports;
-   another preview.13 node had three. Its identity still needs confirmation
-   before calling it Donli's. No independent qualification window has started.
+   Donli subsequently confirmed the preview.13 node's ID, and the 21:05 UTC
+   live check found three verified reports and a fresh heartbeat. His basic
+   operation is confirmed; the independent-control declaration, human desktop
+   recovery checks and qualification window remain separate and uncompleted.
 8. Maintain hostile-worker tests for template solvers, replay, fabricated
    evidence, substitution, and probe-aware switching. Generated challenges are
    protocol/capability evidence, never automatically quality evidence.

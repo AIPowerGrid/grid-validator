@@ -10,7 +10,7 @@ evidence does not change worker routing, strikes, payouts, or rewards. There is
 no validator staking, slashing, or compensation in this cohort.
 
 Enrollment is open for the evidence-only cohort. As checked on 2026-08-27,
-production Core runs commit `407f2984` with migrations through `0030`. New
+production Core runs commit `f51875ce` with migrations through `0030`. New
 operators should use the immutable public
 [`v0.1.0-preview.13`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.13),
 which provides explicit automatic enrollment and a local operator app. The

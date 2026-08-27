@@ -5,6 +5,37 @@ This is a dated rollout snapshot, not a live status page. Query
 `GET https://api.aipowergrid.io/v1/validator/capabilities` for current public
 state.
 
+## 2026-08-27 21:07 UTC - Pilot-Capable Core Dark Cutover
+
+Production now runs `f51875ce8fe550640008f1824625e2f5a071f88b`. Guarded
+cutover completed at 21:07:47 UTC after the restore proof below. The exact
+source passed Core CI, secret scanning and CodeQL; locked dependencies,
+environment bytes, service units, Nginx configuration and payout/backup timer
+states are unchanged. Public health reports the new commit and healthy Redis.
+No production migration was required; Alembic remains `0030`.
+
+Both pairing tables and the compensated-audit job table are empty. Global
+pairing and its private pilot, media issuance, bond sync and validator economics
+remain off. Public downloads remain preview.13, and Console remains `db301013`.
+This removes a deployment prerequisite, not the native pairing or independent
+operator gates. Rollback retains immutable Core `407f2984` and all existing
+schema/identities; disable global and scoped pairing before reverting code.
+
+A hardened disposable Linux ARM64 container then passed the 23 harness safety
+tests with networking disabled. The previously verified exact `5de518b0`
+build-only archive passed manifest/hash validation, frozen CLI version,
+decoder self-test and local-app smoke under that same offline container profile.
+Read-only source/artifact mounts, a read-only root filesystem and temporary
+state were used; the container was removed. This prepares the native host but
+does not enroll a test identity, execute live pairing or prove public release
+provenance. A later public status check still showed five fresh live validators.
+
+The user confirmed Donli's exact preview.13 validator ID. A 21:05 UTC read-only
+check found it active with a fresh heartbeat and three verified signed reports:
+one healthy and two failed worker verdicts. Accepted failure evidence is useful
+participation, not a failed validator. His basic operation is now confirmed;
+this does not certify independent control or every desktop recovery action.
+
 ## 2026-08-27 20:59 UTC - Pilot Candidate Restore Proof, No Cutover
 
 The immutable Core candidate `f51875ce8fe550640008f1824625e2f5a071f88b`

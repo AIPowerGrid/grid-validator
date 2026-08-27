@@ -39,7 +39,7 @@ concrete detail in children. Delete stale notes instead of explaining history.
 The Grid's validator node. In V0 it is a CPU-only distributed audit runner: it sends
 small canary jobs through the normal Grid path, scores replies (`healthy` / `slow` /
 `failed`), and submits signed attestations. Shared-quorum text validation is
-production-live on Core commit `407f2984` as checked on 2026-08-27, with migrations through `0030`.
+production-live on Core commit `f51875ce` as checked on 2026-08-27, with migrations through `0030`.
 Three first-party pilot nodes run the verified `v0.1.0-preview.9` payload from
 validator commit `9d7b68f`; checksum-gated staging, offline media self-tests,
 no-probe registration, rolling symlink rollout, immutable release reporting,
@@ -92,11 +92,11 @@ generator here or imply that passing public templates proves model quality.
 - **`ACCOUNT_PAIRING.md`** - existing-account visibility association contract,
   explicit two-sided consent, failure recovery, and cross-repo rollout gates.
   Local app support is merged and native-build tested but unreleased;
-  preview.13 does not include it. Core PR #58 (`407f2984` / `0030`) and Console
+  preview.13 does not include it. Core (`f51875ce` / `0030`) and Console
   PR #21 (`db301013`) are deployed dark. Live Windows/Linux pairing qualification,
   a published client and supervised canary remain gates; the feature stays off.
   Core PR #60 adds an expiring account-scoped pilot for that qualification,
-  requiring a new Core deployment; it is not in live `407f2984`. Keep private
+  deployed dark with an empty allowlist and no expiry configured. Keep private
   pilot membership out of diagnostics, docs and public capability responses.
 - **`DESIGN.md`** — source of truth for validator phases, proof lanes, modality scoring,
   reference pool, future economics, Base anchoring, and Grid-side dependencies.
