@@ -3,6 +3,8 @@
 
 import asyncio
 import http.client
+import contextlib
+import io
 import json
 import os
 import subprocess
@@ -162,6 +164,22 @@ class SupervisorTests(unittest.TestCase):
     def tearDown(self):
         self.supervisor.close()
         self.tmp.cleanup()
+
+    def test_private_child_protocol_is_not_an_operator_command(self):
+        from validator.cli import main
+
+        output = io.StringIO()
+        with (
+            contextlib.redirect_stdout(output),
+            self.assertRaises(SystemExit) as stopped,
+        ):
+            main(["--help"])
+        self.assertEqual(stopped.exception.code, 0)
+        self.assertIn("app", output.getvalue())
+        self.assertNotIn("_operator-worker", output.getvalue())
+        with patch("validator.cli._cmd_operator_worker", return_value=0) as child:
+            self.assertEqual(main(["_operator-worker", "run"]), 0)
+            self.assertEqual(child.call_args.args[0].action, "run")
 
     def test_events_are_allowlisted_not_a_log_relay(self):
         node_id = "val_" + "a" * 32
