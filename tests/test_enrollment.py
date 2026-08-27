@@ -100,6 +100,19 @@ class EnrollmentTests(unittest.TestCase):
             self.assertEqual(cli.main(["enroll", "--env", str(self.path)]), 0)
         secret.assert_not_called()
 
+    def test_legacy_init_directs_new_users_to_enrollment_without_any_key_prompt(self):
+        with patch("validator.cli._env_path", return_value=self.path), patch("builtins.input") as prompt, patch("getpass.getpass") as secret, redirect_stdout(io.StringIO()) as output:
+            self.assertEqual(cli.main(["init"]), 1)
+        prompt.assert_not_called()
+        secret.assert_not_called()
+        self.assertIn("aipg-validator enroll", output.getvalue())
+
+    def test_encoded_response_is_rejected_before_decoding(self):
+        def encoded(request):
+            return httpx.Response(200, headers={"Content-Encoding": "gzip"}, stream=httpx.ByteStream(b"not-gzip"))
+        with self.assertRaisesRegex(enrollment.EnrollmentError, "encoded"):
+            self.run_enroll(encoded)
+
     def test_network_failure_resumes_with_same_signer(self):
         def unavailable(request):
             raise httpx.ConnectError("must not echo secrets", request=request)

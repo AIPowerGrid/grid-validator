@@ -195,12 +195,12 @@ class ReleasePackagingTests(unittest.TestCase):
         self.assertIn('"unsigned_warning": unsigned_warning', binaries)
         self.assertIn("UNSIGNED PREVIEW:", binaries)
         self.assertLess(
-            (ROOT / "scripts" / "install-binary.sh").read_text().index("prepare-wallet"),
-            (ROOT / "scripts" / "install-binary.sh").read_text().index('"  $run_cmd init"'),
+            (ROOT / "scripts" / "install-binary.sh").read_text().index("$run_cmd enroll"),
+            (ROOT / "scripts" / "install-binary.sh").read_text().index("$run_cmd check --no-probe"),
         )
         self.assertLess(
-            (ROOT / "scripts" / "install-validator.ps1").read_text().index("prepare-wallet"),
-            (ROOT / "scripts" / "install-validator.ps1").read_text().index(" init"),
+            (ROOT / "scripts" / "install-validator.ps1").read_text().index(" enroll"),
+            (ROOT / "scripts" / "install-validator.ps1").read_text().index(" check --no-probe"),
         )
         self.assertIn("macOS Developer ID/notarization gate is not satisfied", verifier)
         self.assertIn("Windows Authenticode gate is not satisfied", verifier)

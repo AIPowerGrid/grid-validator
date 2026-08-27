@@ -56,7 +56,9 @@ def enrollment_lock(path: Path) -> Iterator[None]:
 
 
 def _post(client: httpx.Client, path: str, body: dict, token: str = "") -> dict:
-    headers = {"Authorization": f"Bearer {token}"} if token else {}
+    headers = {"Accept": "application/json", "Accept-Encoding": "identity"}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
     started = time.monotonic()
     try:
         with client.stream("POST", GRID_URL + path, json=body, headers=headers) as response:
@@ -67,6 +69,8 @@ def _post(client: httpx.Client, path: str, body: dict, token: str = "") -> dict:
                     429: "Too many setup attempts. Wait a minute before retrying.",
                 }.get(response.status_code, "Grid setup is unavailable. Retry later with the same identity.")
                 raise EnrollmentError(hint)
+            if response.headers.get("content-encoding", "identity").lower() != "identity":
+                raise EnrollmentError("Grid returned an encoded setup response. Setup stopped.")
             data = bytearray()
             for chunk in response.iter_bytes(chunk_size=4096):
                 data.extend(chunk)
