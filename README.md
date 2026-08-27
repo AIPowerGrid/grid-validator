@@ -40,10 +40,12 @@ What is implemented and testable against production Core:
   output-budget compliance, and latency classification.
 - Mandatory signed registration, heartbeat, and attestations from a wallet
   linked to the validator's Grid account.
-- Small default install: V0 text probing plus signing. Optional `media` and
-  `stake` extras install heavier future-lane dependencies. From source, the
-  media extra includes dark image and video scorers; release binaries remain
-  text-only until media packaging is separately qualified.
+- Small default source install: V0 text probing plus signing. Optional `media`
+  and `stake` extras install heavier future-lane dependencies. Binary and
+  container builds from current `master` include the locked `media` extra and must pass an
+  offline bounded-decoder self-test on every supported platform. The scorers
+  remain dark unless an operator configures an explicit HTTPS media origin and
+  Core independently enables assignment issuance.
 - GitHub Actions release workflow scaffold for downloadable binaries.
 - Grid-issued text assignments with short-lived nonces.
 - Targeted probe execution at
@@ -249,14 +251,15 @@ First-run command meanings:
 | `aipg-validator prepare-wallet` | no | generate a local signing identity in `.env` with `chmod 600`; print only its public address |
 | `aipg-validator init` | no | write local `.env` with `chmod 600` |
 | `aipg-validator check --no-probe` | no | config, Grid, capability, and scorecard smoke |
+| `aipg-validator self-test` | no | offline bounded image/video decoder qualification |
 | `aipg-validator dashboard` | no | local read-only status page |
 | `aipg-validator queue status` | no | inspect pending/dead assignments and attestations |
 | `aipg-validator queue retry-dead` | no | explicitly retry dead letters after review |
 | `aipg-validator check` | yes | register and run one assigned text probe round |
 | `aipg-validator run` | yes | continuous V0 probe loop |
 
-Optional dark-lane dependencies can be added from source when testing image or
-video scoring and the future stake gate:
+The default source install stays text-only. Add optional dark-lane dependencies
+when testing image/video scoring or the future stake gate:
 
 ```bash
 ./.venv/bin/python -m pip install -e '.[media,stake]'
@@ -270,6 +273,7 @@ cd ~/.aipg-validator
 aipg-validator prepare-wallet
 # Link the printed address and create a validator key in the Console.
 aipg-validator init
+aipg-validator self-test
 aipg-validator check --no-probe
 aipg-validator dashboard
 aipg-validator run
@@ -306,6 +310,15 @@ and ARM64; prereleases never publish or replace `latest`:
 
 ```bash
 docker pull ghcr.io/aipowergrid/validator:v0.1.0-preview.8
+```
+
+The published `preview.8` artifact predates media packaging and remains
+text-only. Builds from current `master`, and the next preview, bundle the dark
+media decoders. Qualify the current checkout without contacting the Grid:
+
+```bash
+docker build -t aipowergrid/validator:media-candidate .
+docker run --rm aipowergrid/validator:media-candidate self-test
 ```
 
 Run a one-shot config/Grid check:

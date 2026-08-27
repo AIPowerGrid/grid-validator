@@ -1,10 +1,11 @@
 # SPDX-FileCopyrightText: 2026 AI Power Grid
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-"""Operator-friendly CLI: aipg-validator <init | check | run | dashboard | queue | suspend | rotate>
+"""Operator-friendly CLI for configuring, testing, and running a validator.
 
     init   one-time interactive setup -> writes .env (chmod 600)
     check  verify config + grid + stake + scorecards, run ONE probe round, print results
+    self-test  exercise packaged image/video decoders without contacting the Grid
     run    start the validator loop
     dashboard  serve a read-only local status page
     queue  inspect or explicitly retry local dead letters
@@ -428,6 +429,21 @@ def _cmd_check(args) -> int:
     return 0
 
 
+def _cmd_self_test(_args) -> int:
+    """Prove packaged media dependencies and decoder isolation work locally."""
+    from .self_test import run_media_decoder_self_test
+
+    try:
+        results = run_media_decoder_self_test()
+    except Exception as exc:  # noqa: BLE001 - diagnostics must report native failures cleanly
+        print(f"ERROR Media self-test failed: {type(exc).__name__}: {exc}")
+        return 1
+    print(f"OK Image decoder: {results['image']}")
+    print(f"OK Video decoder: {results['video']}")
+    print("OK Media self-test complete (offline; no assignment or economic effect).")
+    return 0
+
+
 def _cmd_run(args) -> int:
     from .main import run
     try:
@@ -563,6 +579,10 @@ def main(argv=None) -> int:
         action="store_true",
         help="verify config/Grid/capabilities/scorecards without submitting a canary job",
     )
+    sub.add_parser(
+        "self-test",
+        help="exercise packaged image/video decoders locally without Grid traffic",
+    )
     sub.add_parser("run", help="start the validator loop")
     sub.add_parser("suspend", help="stop new assignments with a signed request")
     sub.add_parser("rotate", help="rotate to the configured, newly linked signing wallet")
@@ -584,6 +604,7 @@ def main(argv=None) -> int:
         "init": _cmd_init,
         "prepare-wallet": _cmd_prepare_wallet,
         "check": _cmd_check,
+        "self-test": _cmd_self_test,
         "run": _cmd_run,
         "dashboard": _cmd_dashboard,
         "queue": _cmd_queue,

@@ -47,6 +47,7 @@ VALIDATOR_API_KEY=grid-key
 VALIDATOR_WALLET=0x19e7e376e7c213b7e7e7e46cc70a5dd086daff2a
 VALIDATOR_PRIVATE_KEY=0x1111111111111111111111111111111111111111111111111111111111111111
 VALIDATOR_REQUIRE_STAKE=false
+VALIDATOR_MEDIA_ALLOWED_ORIGINS=https://media.example
 PROBE_TIMEOUT_S=1
 DASHBOARD_HOST=127.0.0.1
 DASHBOARD_PORT=$port
@@ -69,6 +70,14 @@ assert_clean_offline_check() {
   grep -F "text.token_limit.v1" "$out" >/dev/null || {
     cat "$out" >&2
     die "$label did not load the packaged token-limit scorer"
+  }
+  grep -F "image.fidelity.v1" "$out" >/dev/null || {
+    cat "$out" >&2
+    die "$label did not load the packaged image scorer"
+  }
+  grep -F "video.fidelity.v1" "$out" >/dev/null || {
+    cat "$out" >&2
+    die "$label did not load the packaged video scorer"
   }
 }
 
@@ -93,6 +102,7 @@ bash -n install.sh scripts/classify-release-tag.sh scripts/install-binary.sh \
 "$VALIDATOR" --help >/dev/null
 "$PY" -m validator --help >/dev/null
 "$VALIDATOR" check --help >/dev/null
+"$VALIDATOR" self-test
 git diff --check
 
 status "Local dashboard smoke"
@@ -132,6 +142,7 @@ if [ "$SKIP_DOCKER" != "1" ]; then
   code=$?
   set -e
   assert_clean_offline_check "$tmp/docker-check.out" "$code" "docker"
+  docker run --rm "$IMAGE" self-test
   docker run --rm "$IMAGE" --help >/dev/null
 
   status "Docker dashboard smoke"
@@ -170,6 +181,7 @@ if [ "$SKIP_BINARY" != "1" ]; then
     --specpath "$tmp/spec" \
     validator/__main__.py >/tmp/aipg-validator-pyinstaller.log 2>&1
   "$tmp/dist/aipg-validator-smoke" --help >/dev/null
+  "$tmp/dist/aipg-validator-smoke" self-test
   mkdir -p "$tmp/binary-run"
   write_offline_env "$tmp/binary-run/.env" 8793
   set +e
@@ -198,6 +210,7 @@ if [ "$SKIP_BINARY" != "1" ]; then
     AIPG_VALIDATOR_CONFIG_DIR="$config_dir" \
     ./scripts/install-binary.sh > "$tmp/install.out"
   "$install_dir/aipg-validator" --help >/dev/null
+  "$install_dir/aipg-validator" self-test
   [ "$(stat_mode "$config_dir")" = "700" ] || die "installer config dir is not mode 700"
   grep -F "cd '$config_dir'" "$tmp/install.out" >/dev/null
   grep -F "prepare-wallet" "$tmp/install.out" >/dev/null

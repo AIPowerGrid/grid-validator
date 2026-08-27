@@ -87,10 +87,10 @@ jobs:
           echo "EXPECTED_RELEASE_TAG=$tag" >> "$GITHUB_ENV"
 
       - name: Install locked release dependencies
-        run: uv sync --frozen --extra release --python 3.11
+        run: uv sync --frozen --extra media --extra release --python 3.11
 
       - name: Build binary
-        run: uv run --frozen --extra release pyinstaller --onefile --name aipg-validator --specpath build/pyinstaller validator/__main__.py
+        run: uv run --frozen --extra media --extra release pyinstaller --onefile --name aipg-validator --specpath build/pyinstaller validator/__main__.py
 
       - name: Smoke-test binary
         shell: bash
@@ -102,6 +102,7 @@ jobs:
           version="$(PYTHONIOENCODING=cp1252 "$BIN" --version)"
           test "$version" = "aipg-validator $EXPECTED_RELEASE_TAG"
           PYTHONIOENCODING=cp1252 "$BIN" --help
+          PYTHONIOENCODING=cp1252 "$BIN" self-test
           BIN_ABS="$(pwd)/$BIN"
           tmp="$(mktemp -d)"
           trap 'rm -rf "$tmp"' EXIT
@@ -111,6 +112,7 @@ jobs:
           VALIDATOR_WALLET=0x19e7e376e7c213b7e7e7e46cc70a5dd086daff2a
           VALIDATOR_PRIVATE_KEY=0x1111111111111111111111111111111111111111111111111111111111111111
           VALIDATOR_REQUIRE_STAKE=false
+          VALIDATOR_MEDIA_ALLOWED_ORIGINS=https://media.example
           PROBE_TIMEOUT_S=1
           EOF
           set +e
@@ -126,6 +128,8 @@ jobs:
             exit 1
           fi
           grep -F "text.token_limit.v1" "$tmp/check.out"
+          grep -F "image.fidelity.v1" "$tmp/check.out"
+          grep -F "video.fidelity.v1" "$tmp/check.out"
           grep -F "Validator registration failed" "$tmp/check.out"
 
       - name: Package artifact
@@ -409,6 +413,7 @@ jobs:
           AIPG_VALIDATOR_CHECKSUMS_URL="$root/SHA256SUMS" \
             bash "$root/install-validator.sh"
           "$install_dir/aipg-validator" --version
+          "$install_dir/aipg-validator" self-test
 
       - name: Install from verified payload
         if: ${{ runner.os == 'Windows' }}
@@ -421,3 +426,4 @@ jobs:
           $env:AIPG_VALIDATOR_CHECKSUMS_URL = Join-Path $root "SHA256SUMS"
           & (Join-Path $root "install-validator.ps1") -AcceptUnsignedPreview
           & (Join-Path $env:AIPG_VALIDATOR_INSTALL_DIR "aipg-validator.exe") --version
+          & (Join-Path $env:AIPG_VALIDATOR_INSTALL_DIR "aipg-validator.exe") self-test

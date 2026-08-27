@@ -127,7 +127,7 @@ class ReleasePackagingTests(unittest.TestCase):
             'python scripts/stamp-release-tag.py "$AIPG_VALIDATOR_RELEASE_TAG"',
             dockerfile,
         )
-        self.assertIn("uv sync --frozen --no-dev --no-editable", dockerfile)
+        self.assertIn("uv sync --frozen --no-dev --no-editable --extra media", dockerfile)
         self.assertIn("COPY --from=builder /app /app", dockerfile)
         self.assertIn("USER validator", dockerfile)
 
@@ -152,8 +152,12 @@ class ReleasePackagingTests(unittest.TestCase):
             encoding="utf-8"
         )
 
-        self.assertIn("uv sync --frozen --extra release", binaries)
-        self.assertIn("uv run --frozen --extra release pyinstaller", binaries)
+        self.assertIn("uv sync --frozen --extra media --extra release", binaries)
+        self.assertIn("uv run --frozen --extra media --extra release pyinstaller", binaries)
+        self.assertGreaterEqual(binaries.count("self-test"), 3)
+        self.assertIn("VALIDATOR_MEDIA_ALLOWED_ORIGINS=https://media.example", binaries)
+        self.assertIn('grep -F "image.fidelity.v1"', binaries)
+        self.assertIn('grep -F "video.fidelity.v1"', binaries)
         self.assertIn("python scripts/stamp-release-tag.py", binaries)
         self.assertIn('aipg-validator $EXPECTED_RELEASE_TAG', binaries)
         self.assertIn("pull_request:", binaries)
@@ -208,6 +212,8 @@ class ReleasePackagingTests(unittest.TestCase):
         self.assertIn("provenance: mode=max", docker)
         self.assertIn("sbom: true", docker)
         self.assertIn("name: Qualify container image", docker)
+        self.assertIn("self-test", docker)
+        self.assertIn("VALIDATOR_MEDIA_ALLOWED_ORIGINS=https://media.example", docker)
         self.assertIn("name: Publish protected container image", docker)
         self.assertIn("container publication requires a protected v* tag push", docker)
         self.assertIn("environment: validator-release", docker)

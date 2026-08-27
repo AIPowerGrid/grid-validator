@@ -90,6 +90,7 @@ class CliCapabilityTests(unittest.TestCase):
             ["prepare-wallet", "--help"],
             ["init", "--help"],
             ["check", "--help"],
+            ["self-test", "--help"],
             ["dashboard", "--help"],
             ["queue", "--help"],
             ["queue", "retry-dead", "--help"],
@@ -108,6 +109,42 @@ class CliCapabilityTests(unittest.TestCase):
                 )
                 self.assertEqual(result.returncode, 0, result.stdout.decode("cp1252"))
                 self.assertNotIn(b"Traceback", result.stdout)
+
+    def test_media_self_test_reports_both_decoders(self):
+        with (
+            patch(
+                "validator.self_test.run_media_decoder_self_test",
+                return_value={
+                    "image": "64x64 png/phash",
+                    "video": "64x64 mp4/4 frames",
+                },
+            ),
+            io.StringIO() as stdout,
+            redirect_stdout(stdout),
+        ):
+            code = cli.main(["self-test"])
+            output = stdout.getvalue()
+
+        self.assertEqual(code, 0)
+        self.assertIn("OK Image decoder: 64x64 png/phash", output)
+        self.assertIn("OK Video decoder: 64x64 mp4/4 frames", output)
+        self.assertIn("no assignment or economic effect", output)
+
+    def test_media_self_test_fails_cleanly(self):
+        with (
+            patch(
+                "validator.self_test.run_media_decoder_self_test",
+                side_effect=RuntimeError("decoder unavailable"),
+            ),
+            io.StringIO() as stdout,
+            redirect_stdout(stdout),
+        ):
+            code = cli.main(["self-test"])
+            output = stdout.getvalue()
+
+        self.assertEqual(code, 1)
+        self.assertIn("ERROR Media self-test failed", output)
+        self.assertIn("decoder unavailable", output)
 
     def test_prepare_wallet_writes_private_identity_once_without_printing_secret(self):
         with tempfile.TemporaryDirectory() as tmp:
