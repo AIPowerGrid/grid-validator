@@ -80,10 +80,11 @@ Production preview status:
   commit `e18b38f9` with migrations through `0026`.
 - Three first-party pilot nodes completed two fresh groups with three distinct
   verified signatures and evidence commitments per group on 2026-08-21.
-- All three pilot nodes run the published `v0.1.0-preview.2` payload from commit
-  `1472677d`; that exact Linux artifact passed production check and service
-  rollout on Ubuntu 22.04. A live sealed tool-chain group reached healthy 3-of-5
-  quorum with three verified signatures and no economic rows.
+- All three pilot nodes run the published `v0.1.0-preview.3` payload from commit
+  `7ba18a52`; that exact Linux artifact passed a one-node-at-a-time production
+  check and service rollout on Ubuntu 22.04. Core reports the immutable release
+  tag for all three nodes. A fresh sealed echo group reached healthy 3-of-5
+  quorum after the rollout while validator economic effect remained `none`.
 - Probe job IDs produced no credit, reservation, den, payout, or worker-ledger
   entries. Evidence remains economically inert.
 - The three nodes share one operator and hypervisor. They do not prove an
