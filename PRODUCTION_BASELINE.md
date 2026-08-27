@@ -5,6 +5,38 @@ This is a dated rollout snapshot, not a live status page. Query
 `GET https://api.aipowergrid.io/v1/validator/capabilities` for current public
 state.
 
+## 2026-08-27 20:59 UTC - Pilot Candidate Restore Proof, No Cutover
+
+The immutable Core candidate `f51875ce8fe550640008f1824625e2f5a071f88b`
+passed a fresh production-backup restore and Alembic/schema check at 20:59:32
+UTC. The 71,656,136-byte custom-format backup was checksum/archive verified
+and retained with root-only mode `0600`. Restoration and migration checks ran
+only in the generated scratch database, reached head `0030` with no schema
+drift, and removed that scratch database afterward. A separate read-only check
+confirmed its removal. The candidate's read-only live schema check also passed.
+
+This is **staged and restore-tested, not deployed**. The running service remains
+Core `407f29841988fd253afe867a1f5a07e23349219e`, continuously active since
+19:00:23 UTC. Production environment bytes and payout/backup timer states
+match their pre-proof snapshots. Pairing, its pilot allowlist, media issuance
+and bond sync remain disabled. No production migration, restart, account
+association, payout invocation or economic activation occurred. The current
+release remains the rollback target for any later candidate cutover.
+
+Validator [PR #63](https://github.com/AIPowerGrid/grid-validator/pull/63) merged
+as `35b4e04590daa7d5180af99aa3d0056090d3954a`. Its exact reviewed PR source
+passed all four native builds, clean installs and assembled-payload verification
+in [run 33115331270](https://github.com/AIPowerGrid/grid-validator/actions/runs/33115331270).
+The [native pairing procedure](NATIVE_PAIRING_CANARY.md) remains unexecuted
+against live Core. Public downloads are still preview.13.
+
+The final read-only operator check at 20:57 UTC found 33 verified signed reports
+for the previously reported external registration and three for the new
+preview.13 registration; both heartbeats were fresh. The latter's operator has
+not been identified from independent confirmation. These are participation
+facts, not a completed human Windows journey or an independence review. The
+five-operator 72-hour qualification remains open.
+
 ## 2026-08-27 20:49 UTC - Cohort And Pairing Qualification Status
 
 Read-only public health and production queries still report Core
