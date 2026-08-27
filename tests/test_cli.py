@@ -7,6 +7,7 @@ import sys
 import tempfile
 import unittest
 from contextlib import redirect_stdout
+from pathlib import Path
 from unittest.mock import ANY, patch
 
 from eth_account import Account
@@ -161,10 +162,11 @@ class CliCapabilityTests(unittest.TestCase):
                 self.assertEqual(Account.from_key(private_key).address.lower(), wallet)
                 self.assertNotIn(private_key, first_output.getvalue())
                 self.assertIn(wallet, first_output.getvalue())
-                self.assertEqual(
-                    stat.S_IMODE(os.stat(os.path.join(tmp, ".env")).st_mode),
-                    stat.S_IRUSR | stat.S_IWUSR,
-                )
+                if sys.platform != "win32":
+                    self.assertEqual(
+                        stat.S_IMODE(os.stat(os.path.join(tmp, ".env")).st_mode),
+                        stat.S_IRUSR | stat.S_IWUSR,
+                    )
 
                 second_output = io.StringIO()
                 with redirect_stdout(second_output):
@@ -188,11 +190,12 @@ class CliCapabilityTests(unittest.TestCase):
                     handle.write("MEDIA_FETCH_MAX_BYTES=12345\n")
 
                 with (
-                    patch("builtins.input", side_effect=["", "grid_validator_test", ""]),
-                    patch("getpass.getpass", side_effect=AssertionError("must reuse prepared key")),
+                    patch("builtins.input", side_effect=["", ""]),
+                    patch("getpass.getpass", side_effect=["grid_validator_test"]) as secret,
                     redirect_stdout(io.StringIO()),
                 ):
                     self.assertEqual(cli.main(["init"]), 0)
+                secret.assert_called_once()
 
                 completed = dotenv_values(".env")
                 self.assertEqual(completed["VALIDATOR_API_KEY"], "grid_validator_test")
@@ -716,6 +719,48 @@ class CliCheckTests(unittest.TestCase):
 
 
 class CliInitTests(unittest.TestCase):
+    def test_windows_file_is_protected_before_secret_write(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / ".env"
+
+            def protect(temporary):
+                self.assertEqual(temporary.read_bytes(), b"")
+
+            with (
+                patch("validator.cli.sys.platform", "win32"),
+                patch("validator.cli._protect_windows_file", side_effect=protect) as acl,
+                patch("os.fchmod", create=True) as fchmod,
+            ):
+                cli._write_private_env(path, ["VALIDATOR_API_KEY=synthetic-test-key"])
+            acl.assert_called_once()
+            fchmod.assert_not_called()
+            self.assertIn("synthetic-test-key", path.read_text())
+
+    def test_failed_windows_permissions_leave_existing_config_untouched(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / ".env"
+            path.write_text("existing")
+            with (
+                patch("validator.cli.sys.platform", "win32"),
+                patch("validator.cli._protect_windows_file", side_effect=OSError),
+                self.assertRaises(OSError),
+            ):
+                cli._write_private_env(path, ["replacement"])
+            self.assertEqual(path.read_text(), "existing")
+            self.assertEqual(list(Path(tmp).iterdir()), [path])
+
+    def test_api_key_input_refuses_echo_fallback(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with (
+                patch("validator.cli._env_path", return_value=Path(tmp) / ".env"),
+                patch("builtins.input", return_value=""),
+                patch("getpass.getpass", side_effect=cli.getpass.GetPassWarning),
+                redirect_stdout(io.StringIO()) as output,
+            ):
+                self.assertEqual(cli.main(["init"]), 1)
+            self.assertIn("requires a terminal", output.getvalue())
+            self.assertFalse((Path(tmp) / ".env").exists())
+
     def test_init_reports_non_interactive_setup_without_traceback(self):
         old_cwd = os.getcwd()
         with tempfile.TemporaryDirectory() as tmp:
@@ -739,7 +784,10 @@ class CliInitTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             os.chdir(tmp)
             try:
-                with patch("builtins.input", side_effect=["", ""]):
+                with (
+                    patch("builtins.input", side_effect=[""]),
+                    patch("getpass.getpass", return_value=""),
+                ):
                     buf = io.StringIO()
                     with redirect_stdout(buf):
                         code = cli._cmd_init(argparse.Namespace())
@@ -757,8 +805,8 @@ class CliInitTests(unittest.TestCase):
             os.chdir(tmp)
             try:
                 with (
-                    patch("builtins.input", side_effect=["", "grid-key", "", "n", "y"]),
-                    patch("getpass.getpass", return_value=account.key.hex()),
+                    patch("builtins.input", side_effect=["", "", "n"]),
+                    patch("getpass.getpass", side_effect=["grid-key", account.key.hex()]),
                 ):
                     with redirect_stdout(io.StringIO()):
                         code = cli._cmd_init(argparse.Namespace())
@@ -781,8 +829,8 @@ class CliInitTests(unittest.TestCase):
             os.chdir(tmp)
             try:
                 with (
-                    patch("builtins.input", side_effect=["", "grid-key", other.address, "n", "y"]),
-                    patch("getpass.getpass", return_value=account.key.hex()),
+                    patch("builtins.input", side_effect=["", other.address]),
+                    patch("getpass.getpass", side_effect=["grid-key", account.key.hex()]),
                 ):
                     with redirect_stdout(io.StringIO()):
                         code = cli._cmd_init(argparse.Namespace())
@@ -797,7 +845,10 @@ class CliInitTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             os.chdir(tmp)
             try:
-                with patch("builtins.input", side_effect=["", "grid-key", "0xnot-a-wallet"]):
+                with (
+                    patch("builtins.input", side_effect=["", "0xnot-a-wallet"]),
+                    patch("getpass.getpass", return_value="grid-key"),
+                ):
                     with redirect_stdout(io.StringIO()):
                         code = cli._cmd_init(argparse.Namespace())
             finally:

@@ -13,8 +13,8 @@ installer generation.
 - `test_outbox.py` - durable assignment journaling, atomic signed-evidence
   promotion, delivery, dead-letter recovery, and restart behavior.
 - `test_grid_client.py` - endpoint/capability and lifecycle transport contracts.
-- `test_cli.py`, `test_dashboard.py`, `test_config.py` - operator surfaces,
-  including private mode-`0600` signing-wallet preparation without secret
+- `test_cli.py`, `test_launcher.py`, `test_dashboard.py`, `test_config.py` - operator surfaces,
+  including POSIX mode-`0600` / Windows protected owner-only signing-wallet preparation without secret
   output, prepared-identity init, safe qualification progress without private
   control metadata, signed suspension, and account-bound signing-wallet
   rotation.
@@ -44,6 +44,11 @@ installer generation.
   release tag before publication.
 - CLI checks must expose the local scorer set so release smokes can distinguish
   a usable frozen scorer from a silently withheld capability.
+- Every native binary build tests CLI and menu behavior. Windows clean-install
+  must create and reuse a real identity through the packaged menu and verify
+  its protected DACL, not stop at `--help`. Menu tests must cover no-argument
+  terminal vs piped behavior, stable config paths, fresh command subprocesses,
+  persistent error output, and no implicit key creation or network access.
 - Every official binary and container must run the same bounded image/video
   decoder self-test, including after a clean installer extraction.
 - Preserve the no-economic-effect boundary: assignment success/failure must not

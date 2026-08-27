@@ -34,6 +34,8 @@ verification, binary installation, systemd installation, and release smoke tests
   placeholder and may install only from explicit local asset/checksum paths.
 - Keep scripts deterministic and non-interactive unless their installer purpose
   explicitly requires operator input. Never print secrets.
+- Windows installer output points to the interactive menu with an explicit
+  config path. It never runs identity creation or requests credentials itself.
 
 ## Verification
 

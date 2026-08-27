@@ -161,7 +161,9 @@ generator here or imply that passing public templates proves model quality.
   GitHub provenance is verified separately with `gh attestation verify`.
 - **`scripts/install-validator.ps1`** — native Windows x64 installer. It
   requires explicit acknowledgement of the unsigned preview and verifies the
-  archive checksum before installation or execution.
+  archive checksum before installation or execution. It prints the interactive
+  menu invocation. Native clean-install CI must exercise identity creation,
+  repeated preparation, and the protected Windows DACL, not just help/decoders.
 - **`scripts/install-systemd.sh`** — Linux systemd service installer for source
   or released-binary validator nodes. Dry-run safe; generated unit must keep
   secrets in `.env`, not in the unit file.

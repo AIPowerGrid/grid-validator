@@ -428,6 +428,9 @@ assignments, then rewards/staking after the evidence loop is boring.
 | attestations remain pending | Check Core reachability; the node retries the durable local outbox automatically |
 | outbox reports dead letters | Stop and inspect Core rejection logs before removing the local state database |
 | registration fails with 403 | Confirm the key purpose is validator and the signing wallet is linked to the same Grid account |
+| Windows `.exe` closes immediately | `preview.9` and earlier require a subcommand; run `.\aipg-validator.exe --version` from PowerShell to keep output visible. The next release adds a first-run menu. |
+| Windows setup mentions `fchmod` | Known identity-creation bug through `preview.9`; use the corrected release when available. More API keys will not help. |
+| Console shows a different wallet than `prepare-wallet` | Stop and request enrollment assistance; a public address alone is not proof of control. Never export a funded wallet key to get past registration. |
 | `VALIDATOR_PRIVATE_KEY is required` | Run `aipg-validator prepare-wallet`, link the printed address, then complete `init` |
 | `Interactive setup requires a terminal` | Run `aipg-validator init` from a shell, or create `.env` from `.env.template` |
 | `web3 not installed` | Install stake extras with `./.venv/bin/python -m pip install -e '.[stake]'`, or keep `VALIDATOR_REQUIRE_STAKE=false` for V0 preview |

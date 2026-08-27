@@ -149,6 +149,29 @@ The acknowledgement switch is mandatory because the preview executable is not
 Authenticode signed. The installer verifies its SHA-256 checksum before the
 binary is installed or executed.
 
+### Windows First Run
+
+`preview.9` and earlier are command-line executables: double-clicking without
+a command closes the window after printing a usage error. Open PowerShell in
+the extracted folder and run ` .\aipg-validator.exe --version` to identify the
+build and keep errors visible. These releases also have a Windows-specific
+identity-file permission bug. Do not create extra API keys to fix either issue.
+
+The next release adds a persistent first-run menu and fixes Windows identity
+permissions. Source builds already support `aipg-validator menu`; opening it
+does not create keys or start probing. It reuses `VALIDATOR_ENV`, an existing
+local `.env`, or the installed config under `$HOME/.aipg-validator/.env`.
+Choose **Prepare/show local signing address**, complete Console enrollment,
+then **Configure API key**, **Check registration**, and **Run validator**.
+
+Two different credentials are involved: the API key authorizes Grid requests;
+the dedicated local signing key signs evidence. Never export your everyday or
+funded wallet's private key into the validator. Core currently requires the
+signing wallet to match the account's linked wallet. Console wallet linking
+requires a wallet signature; it does not accept a pasted address alone. If the
+locally prepared address cannot be linked through your wallet, stop and request
+enrollment assistance. The menu does not yet implement browser-to-node pairing.
+
 The running node checks for a newer public release at most every six hours and
 prints a notification only. It never self-updates. To upgrade, rerun the
 installer with the new exact `AIPG_VALIDATOR_VERSION`, then repeat
