@@ -8,6 +8,8 @@ import json
 import os
 import sqlite3
 import time
+from collections.abc import Iterator
+from contextlib import closing, contextmanager
 from pathlib import Path
 
 
@@ -59,8 +61,11 @@ class AttestationOutbox:
         except OSError:
             pass
 
-    def _connect(self):
-        return sqlite3.connect(self.path, timeout=5)
+    @contextmanager
+    def _connect(self) -> Iterator[sqlite3.Connection]:
+        # sqlite's context manager commits/rolls back, but does not close handles.
+        with closing(sqlite3.connect(self.path, timeout=5)) as connection, connection:
+            yield connection
 
     def enqueue(self, envelope: dict) -> str:
         body = _canonical(envelope)

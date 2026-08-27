@@ -98,11 +98,14 @@ change is deployed; Core still issues no media work by default.
   a startup error before the Grid client starts; do not silently return success.
   The direct `python -m validator.main` module path must also print clean
   startup errors and exit nonzero, not traceback.
-- **`cli.py`** — `aipg-validator prepare-wallet | init | self-test | check | dashboard | run | queue | suspend | rotate`.
+- **`cli.py`** — `aipg-validator menu | prepare-wallet | init | self-test | check | dashboard | run | queue | suspend | rotate`.
   `prepare-wallet` uses the operating-system CSPRNG, writes a local signing
-  identity atomically at mode `0600`, prints only the public address, and is
+  identity atomically at mode `0600` on POSIX or with a protected owner-only
+  DACL on Windows, prints only the public address, and is
   idempotent. `init` reuses that prepared identity while adding the scoped API
-  key. The remaining commands provide the capability/scorecard-aware health check with
+  key. Apply Windows permissions before writing secret bytes; failure must
+  leave any prior config untouched. API-key entry is hidden and refuses an
+  echo fallback. The remaining commands provide the capability/scorecard-aware health check with
   `--no-probe`; check reports the locally usable scorer set before registration
   and the authenticated operator's safe qualification progress afterward;
   stake-disabled preview check reports an explicit skip, while
@@ -117,6 +120,14 @@ change is deployed; Core still issues no media work by default.
   run it on every supported platform.
 - **`__main__.py`** — module entrypoint for `python -m validator` and
   PyInstaller release binaries.
+- **`launcher.py`** — interactive menu for a no-argument terminal launch
+  (including Windows Explorer double-click) or explicit `menu`. Noninteractive
+  no-argument calls print help without hanging. Actions run in child processes
+  so setup cannot leave cached Settings in a later check/run. One explicit
+  `VALIDATOR_ENV` follows all actions; prefer existing config over creating a
+  new identity. No key creation, browser launch, or Grid request occurs just
+  by opening the menu. Enrollment still requires proof of control of the
+  account-linked signing wallet; the menu cannot bypass that Core check.
 - **`update_check.py`** — bounded, notification-only GitHub release check. It
   validates tag syntax, ignores drafts, bypasses environment proxies, and
   constructs its own canonical release URL. It never downloads or executes an
@@ -137,7 +148,9 @@ change is deployed; Core still issues no media work by default.
   Never sign raw prompts, expected answers, or raw responses in V0; sign compact
   hashes so scorecards can stay private while evidence is still committed.
 - **`outbox.py`** — private local SQLite state journal for Grid assignments and
-  signed public envelopes. It records an assignment before the probe, atomically
+  signed public envelopes. Every connection commits/rolls back and closes at
+  the context boundary; never leave Windows file locks to garbage collection.
+  It records an assignment before the probe, atomically
   promotes it to a signed envelope, deduplicates by assignment, survives
   restarts, retries before new probes, and dead-letters after separate configured
   attempt/age bounds. `queue retry-dead` is the only automatic-state revival;

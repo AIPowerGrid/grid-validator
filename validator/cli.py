@@ -21,6 +21,7 @@ import stat
 import sys
 import tempfile
 import time
+import warnings
 from pathlib import Path
 
 from dotenv import dotenv_values
@@ -150,18 +151,49 @@ def _env_path(args=None) -> Path:
     return Path(configured).expanduser() if configured else Path.cwd() / ".env"
 
 
+def _protect_windows_file(path: Path) -> None:
+    """Replace inherited permissions with a protected, owner-only Windows DACL."""
+    import ctypes
+    from ctypes import wintypes
+
+    advapi = ctypes.WinDLL("advapi32", use_last_error=True)
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    convert = advapi.ConvertStringSecurityDescriptorToSecurityDescriptorW
+    convert.argtypes = [wintypes.LPCWSTR, wintypes.DWORD,
+                        ctypes.POINTER(ctypes.c_void_p), ctypes.POINTER(wintypes.DWORD)]
+    convert.restype = wintypes.BOOL
+    apply = advapi.SetFileSecurityW
+    apply.argtypes = [wintypes.LPCWSTR, wintypes.DWORD, ctypes.c_void_p]
+    apply.restype = wintypes.BOOL
+    kernel.LocalFree.argtypes = [ctypes.c_void_p]
+    kernel.LocalFree.restype = ctypes.c_void_p
+    descriptor = ctypes.c_void_p()
+    # Protected DACL, full file access for the owner only (Owner Rights SID).
+    if not convert("D:P(A;;FA;;;OW)", 1, ctypes.byref(descriptor), None):
+        raise OSError("Could not create private Windows file permissions")
+    try:
+        if not apply(str(path), 0x80000004, descriptor):
+            raise OSError("Could not protect identity file; use a private NTFS folder")
+    finally:
+        kernel.LocalFree(descriptor)
+
+
 def _write_private_env(path: Path, lines: list[str]) -> None:
     """Atomically write validator configuration without a world-readable window."""
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, temporary = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent, text=True)
     try:
-        os.fchmod(fd, stat.S_IRUSR | stat.S_IWUSR)
+        if sys.platform == "win32":
+            _protect_windows_file(Path(temporary))
+        else:
+            os.fchmod(fd, stat.S_IRUSR | stat.S_IWUSR)
         with os.fdopen(fd, "w", encoding="utf-8") as handle:
             handle.write("\n".join(lines) + "\n")
             handle.flush()
             os.fsync(handle.fileno())
         os.replace(temporary, path)
-        os.chmod(path, stat.S_IRUSR | stat.S_IWUSR)
+        if sys.platform != "win32":
+            os.chmod(path, stat.S_IRUSR | stat.S_IWUSR)
     except BaseException:
         try:
             os.close(fd)
@@ -211,9 +243,12 @@ def _cmd_prepare_wallet(args) -> int:
         except RuntimeError as exc:
             print(f"ERROR Existing validator identity is invalid: {exc}")
             return 1
-        os.chmod(env_path, stat.S_IRUSR | stat.S_IWUSR)
+        if sys.platform == "win32":
+            _protect_windows_file(env_path)
+        else:
+            os.chmod(env_path, stat.S_IRUSR | stat.S_IWUSR)
         print(f"OK Validator signing wallet already prepared: {wallet}")
-        print(f"   Identity file: {env_path} (chmod 600)")
+        print(f"   Identity file: {env_path} (owner-only permissions)")
         return 0
 
     account = Account.create()
@@ -242,7 +277,7 @@ def _cmd_prepare_wallet(args) -> int:
         fresh_lines=fresh,
     )
     print(f"OK Created validator signing wallet: {wallet}")
-    print(f"   Private key saved only in {env_path} (chmod 600); it was not printed.")
+    print(f"   Private key saved only in {env_path} (owner-only permissions); it was not printed.")
     print("   Next: link this public address in the Console, create a validator key,")
     print("   then run `aipg-validator init` to complete setup.")
     return 0
@@ -280,7 +315,9 @@ def _cmd_init(args) -> int:
         else:
             api_key = ""
         if not api_key:
-            api_key = input("Validator grid API key (required): ").strip()
+            with warnings.catch_warnings():
+                warnings.simplefilter("error", getpass.GetPassWarning)
+                api_key = getpass.getpass("Validator grid API key (hidden, required): ").strip()
         if not api_key:
             print("ERROR Validator grid API key is required.")
             return 1
@@ -305,7 +342,9 @@ def _cmd_init(args) -> int:
                 except RuntimeError as exc:
                     print(f"ERROR {exc}")
                     return 1
-            pk = getpass.getpass("Validator private key (kept local, chmod 600): ").strip()
+            with warnings.catch_warnings():
+                warnings.simplefilter("error", getpass.GetPassWarning)
+                pk = getpass.getpass("Dedicated validator private key (kept local): ").strip()
             if not pk:
                 print("ERROR Validator private key is required for registration and evidence signing.")
                 return 1
@@ -328,7 +367,7 @@ def _cmd_init(args) -> int:
         stake_prompt = "[Y/n]" if staked_default else "[y/N]"
         stake_answer = input(f"Run with on-chain stake required? {stake_prompt} ").strip().lower()
         staked = staked_default if not stake_answer else stake_answer in {"y", "yes"}
-    except EOFError:
+    except (EOFError, getpass.GetPassWarning):
         print("ERROR Interactive setup requires a terminal.")
         print("   Run `aipg-validator init` from a shell, or create `.env` from `.env.template`.")
         return 1
@@ -352,7 +391,7 @@ def _cmd_init(args) -> int:
         {line.split("=", 1)[0]: line.split("=", 1)[1] for line in lines},
         fresh_lines=lines,
     )
-    print(f"\nOK Wrote {env_path} (chmod 600). Next: `aipg-validator check`")
+    print(f"\nOK Wrote {env_path} (owner-only permissions). Next: `aipg-validator check --no-probe`")
     return 0
 
 
@@ -567,6 +606,7 @@ def main(argv=None) -> int:
     p = argparse.ArgumentParser(prog="aipg-validator", description="AIPG validator node")
     p.add_argument("--version", action="version", version=f"%(prog)s {__release_tag__}")
     sub = p.add_subparsers(dest="cmd", required=True)
+    sub.add_parser("menu", help="interactive first-run and operator menu")
     prepare = sub.add_parser(
         "prepare-wallet",
         help="create a local signing wallet before Console enrollment",
@@ -599,8 +639,19 @@ def main(argv=None) -> int:
         default="all",
         help="dead-letter class to retry (default: all)",
     )
+    argv = sys.argv[1:] if argv is None else argv
+    if not argv:
+        if sys.stdin is not None and sys.stdin.isatty():
+            argv = ["menu"]
+        else:
+            p.print_help()
+            return 0
     args = p.parse_args(argv)
-    return {
+    if args.cmd == "menu":
+        from .launcher import run_menu
+
+        return run_menu()
+    handler = {
         "init": _cmd_init,
         "prepare-wallet": _cmd_prepare_wallet,
         "check": _cmd_check,
@@ -610,7 +661,15 @@ def main(argv=None) -> int:
         "queue": _cmd_queue,
         "suspend": _cmd_lifecycle,
         "rotate": _cmd_lifecycle,
-    }[args.cmd](args)
+    }[args.cmd]
+    try:
+        return handler(args)
+    except OSError:
+        print("ERROR Could not access or protect the local config file. Check folder permissions.")
+        return 1
+    except KeyboardInterrupt:
+        print("\nStopped.")
+        return 130
 
 
 if __name__ == "__main__":

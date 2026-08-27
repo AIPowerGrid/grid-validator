@@ -90,6 +90,9 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Installed validator failed its help smoke test" }
 
     Write-Host "Installed: $target"
+    Write-Host "Open the interactive menu:"
+    Write-Host "  `$env:VALIDATOR_ENV = '$configDir\.env'"
+    Write-Host "  & '$target' menu"
     Write-Host "Next steps:"
     Write-Host "  Set-Location '$configDir'"
     Write-Host "  & '$target' prepare-wallet"

@@ -40,6 +40,22 @@ class AttestationOutboxTests(unittest.TestCase):
         self.outbox.delivered(item_id)
         self.assertEqual(self.outbox.counts(), {"pending": 0, "dead": 0})
 
+    def test_connection_closes_after_commit_and_rollback(self):
+        with self.outbox._connect() as committed:
+            committed.execute("CREATE TABLE connection_test (value INTEGER)")
+            committed.execute("INSERT INTO connection_test VALUES (1)")
+        with self.assertRaises(sqlite3.ProgrammingError):
+            committed.execute("SELECT 1")
+
+        with self.assertRaisesRegex(ValueError, "rollback"):
+            with self.outbox._connect() as rolled_back:
+                rolled_back.execute("INSERT INTO connection_test VALUES (2)")
+                raise ValueError("rollback")
+        with self.assertRaises(sqlite3.ProgrammingError):
+            rolled_back.execute("SELECT 1")
+        with self.outbox._connect() as reopened:
+            self.assertEqual(reopened.execute("SELECT value FROM connection_test").fetchall(), [(1,)])
+
     def test_failure_dead_letters_at_attempt_limit(self):
         item_id = self.outbox.enqueue(self._envelope())
         self.assertFalse(
