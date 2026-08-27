@@ -10,7 +10,7 @@ routing, or prove exact model weights.
 
 Rollout status: sealed shared-quorum text validation is live on production Core
 commit `df34ffd4` with migrations through `0029`. Three first-party pilot nodes
-run the exact published `v0.1.0-preview.8` payload from commit `122f5565`.
+run the exact published `v0.1.0-preview.9` payload from commit `9d7b68f`.
 On the earlier preview.5 payload they completed a healthy 3-of-5 16K-context
 group and correctly disputed a token-limit group, all without credit,
 reservation, den, or payout side effects. This proves the live protocol, not

@@ -85,8 +85,9 @@ Production preview status:
   operator configuration is enabled, and both production audit tables were
   empty after deployment. Existing assignment probes remain unpaid and
   economically inert.
-- All three pilot nodes run the published `v0.1.0-preview.8` payload from
-  validator commit `122f5565`; the checksummed Linux x64 artifact passed a
+- All three participating pilot nodes run the published `v0.1.0-preview.9`
+  payload from validator commit `9d7b68f`; the checksummed Linux x64 artifact
+  and offline image/video decoder self-test passed a
   one-node-at-a-time production rollout and Core reports the immutable release
   tag for all three nodes.
 - On the earlier preview.5 payload, after the one-hour worker/model cooldown
