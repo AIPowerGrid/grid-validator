@@ -13,15 +13,16 @@ For the shortest install path, start with [QUICKSTART.md](QUICKSTART.md). This
 file is the longer operator runbook.
 
 Current rollout: sealed assignment-bound shared quorum is live on production
-Core commit `e18b38f9` with migrations through `0026`. Three first-party pilot nodes
+Core commit `fabb767d` with migrations through `0027`. Three first-party pilot nodes
 proved the signed 3-of-5 text flow without economic side effects and now run the
-exact published `v0.1.0-preview.5` payload from commit `07190da8`. Core reports
+exact published `v0.1.0-preview.8` payload from commit `122f5565`. Core reports
 that immutable release identity for all three nodes. Each node passed a staged
 `check --no-probe`, atomic symlink switch, and clean service restart. After the
-cooldown, the fleet completed a healthy 3-of-5 16K-context group and correctly
-disputed a token-limit group with no economic side effects. Public enrollment
-remains a no-reward qualification cohort because those nodes share one operator
-and hypervisor. Always run `check --no-probe` before operating the loop.
+earlier preview.5 cooldown, the fleet completed a healthy 3-of-5 16K-context
+group and correctly disputed a token-limit group with no economic side effects.
+Public enrollment remains a no-reward qualification cohort because those nodes
+share one operator and hypervisor. Always run `check --no-probe` before operating
+the loop.
 
 ## System Requirements
 
@@ -55,9 +56,9 @@ before running it:
 > before accepting the OS warning. Prefer Linux or Docker for pilot nodes.
 
 ```bash
-curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.5/install-validator.sh
+curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.8/install-validator.sh
 gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator
-AIPG_VALIDATOR_VERSION=v0.1.0-preview.5 bash install-validator.sh
+bash install-validator.sh
 cd ~/.aipg-validator
 aipg-validator prepare-wallet
 # Link the printed address and create a validator key in the Console.
@@ -72,15 +73,15 @@ The installer places the binary in `$HOME/.local/bin` and creates
 ```bash
 AIPG_VALIDATOR_INSTALL_DIR=/usr/local/bin \
   AIPG_VALIDATOR_CONFIG_DIR=/var/lib/aipg-validator \
+  AIPG_VALIDATOR_VERSION=v0.1.0-preview.8 \
   ./scripts/install-binary.sh
 ```
 
 On Windows x64, use the native PowerShell installer:
 
 ```powershell
-Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.5/install-validator.ps1 -OutFile install-validator.ps1
+Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.8/install-validator.ps1 -OutFile install-validator.ps1
 gh attestation verify install-validator.ps1 --repo AIPowerGrid/grid-validator
-$env:AIPG_VALIDATOR_VERSION = "v0.1.0-preview.5"
 .\install-validator.ps1 -AcceptUnsignedPreview
 ```
 
@@ -247,13 +248,13 @@ Override the bind address only when you know the machine/network boundary:
 Docker is the easiest server path once `.env` exists.
 
 ```bash
-docker pull ghcr.io/aipowergrid/validator:v0.1.0-preview.5
+docker pull ghcr.io/aipowergrid/validator:v0.1.0-preview.8
 docker run --rm \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.5 check --no-probe
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.8 check --no-probe
 docker run -d --name aipg-validator --restart unless-stopped \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.5
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.8
 ```
 
 Run the dashboard container when you want a local browser view:
@@ -261,7 +262,7 @@ Run the dashboard container when you want a local browser view:
 ```bash
 docker run --rm -p 8790:8790 \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.5 \
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.8 \
   dashboard --host 0.0.0.0
 ```
 

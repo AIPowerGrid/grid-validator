@@ -5,6 +5,37 @@ This is a dated rollout snapshot, not a live status page. Query
 `GET https://api.aipowergrid.io/v1/validator/capabilities` for current public
 state.
 
+## 2026-08-27 06:01 UTC
+
+Production Core ran immutable commit
+`fabb767df593c0f8240ea75d764297a962a64042` with Alembic `0027`. The public
+validator release advanced to immutable unsigned prerelease
+`v0.1.0-preview.8` from commit
+`122f5565fddddb17de1a28719bbe6e792e1b75a7`. Its nine-asset payload passed the
+release verifier and GitHub provenance check. A real macOS ARM64 install with
+no version or asset override selected preview.8, verified SHA-256, installed,
+and reported the exact release identity. Anonymous GHCR inspection returned an
+OCI index for Linux AMD64 and ARM64; `latest` remained absent.
+
+All three first-party Linux x64 validators rolled one at a time using archive
+SHA-256 `8960993a2174162b192b11dfe0b82b086f6bf19c4d441ae6350a5907d33b03f6`.
+Each passed `check --no-probe` before an atomic symlink switch and systemd
+restart. All services were active, every private `.env` remained mode `0600`,
+warning-or-higher journals were empty, and preview.6 remained installed on
+every host for rollback. Preview.7 was intentionally never deployed after a
+pre-rollout installer-runtime defect was found; preview.8 includes the fix and
+a no-version packaged-installer regression test.
+
+Public status reported three registered, heartbeat-fresh, participating
+validators, all on preview.8; zero verified independent operators; 288
+completed assignments; 259 authoritative votes; two accepted, one disputed,
+and 93 finalized groups. Validator economic effect remained `none`; charging
+remained non-global allowlist mode; staking, rewards, routing influence,
+slashing, image validation, video validation, and coordinator federation
+remained disabled. No fresh assignment was issued for this packaging-only
+rollout, so the latest workload proof remains the earlier preview.5 healthy
+16K-context group and correctly disputed token-limit group.
+
 ## 2026-08-27 04:35 UTC
 
 All three first-party validators rolled one at a time to the exact published

@@ -9,14 +9,15 @@ V0 is evidence-only. It does not pay validator rewards, slash workers, change
 routing, or prove exact model weights.
 
 Rollout status: sealed shared-quorum text validation is live on production Core
-commit `e18b38f9` with migrations through `0026`. Three first-party pilot nodes
-run the exact published `v0.1.0-preview.5` payload from commit `07190da8`.
-After rollout they completed a healthy 3-of-5 16K-context group and correctly
-disputed a token-limit group, all without credit, reservation, den, or payout
-side effects. This proves the live protocol, not independent operation: the
-pilot nodes share one operator and hypervisor. Target, model, nonce, and
-challenge are disclosed only after worker execution and are verified against
-the assignment seal before signing. Begin with `check --no-probe` before
+commit `fabb767d` with migrations through `0027`. Three first-party pilot nodes
+run the exact published `v0.1.0-preview.8` payload from commit `122f5565`.
+On the earlier preview.5 payload they completed a healthy 3-of-5 16K-context
+group and correctly disputed a token-limit group, all without credit,
+reservation, den, or payout side effects. This proves the live protocol, not
+independent operation: the pilot nodes share one operator and hypervisor.
+Target, model, nonce, and challenge are disclosed only after worker execution
+and are verified against the assignment seal before signing. Begin with
+`check --no-probe` before
 running an assignment probe.
 
 ## What You Need
@@ -119,9 +120,9 @@ before running it:
 > Docker are the least-friction preview paths.
 
 ```bash
-curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.5/install-validator.sh
+curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.8/install-validator.sh
 gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator
-AIPG_VALIDATOR_VERSION=v0.1.0-preview.5 bash install-validator.sh
+bash install-validator.sh
 cd ~/.aipg-validator
 aipg-validator prepare-wallet
 # Link the printed address and create a validator key in the Console.
@@ -134,9 +135,8 @@ aipg-validator run
 Windows x64 PowerShell:
 
 ```powershell
-Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.5/install-validator.ps1 -OutFile install-validator.ps1
+Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.8/install-validator.ps1 -OutFile install-validator.ps1
 gh attestation verify install-validator.ps1 --repo AIPowerGrid/grid-validator
-$env:AIPG_VALIDATOR_VERSION = "v0.1.0-preview.5"
 .\install-validator.ps1 -AcceptUnsignedPreview
 ```
 
@@ -157,16 +157,16 @@ validator API key. Follow [OPERATORS.md](OPERATORS.md) and revoke the old API
 key after the replacement checks healthy.
 
 The versioned GitHub binaries and exact preview container are public. Anonymous
-GHCR access to `v0.1.0-preview.5` is verified for Linux x64 and ARM64. Keep the
+GHCR access to `v0.1.0-preview.8` is verified for Linux x64 and ARM64. Keep the
 version explicit: prereleases never publish or replace `latest`.
 
 ## Docker
 
 ```bash
-docker pull ghcr.io/aipowergrid/validator:v0.1.0-preview.5
+docker pull ghcr.io/aipowergrid/validator:v0.1.0-preview.8
 docker run --rm \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.5 check --no-probe
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.8 check --no-probe
 ```
 
 Run the loop:
@@ -174,7 +174,7 @@ Run the loop:
 ```bash
 docker run -d --name aipg-validator --restart unless-stopped \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.5
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.8
 ```
 
 Run the dashboard:
@@ -182,7 +182,7 @@ Run the dashboard:
 ```bash
 docker run --rm -p 8790:8790 \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.5 \
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.8 \
   dashboard --host 0.0.0.0
 ```
 
