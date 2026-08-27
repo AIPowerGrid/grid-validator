@@ -34,6 +34,8 @@ installer generation.
   stale/replaced approvals, cancellation, expired attempts, response-loss/restart
   recovery, exact-association unlink, config preservation and transport limits.
   No mock result proves Core's transaction or authorization implementation.
+  This suite runs on all four native binary targets. Synthetic credential files
+  use the production protected atomic writer, including the Windows DACL path.
 - `test_core_pairing_integration.py` - opt-in tests against the actual reviewed
   Core service, using only an in-memory SQLite database. Set
   `VALIDATOR_CORE_SOURCE` and use a Core dependency environment. Verify link,

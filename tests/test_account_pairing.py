@@ -31,6 +31,7 @@ from validator.account_pairing import (
     validated_payload,
 )
 from validator.launcher import operator_config
+from validator.cli import _write_private_env
 
 
 def response(data, status=200):
@@ -403,7 +404,7 @@ class PairingTests(unittest.TestCase):
                 f"GRID_API_URL={GRID_URL}\nVALIDATOR_API_KEY={self.core.identity.api_key}\n"
                 f"VALIDATOR_PRIVATE_KEY={self.core.identity.private_key}\nVALIDATOR_WALLET={self.core.identity.wallet}\n"
             ).encode()
-            path.write_bytes(original)
+            _write_private_env(path, original.decode().splitlines())
             self.assertEqual(self.act("refresh")["status"], "none")
             self.assertEqual(path.read_bytes(), original)
             with patch.dict(os.environ, {"VALIDATOR_API_KEY": ""}):

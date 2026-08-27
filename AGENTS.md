@@ -134,7 +134,9 @@ generator here or imply that passing public templates proves model quality.
   resolve the broad `pyproject.toml` ranges independently with pip. A job named
   `test` that only compiles or smoke-tests the CLI is not a test gate.
   Pull requests and `master` pushes assemble, verify, and clean-install the exact
-  four-platform binary payload without publishing it. Linux x64 and ARM64
+  four-platform binary payload without publishing it. Each target executes local
+  account-pairing contract and consent tests before packaged-app smoke checks.
+  Linux x64 and ARM64
   binaries are built and clean-installed on Ubuntu 22.04 runners, establishing
   a glibc 2.35 baseline instead of inheriting `ubuntu-latest` silently.
   Protected `v*` tag pushes are the only

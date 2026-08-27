@@ -15,17 +15,20 @@ import httpx
 from tests.test_account_pairing import FakeCore
 from validator.account_pairing import PairingController
 from validator.operator_app import OperatorServer, Supervisor
+from validator.cli import _write_private_env
 
 
 def main() -> None:
     core = FakeCore()
     with tempfile.TemporaryDirectory() as tmp:
         path = Path(tmp) / "node.env"
-        path.touch(mode=0o600)
-        path.write_text(
-            f"VALIDATOR_API_KEY={core.identity.api_key}\n"
-            f"VALIDATOR_PRIVATE_KEY={core.identity.private_key}\n"
-            f"VALIDATOR_WALLET={core.identity.wallet}\n"
+        _write_private_env(
+            path,
+            [
+                f"VALIDATOR_API_KEY={core.identity.api_key}",
+                f"VALIDATOR_PRIVATE_KEY={core.identity.private_key}",
+                f"VALIDATOR_WALLET={core.identity.wallet}",
+            ],
         )
         supervisor = Supervisor(path)
         supervisor.pairing = PairingController(
