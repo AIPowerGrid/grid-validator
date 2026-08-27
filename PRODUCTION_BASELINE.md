@@ -5,6 +5,30 @@ This is a dated rollout snapshot, not a live status page. Query
 `GET https://api.aipowergrid.io/v1/validator/capabilities` for current public
 state.
 
+## 2026-08-27 04:35 UTC
+
+All three first-party validators rolled one at a time to the exact published
+Linux x64 `v0.1.0-preview.5` payload from commit
+`07190da899e3fe9eaa99b0f15efb15dc01d69e7b`. Each downloaded archive matched
+SHA-256 `d74e66c69f3b2ebef5b1ca6b4bb1b69cc2f1c1400cfc36f4ae095afaed0be0b7`,
+reported the expected immutable version, and passed `check --no-probe` before
+an atomic `current` symlink switch and systemd restart. Every private `.env`
+remained mode `0600`; all three services were active with no warning-or-higher
+journal entries after rollout. The prior release remained present for rollback.
+
+Public status then reported three registered, heartbeat-fresh, participating
+validators, all on `v0.1.0-preview.5`; zero independently verified operators;
+288 completed assignments; 256 authoritative votes; and quorum state of zero
+pending, two accepted, zero disputed, and 94 finalized groups. Validator
+economic effect remained `none`, staking remained disabled, and charging
+remained a non-global allowlist canary.
+
+No new assignment or authoritative vote appeared during the 90-second
+post-rollout observation window. Core finalized two existing groups, but that is
+not a fresh workload proof. This snapshot therefore proves the public artifact,
+upgrade, registration, heartbeat, service recovery, and rollback path. The most
+recent fresh 3-of-5 workload proof remains the earlier `preview.3` echo group.
+
 ## 2026-08-27 00:09 UTC
 
 Production Core ran immutable commit
