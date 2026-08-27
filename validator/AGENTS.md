@@ -8,9 +8,10 @@ unpredictable targeted canaries, score replies, sign attestations, and POST them
 in a loop. V0 is CPU-only and assignment-bound for text. The assignment loop
 can consume deterministic image/video-fidelity work only when the optional media
 dependencies and an explicit HTTPS witness-origin allowlist are present. The
-node retains a structural video-contract scorer, but Core issues only the
-stronger three-worker video-fidelity contract when every media rollout gate is
-enabled. Core still issues no media work by default.
+node retains a structural video-contract scorer, but merged Core source issues
+only the stronger three-worker video-fidelity contract when every media rollout
+gate is enabled. Production may report the older dark contract until that Core
+change is deployed; Core still issues no media work by default.
 
 ## Ownership
 
@@ -186,11 +187,13 @@ enabled. Core still issues no media work by default.
   The scorer is not a live network capability until Core issuance and every
   media rollout gate are complete.
 - **Video scoring is dark and fail-closed:** `video.contract.v1` remains a local
-  structural scorer, but Core does not issue that weaker single-candidate lane.
-  Core's default-off `video.fidelity.v1` path requires a governed deterministic
-  recipe and model digest, two independently controlled bonded references, and
-  three committed witnesses. Unsafe transport, malformed or inconsistent timing
-  contracts, missing PyAV, reference decode failure/disagreement, and local
+  structural scorer. Merged Core source no longer issues that weaker
+  single-candidate lane, but production may report it until the dark Core change
+  is deployed. Core's default-off `video.fidelity.v1` path requires a governed
+  deterministic recipe and model digest, two independently controlled bonded
+  references, and three committed witnesses. Unsafe transport, malformed or
+  inconsistent timing contracts, missing PyAV, reference decode
+  failure/disagreement, and local
   decoder timeout are inconclusive. Candidate malformed decode, contract,
   blank/static, or reference-outlier failures may produce failed evidence only
   after all commitments verify. A real-workload canary and the remaining rollout
