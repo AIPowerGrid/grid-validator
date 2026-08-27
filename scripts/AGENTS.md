@@ -26,6 +26,12 @@ verification, binary installation, systemd installation, and release smoke tests
   process tree; killing only its bootloader can leave a child holding stdout.
   It also checks the private cached pairing endpoint and invalid-config recovery
   without Core traffic. This is package qualification, not live pairing proof.
+- `native-live-canary.py` verifies fixed published archives/provenance and runs
+  an explicitly approved first-party Windows local-app journey against the
+  unpaid production Grid. It creates fresh isolated state, checks accepted
+  evidence and recovery, then suspends/revokes the disposable node credentials.
+  Never print captured child output or upload private state. This is a manual
+  protected workflow, not ordinary CI or independent/operator-UI proof.
 
 ## Local Contracts
 

@@ -117,6 +117,11 @@ generator here or imply that passing public templates proves model quality.
   a substitute for the live public status endpoints.
   It distinguishes published Linux ARM64 live enrollment/assignment/recovery
   proof from uncompleted Windows UI and independent-operator qualification.
+- **`NATIVE_LIVE_CANARY.md`** - owner-approved Windows runtime qualification
+  against the unpaid production preview. The manual workflow uses published
+  binaries and a disposable identity, tests app controls/recovery, and requires
+  suspension plus key revocation. It is not human double-click or independent
+  operator proof. Only its bounded public report may become an artifact.
 - **`SECURITY.md`** — private vulnerability disclosure process and the
   validator-specific evidence, identity, and release-supply-chain scope.
 - **`pyproject.toml`** — package metadata and `aipg-validator` console script.
