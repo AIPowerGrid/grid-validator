@@ -58,9 +58,10 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
 
 - **`validator/`** — the whole node (config, stake gate, grid client, canary probing +
   scoring, attestation signing, probe loop, CLI, local dashboard). Owned in its own AGENTS.md.
-- **`README.md`** — V0 scope, quick start, and target public distribution shape.
+- **`README.md`** — V0 scope, quick start, and current public distribution shape.
 - **`QUICKSTART.md`** — one-page operator path that mirrors the worker quickstart:
-  source preview, future binary install, Docker, systemd, health checks, and V0
+  source preview, verified binary install, versioned public Docker, systemd,
+  health checks, and V0
   safety boundaries.
 - **`OPERATORS.md`** — plain-language run guide (install, systemd, troubleshooting, FAQ).
   It owns the signed suspend/resume and account-bound signing-wallet/API-key

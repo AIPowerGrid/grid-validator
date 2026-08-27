@@ -57,7 +57,9 @@ hostname, or review notes.
 
 Linux x64 and ARM64 binaries target glibc 2.35 or newer. macOS and Windows
 preview binaries are explicitly unsigned; Linux is the lowest-friction public
-pilot path, while Docker currently requires a local build.
+pilot path. The exact `ghcr.io/aipowergrid/validator:v0.1.0-preview.3`
+container is anonymously pullable on Linux x64 and ARM64; the prerelease does
+not publish `latest`.
 
 ```bash
 curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.3/install-validator.sh
