@@ -15,10 +15,10 @@ file is the longer operator runbook.
 Current rollout: sealed assignment-bound shared quorum is live on production
 Core commit `e18b38f9` with migrations through `0026`. Three first-party pilot nodes
 proved the signed 3-of-5 text flow without economic side effects and now run the
-exact published `v0.1.0-preview.2` payload from commit `1472677d`. The external
-cohort binary target is `v0.1.0-preview.3`, which reports its immutable release
-identity to Core. Public enrollment remains a no-reward qualification
-cohort because those nodes share one operator and hypervisor.
+exact published `v0.1.0-preview.3` payload from commit `7ba18a52`. Core reports
+that immutable release identity for all three nodes, and a fresh post-rollout
+group reached healthy 3-of-5 quorum. Public enrollment remains a no-reward
+qualification cohort because those nodes share one operator and hypervisor.
 Always run `check --no-probe` before operating the loop.
 
 ## System Requirements
