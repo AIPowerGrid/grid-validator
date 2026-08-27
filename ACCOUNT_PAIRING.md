@@ -6,6 +6,9 @@ and not enabled in production.** [Core PR #58](https://github.com/AIPowerGrid/gr
 [Console PR #21](https://github.com/AIPowerGrid/grid-frontend/pull/21) (`db301013`)
 were deployed dark on 2026-08-27. Both pairing tables are empty.
 Keep `VALIDATOR_PAIRING_ENABLED=0` until the cross-repo rollout is verified.
+Core's separate [scoped pilot change](https://github.com/AIPowerGrid/grid-core/pull/60)
+adds a default-empty, expiring account allowlist for native qualification. It
+requires a new reviewed Core deployment; it is not in the deployed `407f2984`.
 
 ## What It Means
 
@@ -150,7 +153,25 @@ The source UI was checked at 320/390/1280px: consent cancel, approval without
 auto-signing, reload, explicit code confirmation, removal cancel/confirm,
 outage recovery and expiry. No horizontal overflow was observed.
 
-Before release/activation:
+### Scoped Qualification
+
+After deploying the reviewed pilot-capable Core dark, the maintainer may keep
+global pairing off and designate only unfunded test node and human accounts in
+`VALIDATOR_PAIRING_CANARY_ACCOUNTS`, with an explicit timezone-aware
+`VALIDATOR_PAIRING_CANARY_UNTIL`. Core caps the list at ten canonical accounts
+and the deadline at 24 hours ahead on startup. Both accounts must qualify;
+existing proofs, local consent and signatures are unchanged. No node-client
+configuration or protocol change is needed. Public capabilities still advertise
+pairing false, not the private pilot's membership or deadline.
+
+Remove test links before expiry, verify unchanged credentials/balances/wallets
+and ongoing evidence, then clear the pilot. Expiry blocks access without
+deleting associations; deliberately renew the same scoped pilot if authenticated
+cleanup must be retried. Never use a global activation or direct database edits
+as a shortcut around an incomplete canary. Pilot availability is not a public
+release or human desktop proof.
+
+### Before Release/Activation
 
 1. Review the node, Console and Core changes together; verify the real Core
    signature/transaction path and account-bound approval with both clients.
@@ -159,10 +180,10 @@ Before release/activation:
    Include linking, cancellation, restart, upgrade and response-loss recovery.
 3. Apply migration `0030` and deploy Core dark. Deploy the matching Console and
    publish reviewed immutable node artifacts before enabling the feature.
-4. Run a supervised association/removal canary with non-funded test identities.
+4. Run a scoped supervised association/removal canary with non-funded test identities.
    Check unchanged credentials, balances, wallets, independence reviews and
    ongoing evidence submission. Only then enable optional pairing publicly.
-5. Roll back by disabling the pairing flag. Preserve tables and node config;
+5. Roll back by disabling the pairing flag and clearing the pilot allowlist. Preserve tables and node config;
    revert application versions if needed. Do not delete keys or association
    tables as a routine rollback.
 

@@ -95,6 +95,9 @@ generator here or imply that passing public templates proves model quality.
   preview.13 does not include it. Core PR #58 (`407f2984` / `0030`) and Console
   PR #21 (`db301013`) are deployed dark. Live Windows/Linux pairing qualification,
   a published client and supervised canary remain gates; the feature stays off.
+  Core PR #60 adds an expiring account-scoped pilot for that qualification,
+  requiring a new Core deployment; it is not in live `407f2984`. Keep private
+  pilot membership out of diagnostics, docs and public capability responses.
 - **`DESIGN.md`** — source of truth for validator phases, proof lanes, modality scoring,
   reference pool, future economics, Base anchoring, and Grid-side dependencies.
 - **`ADVERSARIAL_VALIDATION.md`** — attacker model, evidence-dimension boundaries,
