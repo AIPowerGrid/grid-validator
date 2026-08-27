@@ -72,6 +72,11 @@ installer generation.
   rejection, native Windows installation, four-platform clean-install CI,
   exact installer-tag stamping, explicit unsigned-preview disclosure, and
   strict stable signing gates.
+- `test_native_live_canary.py` - offline checks for the optional live harness:
+  exact release/archive binding, unsafe paths, credential-free child env,
+  bounded transport, real synthetic SIWE recovery, owner-confusion rejection,
+  suspension/revocation and a manual-only protected workflow. These tests never
+  contact Core and do not count as live Windows evidence.
 
 ## Local Contracts
 

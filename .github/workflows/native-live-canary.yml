@@ -1,0 +1,104 @@
+name: Native Windows Live Canary
+
+on:
+  workflow_dispatch:
+    inputs:
+      approve_unpaid_canary:
+        description: Create one disposable first-party node on production; no funds or economic authority
+        required: true
+        type: boolean
+        default: false
+      minutes:
+        description: Maximum wait for real accepted evidence (no assignment is not a pass)
+        required: true
+        type: choice
+        options: ['10', '30', '75']
+        default: '10'
+
+permissions:
+  contents: read
+  attestations: read
+
+concurrency:
+  group: validator-native-live-canary
+  cancel-in-progress: false
+
+jobs:
+  canary:
+    if: ${{ github.repository == 'AIPowerGrid/grid-validator' && github.ref == 'refs/heads/master' && inputs.approve_unpaid_canary }}
+    runs-on: windows-latest
+    timeout-minutes: 95
+    # Reuse the existing owner-reviewed, master-restricted environment.
+    # This job receives no release-write permissions and publishes no release.
+    environment: validator-release
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.11'
+
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: '0.12.5'
+          enable-cache: false
+
+      - name: Install locked harness dependencies
+        run: uv sync --frozen
+
+      - name: Run offline canary safety tests
+        run: uv run --frozen python -m unittest tests.test_native_live_canary -v
+
+      - name: Verify published binaries before execution
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: uv run --frozen python scripts/native-live-canary.py fetch --artifacts "$env:RUNNER_TEMP\validator-verified-releases"
+
+      - name: Prepare reversible firewall fault on disposable runner only
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:GITHUB_ACTIONS -ne 'true') { throw 'Hosted runner required' }
+          Get-NetFirewallProfile | Select-Object Name,@{N='Enabled';E={$_.Enabled.ToString()}} |
+            ConvertTo-Json | Set-Content "$env:RUNNER_TEMP\validator-firewall-before.json"
+          Set-NetFirewallProfile -Profile Domain,Private,Public -Enabled True
+          if ((Get-NetFirewallProfile | Where-Object { $_.Enabled.ToString() -ne 'True' }).Count) {
+            throw 'Firewall fault injection would be ineffective'
+          }
+
+      - name: Exercise real local app and unpaid Grid lifecycle
+        env:
+          CANARY_MINUTES: ${{ inputs.minutes }}
+        run: >-
+          uv run --frozen python scripts/native-live-canary.py run
+          --artifacts "$env:RUNNER_TEMP\validator-verified-releases"
+          --workspace "$env:RUNNER_TEMP\validator-private-canary"
+          --report "$env:RUNNER_TEMP\validator-canary-report.json"
+          --minutes "$env:CANARY_MINUTES" --approve-live-canary
+
+      - name: Restore only canary firewall state
+        if: ${{ always() }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $ruleFile = "$env:RUNNER_TEMP\validator-private-canary\firewall-rule.txt"
+          if (Test-Path $ruleFile) {
+            $rule = (Get-Content $ruleFile -Raw).Trim()
+            if ($rule -notmatch '^aipg-validator-canary-[a-f0-9]{32}$') { throw 'Invalid canary rule identity' }
+            Get-NetFirewallRule -DisplayName $rule -ErrorAction SilentlyContinue | Remove-NetFirewallRule
+          }
+          $profiles = "$env:RUNNER_TEMP\validator-firewall-before.json"
+          if (Test-Path $profiles) {
+            foreach ($profile in (Get-Content $profiles -Raw | ConvertFrom-Json)) {
+              Set-NetFirewallProfile -Name $profile.Name -Enabled $profile.Enabled
+            }
+          }
+
+      - name: Upload bounded public evidence only
+        if: ${{ always() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: validator-windows-live-report
+          path: ${{ runner.temp }}/validator-canary-report.json
+          if-no-files-found: warn
+          retention-days: 14
