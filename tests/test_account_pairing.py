@@ -405,11 +405,16 @@ class PairingTests(unittest.TestCase):
                 f"VALIDATOR_PRIVATE_KEY={self.core.identity.private_key}\nVALIDATOR_WALLET={self.core.identity.wallet}\n"
             ).encode()
             _write_private_env(path, original.decode().splitlines())
+            original = path.read_bytes()
             self.assertEqual(self.act("refresh")["status"], "none")
-            self.assertEqual(path.read_bytes(), original)
+            self.assertTrue(
+                path.read_bytes() == original, "Pairing changed the configuration"
+            )
             with patch.dict(os.environ, {"VALIDATOR_API_KEY": ""}):
                 self.assertEqual(self.act("refresh")["error"], "configuration_invalid")
-            self.assertEqual(path.read_bytes(), original)
+            self.assertTrue(
+                path.read_bytes() == original, "Pairing changed the configuration"
+            )
 
     def test_local_config_validation_never_returns_secrets(self):
         identity = self.core.identity
