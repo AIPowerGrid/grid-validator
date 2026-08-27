@@ -10,6 +10,7 @@ import json
 import os
 import queue
 import re
+import signal
 import subprocess
 import threading
 import time
@@ -52,6 +53,7 @@ def command(args, *, env=None, cwd=None, input=None, expected=0, timeout=90):
         stderr=subprocess.PIPE,
         encoding="utf-8",
         errors="replace",
+        start_new_session=os.name != "nt",
     )
     try:
         output, _ = process.communicate(input=input, timeout=timeout)
@@ -157,6 +159,8 @@ def binary_env(config, overrides=None):
         "APPDATA",
         "LOCALAPPDATA",
         "PATHEXT",
+        "HOME",
+        "TMPDIR",
     }
     env = {key: value for key, value in os.environ.items() if key.upper() in allowed}
     env.update(
@@ -171,16 +175,33 @@ def binary_env(config, overrides=None):
 
 
 def stop_tree(process):
-    if process.poll() is None:
-        if os.name == "nt":
-            subprocess.run(
-                ["taskkill", "/PID", str(process.pid), "/T", "/F"],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                timeout=20,
-            )
-        else:
-            process.terminate()
+    if os.name != "nt":
+        # Every harness child owns its process group, including frozen children.
+        # The parent may already have exited while descendants retain its pipes.
+        try:
+            os.killpg(process.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        except PermissionError:
+            # A disappearing group can race cleanup on macOS. Do not treat an
+            # actual permission failure against a remaining group as success.
+            groups = subprocess.run(
+                ["ps", "-axo", "pgid="],
+                capture_output=True,
+                text=True,
+                timeout=5,
+                check=True,
+            ).stdout.split()
+            if str(process.pid) in groups:
+                raise
+        process.wait(timeout=10)
+    elif process.poll() is None:
+        subprocess.run(
+            ["taskkill", "/PID", str(process.pid), "/T", "/F"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=20,
+        )
         process.wait(timeout=20)
 
 
@@ -195,6 +216,7 @@ class App:
             text=True,
             encoding="utf-8",
             errors="replace",
+            start_new_session=os.name != "nt",
         )
         lines = queue.Queue(maxsize=4)
 
@@ -219,8 +241,10 @@ class App:
             stop_tree(self.process)
             raise
 
-    def request(self, path="/status.json", action=None, auth=True):
-        conn = http.client.HTTPConnection("127.0.0.1", self.port, timeout=10)
+    def request(
+        self, path="/status.json", action=None, auth=True, fields=None, timeout=10
+    ):
+        conn = http.client.HTTPConnection("127.0.0.1", self.port, timeout=timeout)
         headers = {"Authorization": "Bearer " + self.token} if auth else {}
         body = None
         if action:
@@ -228,7 +252,7 @@ class App:
                 Origin=f"http://127.0.0.1:{self.port}",
                 **{"Content-Type": "application/json"},
             )
-            body = json.dumps({"action": action})
+            body = json.dumps({"action": action, **(fields or {})})
         try:
             conn.request("POST" if action else "GET", path, body, headers)
             response = conn.getresponse()

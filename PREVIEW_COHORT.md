@@ -10,7 +10,7 @@ evidence does not change worker routing, strikes, payouts, or rewards. There is
 no validator staking, slashing, or compensation in this cohort.
 
 Enrollment is open for the evidence-only cohort. As checked on 2026-08-27,
-production Core runs commit `6015eca3` with migrations through `0029`. New
+production Core runs commit `407f2984` with migrations through `0030`. New
 operators should use the immutable public
 [`v0.1.0-preview.13`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.13),
 which provides explicit automatic enrollment and a local operator app. The
@@ -18,6 +18,8 @@ first-party fleet still runs preview.9; that is a deployment snapshot, not the
 download recommendation.
 The three first-party nodes share one operator and hypervisor, so they do not
 count toward the five independent-operator exit gate.
+See [PRODUCTION_BASELINE.md](PRODUCTION_BASELINE.md) for dated runtime evidence;
+fresh registrations alone are not accepted-evidence or independence proof.
 
 Core's new compensated-audit accounting is deployed dark: it has no scheduler,
 quality workload, or effect on this cohort. Preview qualification remains

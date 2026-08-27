@@ -77,6 +77,14 @@ installer generation.
   bounded transport, real synthetic SIWE recovery, owner-confusion rejection,
   suspension/revocation and a manual-only protected workflow. These tests never
   contact Core and do not count as live Windows evidence.
+- `test_native_pairing_canary.py` covers candidate source/hash/extraction gates,
+  wrong/forked/unreviewed CI rejection, bounded owner-only review files, no-echo
+  code entry, request-specific consent, timeout-as-failure, both link/removal
+  sequences, cleanup after an uncertain create, and redacted reports. The
+  orchestrated app is a fake, not proof of live Core or native execution.
+  Both harness suites run on every native build. A real POSIX subprocess test
+  proves timeout cleanup closes inherited descendant pipes after parent exit;
+  that OS-specific test skips explicitly on Windows.
 
 ## Local Contracts
 
