@@ -14,8 +14,9 @@ longer architecture, not permission to activate paid audits or economics.
 
 1. Reconcile reviewed source, published artifacts, deployed versions, and local
    work. Preserve the unfinished video-decoder fairness patch separately.
-2. Release PR #48's Windows launcher/identity fix after native build and install
-   verification. Window persistence alone does not solve enrollment.
+2. PR #48's Windows launcher/identity fix shipped in preview.11; preview.12
+   includes the local app. Native build/install checks pass; ordinary-user live
+   Windows qualification remains open. Window persistence alone is not enrollment.
 3. Ship explicit dedicated-account enrollment without private-key/API-key
    juggling. Source canary authentication through verified stored evidence is
    proven; packaged Windows/Linux end-to-end qualification remains required.
@@ -23,8 +24,8 @@ longer architecture, not permission to activate paid audits or economics.
    merging or payout-wallet changes. Dedicated-node signup is not pairing.
 5. Make start/stop, registration, heartbeats, assignments, submitted evidence,
    errors, redacted diagnostics, and recovery understandable without a shell.
-   The opt-in local `app` source candidate implements these controls; packaged
-   browser verification and a new release are required before public promotion.
+   The opt-in local `app` ships in preview.12 with native package checks and
+   desktop/mobile browser QA. Real Windows/Linux live qualification remains open.
 6. Prove clean first-run through accepted signed evidence on Windows and Linux,
    including cancellation, offline recovery, restarts, and upgrades.
 7. Qualify at least five independently controlled operators for 72 hours;

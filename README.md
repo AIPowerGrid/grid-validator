@@ -32,9 +32,9 @@ What is implemented and testable against production Core:
 - Editable package install with the `aipg-validator` console command.
 - Module entrypoint for `python -m validator`.
 - Read-only local dashboard on `127.0.0.1:8790`.
-- Current source also has opt-in `aipg-validator app` browser controls for
+- Preview.12 includes opt-in `aipg-validator app` browser controls for
   explicit setup, start/stop, participation status, and redacted diagnostics.
-  This is not in preview.11; see the [source app runbook](OPERATORS.md#local-operator-app-source-candidate).
+  See the [local app runbook](OPERATORS.md#local-operator-app).
 - Assignment-bound text canaries through validator-only Core endpoints.
 - Randomized text scoring: exact nonce echo, generated arithmetic, strict JSON,
   calibrated 4K, 16K, and 32K context retrieval, generated multistep logic, exact
@@ -126,13 +126,14 @@ is not yet proven.
 
 ## Download
 
-Preview.11 includes explicit `aipg-validator enroll` (menu option 1): it
+Preview.12 includes the local operator app (menu option 8) and explicit
+`aipg-validator enroll` (menu option 1): enrollment
 creates a dedicated local signer, authenticates a separate node account, and
 saves a validator-only API key without private-key entry. Existing-account pairing remains separate;
 do not export a personal wallet key or replace a running node's identity.
 
 The current public V0 preview is
-[`v0.1.0-preview.11`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.11).
+[`v0.1.0-preview.12`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.12).
 It is an unsigned, non-economic operator preview, not a stable release.
 
 Expected release assets:
@@ -151,7 +152,7 @@ Every release also carries `install-validator.sh`, `install-validator.ps1`, `val
 `SHA256SUMS`, an SPDX JSON SBOM, and GitHub build provenance. The release
 manifest binds the exact version, tag, source commit, asset sizes, and asset
 hashes, plus the platform-signing state; `SHA256SUMS` covers the manifest
-itself. The `v0.1.0-preview.11` macOS and Windows binaries are explicitly unsigned:
+itself. The `v0.1.0-preview.12` macOS and Windows binaries are explicitly unsigned:
 macOS is not Developer ID signed or notarized, and Windows is not Authenticode
 signed. Verify `SHA256SUMS` and GitHub provenance before running them. Stable
 releases remain blocked until both platform-signing gates are satisfied. The
@@ -169,7 +170,7 @@ Download the installer from the exact preview release, verify
 its GitHub provenance, and run it:
 
 ```bash
-curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.11/install-validator.sh
+curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.12/install-validator.sh
 gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator
 bash install-validator.sh
 cd ~/.aipg-validator
@@ -180,17 +181,24 @@ aipg-validator run
 ```
 
 On Windows x64, extract the ZIP and double-click `aipg-validator.exe`. Choose
-**1** and confirm automatic setup, **4** to check registration, then **5** to
-run. Leave that window open. No PowerShell, Google/GitHub login, funded wallet,
+**8** to open the local app, **Set up node** and confirm, then **Start validator**.
+Existing operators skip setup and start with their preserved configuration.
+Watch for acknowledged heartbeats and accepted evidence, not just registration.
+No PowerShell, Google/GitHub login, funded wallet,
 or pasted private key is needed for enrollment. Keep existing configuration
 when upgrading; do not create a replacement identity for a running node.
+
+On macOS/Linux desktops, run `aipg-validator app` after installing. The page is
+localhost-only. Closing its tab leaves the node running; **Exit app** stops its
+owned process and closes the local server. The CLI below remains suitable for
+headless hosts.
 
 Alternatively, use the PowerShell installer. The required switch acknowledges that the
 preview executable is not Authenticode signed; the installer verifies SHA-256
 before installing or executing it:
 
 ```powershell
-Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.11/install-validator.ps1 -OutFile install-validator.ps1
+Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.12/install-validator.ps1 -OutFile install-validator.ps1
 gh attestation verify install-validator.ps1 --repo AIPowerGrid/grid-validator
 .\install-validator.ps1 -AcceptUnsignedPreview
 ```
@@ -293,7 +301,7 @@ aipg-validator run
 From a source checkout, select the exact version explicitly:
 
 ```bash
-AIPG_VALIDATOR_VERSION=v0.1.0-preview.11 ./scripts/install-binary.sh
+AIPG_VALIDATOR_VERSION=v0.1.0-preview.12 ./scripts/install-binary.sh
 ```
 
 `dashboard` starts a read-only local status page at
@@ -321,14 +329,14 @@ Pull the exact public preview image. It is anonymously available for Linux x64
 and ARM64; prereleases never publish or replace `latest`:
 
 ```bash
-docker pull ghcr.io/aipowergrid/validator:v0.1.0-preview.11
+docker pull ghcr.io/aipowergrid/validator:v0.1.0-preview.12
 ```
 
 The preview bundles the dark image/video decoders. Qualify the exact image
 without contacting the Grid:
 
 ```bash
-docker run --rm ghcr.io/aipowergrid/validator:v0.1.0-preview.11 self-test
+docker run --rm ghcr.io/aipowergrid/validator:v0.1.0-preview.12 self-test
 ```
 
 Run a one-shot config/Grid check:
@@ -336,7 +344,7 @@ Run a one-shot config/Grid check:
 ```bash
 docker run --rm \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.11 check --no-probe
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.12 check --no-probe
 ```
 
 Run the validator loop:
@@ -344,7 +352,7 @@ Run the validator loop:
 ```bash
 docker run -d --name aipg-validator --restart unless-stopped \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.11
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.12
 ```
 
 Run the dashboard:
@@ -352,7 +360,7 @@ Run the dashboard:
 ```bash
 docker run --rm -p 8790:8790 \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.11 \
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.12 \
   dashboard --host 0.0.0.0
 ```
 

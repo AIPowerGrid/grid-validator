@@ -5,6 +5,38 @@ This is a dated rollout snapshot, not a live status page. Query
 `GET https://api.aipowergrid.io/v1/validator/capabilities` for current public
 state.
 
+## 2026-08-27 15:42 UTC - Local Operator App Release
+
+Immutable unsigned preview `v0.1.0-preview.12` was published at 15:34 UTC from
+reviewed master `7a084a674da3c8b09178faacdacd3257b829a023` (PR #52). Binary
+workflow `33088049410` passed all four native builds, packaged operator-app
+checks, payload verification, and clean installs before owner approval and
+immutable publication. Container workflow `33088049466` passed its qualification
+and protected publish jobs. The source suite passed 245 tests.
+
+All nine downloaded assets passed exact-tag/source, manifest, and SHA-256
+verification. The downloaded manifest, macOS archive, Windows archive, and OCI
+index passed GitHub provenance checks bound to the repository, workflow, tag,
+source digest, and hosted runners. The macOS binary passed offline decoder and
+operator-app asset/authentication/child-restart/diagnostics/shutdown smoke tests.
+The pulled container passed its offline decoder self-test. Anonymous release
+and Linux AMD64/ARM64 manifest reads succeeded. The container index is
+`sha256:1542b8c274586231048228711bd08a2360a80c269a5ed89b2a1ada89bbb6f9d8`.
+
+The downloaded app ran the existing maintainer canary for five minutes against
+production Core. Its stable validator ID and private config were preserved,
+and Core acknowledged repeated preview.12 heartbeats. No assignment was issued
+and no new evidence was accepted, so this is upgrade/heartbeat/lifecycle proof,
+not a completed probe or clean Windows/Linux end-to-end qualification. Local
+stop and app exit completed cleanly; the registration was then signed-suspended.
+
+The three first-party pilots remain on preview.9. No Core deployment, schema
+change, fleet rollout, media assignment activation, or economics activation was
+part of this release. Existing-account pairing and five independent operators'
+72-hour qualification remain open. To roll back, stop the app and use the
+previous verified binary with the same private config and recovery journal;
+never replace the identity to work around an upgrade failure.
+
 ## 2026-08-27 14:40 UTC - Enrollment Release
 
 Immutable unsigned preview `v0.1.0-preview.11` was published from reviewed

@@ -26,11 +26,11 @@ the same unpaid, evidence-only assignment flow described here.
 
 ## What You Need
 
-**New setup (preview.11 or current source):** `aipg-validator enroll` creates a dedicated node account
+**New setup (preview.12):** use the local operator app, or `aipg-validator enroll`, to create a dedicated node account
 after confirmation. It saves an empty local signer, signs Core's short-lived
 login challenge, and obtains a validator-only API key. No Google/GitHub login,
 wallet extension, or pasted private key is needed. Upgrade older binaries to
-preview.11 instead of exporting a personal wallet key.
+preview.12 instead of exporting a personal wallet key.
 Existing-account pairing is separate and not yet available. Keep existing
 configured nodes on their current identities.
 
@@ -113,7 +113,7 @@ before running it:
 > Docker are the least-friction preview paths.
 
 ```bash
-curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.11/install-validator.sh
+curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.12/install-validator.sh
 gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator
 bash install-validator.sh
 cd ~/.aipg-validator
@@ -126,7 +126,7 @@ aipg-validator run
 Windows x64: see the double-click steps below. Optional PowerShell installer:
 
 ```powershell
-Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.11/install-validator.ps1 -OutFile install-validator.ps1
+Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.12/install-validator.ps1 -OutFile install-validator.ps1
 gh attestation verify install-validator.ps1 --repo AIPowerGrid/grid-validator
 .\install-validator.ps1 -AcceptUnsignedPreview
 ```
@@ -137,21 +137,30 @@ binary is installed or executed.
 
 ### Windows First Run
 
-1. Download the preview.11 Windows x64 ZIP, verify its checksum/provenance,
+1. Download the preview.12 Windows x64 ZIP, verify its checksum/provenance,
    and extract it.
 2. Double-click `aipg-validator.exe`. The menu stays open; PowerShell is not
    required. Opening the menu does not create credentials or start probes.
-3. Choose **1. Set up a new dedicated validator account** and confirm.
-4. Choose **4. Check registration**, then **5. Run validator**. Leave the
-   window open and confirm heartbeat and accepted evidence, not just registration.
+3. Choose **8. Open local operator app** to open its private local browser page.
+4. Choose **Set up node**, confirm dedicated-account creation, then choose
+   **Start validator**. Confirm acknowledged heartbeats and accepted evidence,
+   not just registration. Waiting during assignment cooldown is normal.
+5. Use **Stop** to stop the node without deleting its identity. **Exit app** also
+   closes the local app. Closing only the browser tab leaves it running.
 
 The displayed config path reuses `VALIDATOR_ENV`, an existing local `.env`, or
 `$HOME/.aipg-validator/.env`. Preserve that file across upgrades. Existing
-operators with working configuration should skip new enrollment and use 4/5.
+operators with working configuration should skip new enrollment and choose
+**Start validator**. The older menu setup/check/run options still work.
 If setup reports an existing identity, stop and keep it; do not delete it to
 force a new account. Existing-account/browser pairing is not implemented yet.
 The API key authorizes requests; the locally generated signer signs evidence.
 Neither credential should be shared, and no personal wallet key should be pasted.
+
+On macOS/Linux desktops, `aipg-validator app` opens the same controls. Keep its
+private localhost URL private and never forward its port. **Download diagnostics**
+provides redacted status for support, not keys or raw logs. See
+[OPERATORS.md](OPERATORS.md#local-operator-app).
 
 The running node checks for a newer public release at most every six hours and
 prints a notification only. It never self-updates. To upgrade, rerun the
@@ -166,17 +175,17 @@ validator API key. Follow [OPERATORS.md](OPERATORS.md) and revoke the old API
 key after the replacement checks healthy.
 
 The versioned GitHub binaries and exact preview container are public. Anonymous
-GHCR access to `v0.1.0-preview.11` is verified for Linux x64 and ARM64. Keep the
+GHCR access to `v0.1.0-preview.12` is verified for Linux x64 and ARM64. Keep the
 version explicit: prereleases never publish or replace `latest`.
 
 ## Docker
 
 ```bash
-docker pull ghcr.io/aipowergrid/validator:v0.1.0-preview.11
-docker run --rm ghcr.io/aipowergrid/validator:v0.1.0-preview.11 self-test
+docker pull ghcr.io/aipowergrid/validator:v0.1.0-preview.12
+docker run --rm ghcr.io/aipowergrid/validator:v0.1.0-preview.12 self-test
 docker run --rm \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.11 check --no-probe
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.12 check --no-probe
 ```
 
 Run the loop:
@@ -184,7 +193,7 @@ Run the loop:
 ```bash
 docker run -d --name aipg-validator --restart unless-stopped \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.11
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.12
 ```
 
 Run the dashboard:
@@ -192,7 +201,7 @@ Run the dashboard:
 ```bash
 docker run --rm -p 8790:8790 \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.11 \
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.12 \
   dashboard --host 0.0.0.0
 ```
 
