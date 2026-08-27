@@ -39,7 +39,7 @@ concrete detail in children. Delete stale notes instead of explaining history.
 The Grid's validator node. In V0 it is a CPU-only distributed audit runner: it sends
 small canary jobs through the normal Grid path, scores replies (`healthy` / `slow` /
 `failed`), and submits signed attestations. Shared-quorum text validation is
-production-live on Core commit `fabb767d` with migrations through `0027`.
+production-live on Core commit `43156ffd` with migrations through `0028`.
 Three first-party pilot nodes run the verified `v0.1.0-preview.8` payload from
 validator commit `122f5565`; checksum-gated staging, no-probe registration,
 rolling symlink rollout, immutable release reporting, and clean service recovery
@@ -56,6 +56,13 @@ routing, strike, or slashing logic may read it as authority. Future phases harde
 independent-operator proof, deterministic media workflow certification, rewards, staking, and
 objective-fraud slashing. Do not describe future economic authority as live until the
 Grid endpoints and contracts exist. Python package: `validator/`. Entry: `validator.main`.
+
+Core's required anti-gaming CI owns the executable hostile-worker baseline:
+regex/template solving, exact replay, public-probe classification, and
+probe-aware model switching all reproduce the current fingerprinting risk while
+proving generated probes remain ineligible for quality authority. This repo
+documents and consumes that boundary; do not duplicate the Core challenge
+generator here or imply that passing public templates proves model quality.
 
 ## Ownership
 

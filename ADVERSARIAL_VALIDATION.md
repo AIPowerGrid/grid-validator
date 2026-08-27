@@ -40,6 +40,17 @@ These guarantees prove attributable protocol execution. They do not prove an
 exact model, parameter count, quantization, general intelligence, or independent
 operator control.
 
+Core's required pull-request CI executes this threat model against the real
+challenge generator. Its hostile actors include a no-model regex/template
+solver, an exact-request replay cache, a public-shape probe classifier, and a
+classifier-driven strong/weak backend switcher. The current red baseline
+deliberately proves that public prompt families are recognizable and solvable;
+the safety assertion is that their score dimension remains protocol conformance
+or capability, `quality_eligible` remains false, and no quality score is minted.
+The executable contract lives in
+`grid_api/routers/tests/test_validator_anti_gaming.py` and
+`validator_adversaries.py` in the public Core repository.
+
 ## Evidence Dimensions
 
 | Dimension | Examples | Current authority |
