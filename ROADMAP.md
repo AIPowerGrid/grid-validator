@@ -42,7 +42,7 @@ candidate worker against certified reference output.
 ## Phase 0: Preview Audit Runner
 
 Status: the production Core rollout, first-party text-quorum pilot, and public
-`v0.1.0-preview.2` distribution path are live. Opaque common-control grouping, a
+`v0.1.0-preview.3` distribution path are live. Opaque common-control grouping, a
 72-hour sampled qualification, expiring reviews, and aggregate-only health are
 implemented; independent operator qualification remains pending. Registration
 quorum remains a separate non-economic signal.
@@ -53,7 +53,7 @@ without economic side effects.
 Live or scaffolded in this repo:
 
 - source install
-- local Docker build and Compose
+- public versioned multi-architecture container plus local Docker build and Compose
 - tag/manual GitHub Actions binary-release workflow
 - frozen cross-platform release dependency lock
 - release-binary installer script
@@ -353,13 +353,11 @@ Definition of done:
 
 ## Immediate Next Build Order
 
-1. Merge the independently reviewed public-release, durable-journal, lifecycle,
-   and Core operator-qualification changes while keeping economics disabled.
-2. Publish the protected unsigned preview tag and independently verify clean
-   installs on all four platforms plus Docker.
-3. Recruit 5-10 unrelated operators and complete the 72-hour qualification;
+1. Recruit 5-10 unrelated operators and complete the 72-hour qualification;
    ordinary registration quorum remains a separate preview signal.
-4. Calibrate deterministic image fidelity with independent bonded references,
+2. Run adversarial text qualification across independently controlled quorum,
+   including template solvers, probe classifiers, replay, and model switching.
+3. Calibrate deterministic image fidelity with independent bonded references,
    then pilot objective video contract checks without economic effects.
-5. Add validator stake/rewards only after evidence, scorecards, references,
+4. Add validator stake/rewards only after evidence, scorecards, references,
    dispute handling, and a purpose-built Base contract audit are proven.

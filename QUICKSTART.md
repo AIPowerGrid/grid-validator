@@ -151,16 +151,17 @@ Grid account links a different replacement wallet and issues a replacement
 validator API key. Follow [OPERATORS.md](OPERATORS.md) and revoke the old API
 key after the replacement checks healthy.
 
-The versioned GitHub binaries are public. The Docker examples below remain a
-local-build path until anonymous GHCR access is explicitly verified.
+The versioned GitHub binaries and exact preview container are public. Anonymous
+GHCR access to `v0.1.0-preview.3` is verified for Linux x64 and ARM64. Keep the
+version explicit: prereleases never publish or replace `latest`.
 
 ## Docker
 
 ```bash
-docker build -t aipowergrid/validator:local .
+docker pull ghcr.io/aipowergrid/validator:v0.1.0-preview.3
 docker run --rm \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  aipowergrid/validator:local check --no-probe
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.3 check --no-probe
 ```
 
 Run the loop:
@@ -168,7 +169,7 @@ Run the loop:
 ```bash
 docker run -d --name aipg-validator --restart unless-stopped \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  aipowergrid/validator:local
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.3
 ```
 
 Run the dashboard:
@@ -176,8 +177,12 @@ Run the dashboard:
 ```bash
 docker run --rm -p 8790:8790 \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  aipowergrid/validator:local dashboard --host 0.0.0.0
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.3 \
+  dashboard --host 0.0.0.0
 ```
+
+Build `aipowergrid/validator:local` from the reviewed checkout only when you
+intend to test source changes instead of the immutable cohort release.
 
 ## Systemd
 

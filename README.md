@@ -27,7 +27,7 @@ reference workers, and Base anchoring.
 What is implemented and testable against production Core:
 
 - CPU-only source install.
-- Dockerfile and local Docker Compose.
+- Public versioned multi-architecture container plus local Docker Compose.
 - `init`, `check`, `dashboard`, and `run` CLI flow.
 - Editable package install with the `aipg-validator` console command.
 - Module entrypoint for `python -m validator`.
@@ -281,10 +281,11 @@ wallet address from the required private key and refuses mismatched identity.
 
 ## Docker
 
-Build locally:
+Pull the exact public preview image. It is anonymously available for Linux x64
+and ARM64; prereleases never publish or replace `latest`:
 
 ```bash
-docker build -t aipowergrid/validator:local .
+docker pull ghcr.io/aipowergrid/validator:v0.1.0-preview.3
 ```
 
 Run a one-shot config/Grid check:
@@ -292,7 +293,7 @@ Run a one-shot config/Grid check:
 ```bash
 docker run --rm \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  aipowergrid/validator:local check --no-probe
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.3 check --no-probe
 ```
 
 Run the validator loop:
@@ -300,7 +301,7 @@ Run the validator loop:
 ```bash
 docker run -d --name aipg-validator --restart unless-stopped \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  aipowergrid/validator:local
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.3
 ```
 
 Run the dashboard:
@@ -308,8 +309,12 @@ Run the dashboard:
 ```bash
 docker run --rm -p 8790:8790 \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  aipowergrid/validator:local dashboard --host 0.0.0.0
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.3 \
+  dashboard --host 0.0.0.0
 ```
+
+Build `aipowergrid/validator:local` from this checkout only when testing source
+changes rather than the immutable cohort release.
 
 Or use Compose:
 
@@ -386,9 +391,9 @@ docker run \
   aipowergrid/validator:latest
 ```
 
-Until that hosted bootstrap and a public image are published, use the
-provenance-verified release installer, direct archive, local Docker build, or
-source install above.
+Until that hosted bootstrap and a stable `latest` image are published, use the
+provenance-verified release installer, direct archive, exact versioned GHCR
+image, local Docker build, or source install above.
 
 ## Verification
 

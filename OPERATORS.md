@@ -241,13 +241,13 @@ Override the bind address only when you know the machine/network boundary:
 Docker is the easiest server path once `.env` exists.
 
 ```bash
-docker build -t aipowergrid/validator:local .
+docker pull ghcr.io/aipowergrid/validator:v0.1.0-preview.3
 docker run --rm \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  aipowergrid/validator:local check --no-probe
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.3 check --no-probe
 docker run -d --name aipg-validator --restart unless-stopped \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  aipowergrid/validator:local
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.3
 ```
 
 Run the dashboard container when you want a local browser view:
@@ -255,8 +255,14 @@ Run the dashboard container when you want a local browser view:
 ```bash
 docker run --rm -p 8790:8790 \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  aipowergrid/validator:local dashboard --host 0.0.0.0
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.3 \
+  dashboard --host 0.0.0.0
 ```
+
+The public preview image is anonymous and multi-architecture for Linux x64 and
+ARM64. Keep the versioned tag explicit; `latest` is intentionally absent for a
+prerelease. Build `aipowergrid/validator:local` only for source-development
+testing.
 
 Or use Compose:
 
