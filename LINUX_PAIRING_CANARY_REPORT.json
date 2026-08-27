@@ -1,0 +1,36 @@
+{
+  "schema": "aipg.validator.native-pairing-canary.v1",
+  "first_party": true,
+  "platform": "linux-arm64",
+  "checks": [
+    "reviewed_candidate_and_dark_core_verified",
+    "registered_waiting_for_scoped_admission",
+    "unconfirmed_request_cancelled",
+    "signed_evidence_accepted_before_pairing",
+    "waiting_for_console_approval_node-removal",
+    "explicit_confirmation_recovered_node-removal",
+    "exact_node_removal_verified",
+    "waiting_for_console_approval_owner-removal",
+    "explicit_confirmation_recovered_owner-removal",
+    "waiting_for_console_owner_removal",
+    "console_owner_removal_observed",
+    "same_identity_evidence_after_pairing_and_redacted_diagnostics",
+    "pairing_canary_finished"
+  ],
+  "passed": true,
+  "source_commit": "35b4e04590daa7d5180af99aa3d0056090d3954a",
+  "binary_version": "v0.1.0-dev",
+  "archive_sha256": "f0430d71db2a62fba8b91e04618f43cc4ad7718ffd5dd2d7ccbc6fc6c0027add",
+  "release_provenance": false,
+  "artifact_kind": "reviewed_ci_build_only",
+  "build_run": "33115798738",
+  "core_commit": "f51875ce8fe550640008f1824625e2f5a071f88b",
+  "validator_id": "val_708a6b8cdf424bbc9a60fe3040c435e1",
+  "accepted_reports_before_pairing": 2,
+  "accepted_reports_after_pairing": 1,
+  "pairing_cleanup_verified": true,
+  "cleanup": {
+    "suspended": true,
+    "keys_revoked": 1
+  }
+}

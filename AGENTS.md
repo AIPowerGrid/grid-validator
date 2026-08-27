@@ -93,8 +93,10 @@ generator here or imply that passing public templates proves model quality.
   explicit two-sided consent, failure recovery, and cross-repo rollout gates.
   Local app support is merged and native-build tested but unreleased;
   preview.13 does not include it. Core (`f51875ce` / `0030`) and Console
-  PR #21 (`db301013`) are deployed dark. Live Windows/Linux pairing qualification,
-  a published client and supervised canary remain gates; the feature stays off.
+  PR #21 (`db301013`) are deployed dark. An unpublished Linux ARM64 candidate
+  passed live pairing, recovery and both removal paths against a disposable
+  two-account pilot, now removed. Windows pairing, human desktop qualification
+  and a published client remain gates; the feature stays off.
   Core PR #60 adds an expiring account-scoped pilot for that qualification,
   deployed dark with an empty allowlist and no expiry configured. Keep private
   pilot membership out of diagnostics, docs and public capability responses.
@@ -136,8 +138,13 @@ generator here or imply that passing public templates proves model quality.
 - **`NATIVE_PAIRING_CANARY.md`** - manual Windows/Linux candidate pairing
   qualification with separate Console approval and local code consent. This is
   maintainer test tooling, not onboarding for ordinary operators. It has offline
-  safety coverage but no completed native live pairing run; it neither deploys
-  Core nor activates the pilot. Public downloads remain preview.13.
+  safety coverage and a completed first-party Linux ARM64 run; Windows pairing
+  remains unproven. It neither deploys Core nor activates the pilot. Public
+  downloads remain preview.13.
+- **`LINUX_PAIRING_CANARY_REPORT.json`** - immutable redacted output of the
+  first-party Linux ARM64 production pairing canary. Its limits, independent
+  database audit and cleanup evidence are in `PRODUCTION_BASELINE.md`; the
+  report alone is not Windows, human desktop or independent-operator proof.
 - **`SECURITY.md`** — private vulnerability disclosure process and the
   validator-specific evidence, identity, and release-supply-chain scope.
 - **`pyproject.toml`** — package metadata and `aipg-validator` console script.
