@@ -33,6 +33,14 @@ def _png(width, height, pixel):
     )
 
 
+def _png_declared_dimensions(source, width, height):
+    """Rewrite only IHDR dimensions; useful for tiny decompression-bomb fixtures."""
+    value = bytearray(source)
+    value[16:24] = struct.pack(">II", width, height)
+    value[29:33] = struct.pack(">I", zlib.crc32(value[12:29]) & 0xFFFFFFFF)
+    return bytes(value)
+
+
 def _mp4(*, frames=8, fps=8, variant=0, static=False):
     import av
     from PIL import Image, ImageDraw
@@ -281,7 +289,7 @@ class ImageFidelityTests(unittest.IsolatedAsyncioTestCase):
             ),
         ]
 
-    async def _score(self, witnesses, *, tolerance=0, handler_bodies=None):
+    async def _score(self, witnesses, *, handler_bodies=None):
         bodies = handler_bodies or {
             "candidate": self.reference,
             "reference-a": self.reference,
@@ -300,9 +308,7 @@ class ImageFidelityTests(unittest.IsolatedAsyncioTestCase):
             allowed_origins=[self.ORIGIN],
             max_bytes=1024 * 1024,
             timeout_s=2,
-            decode_timeout_s=5,
-            phash_tolerance=tolerance,
-            latency_budget_s=2,
+            decode_timeout_s=10,
             transport=httpx.MockTransport(handler),
         )
 
@@ -312,8 +318,10 @@ class ImageFidelityTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(outcome, "healthy")
         self.assertEqual(detail["reference_distance"], 0)
         self.assertEqual(detail["candidate_distances"], [0, 0])
+        self.assertEqual(detail["phash_tolerance"], 12)
+        self.assertEqual(detail["latency_budget_ms"], 60_000)
 
-        slow = self._witnesses(latency_ms=3000)
+        slow = self._witnesses(latency_ms=61_000)
         outcome, _ = await self._score(slow)
         self.assertEqual(outcome, "slow")
 
@@ -337,6 +345,43 @@ class ImageFidelityTests(unittest.IsolatedAsyncioTestCase):
         )
         with self.assertRaisesRegex(media_prober.ImageWitnessInvalid, "mime-mismatch"):
             media_prober.decode_image_bounded(wrong_mime, timeout_s=5)
+
+    def test_bounded_image_decoder_rejects_truncation_and_bomb_dimensions(self):
+        for body, reason in (
+            (self.reference[:40], "undecodable"),
+            (_png_declared_dimensions(self.reference, 8192, 8192), "unsafe-dimensions"),
+        ):
+            with self.subTest(reason=reason):
+                witness = media_prober.VerifiedMediaWitness(
+                    body,
+                    hashlib.sha256(body).hexdigest(),
+                    len(body),
+                    "image/png",
+                )
+                with self.assertRaisesRegex(media_prober.ImageWitnessInvalid, reason):
+                    media_prober.decode_image_bounded(witness, timeout_s=5)
+
+    async def test_image_policy_has_one_network_wide_phash_boundary(self):
+        reference = media_prober.ImageProfile(64, 64, "0" * 16, 10.0)
+        at_limit = media_prober.ImageProfile(64, 64, "0000000000000fff", 10.0)
+        over_limit = media_prober.ImageProfile(64, 64, "0000000000001fff", 10.0)
+        with patch.object(
+            media_prober,
+            "decode_image_bounded",
+            side_effect=[at_limit, reference, reference],
+        ):
+            outcome, detail = await self._score(self._witnesses())
+        self.assertEqual(outcome, "healthy")
+        self.assertEqual(detail["candidate_distances"], [12, 12])
+
+        with patch.object(
+            media_prober,
+            "decode_image_bounded",
+            side_effect=[over_limit, reference, reference],
+        ):
+            outcome, detail = await self._score(self._witnesses())
+        self.assertEqual(outcome, "failed")
+        self.assertEqual(detail["candidate_distances"], [13, 13])
 
     async def test_local_image_decoder_failure_is_inconclusive(self):
         with patch.object(
@@ -433,8 +478,6 @@ class ImageFidelityTests(unittest.IsolatedAsyncioTestCase):
                 max_bytes=1024 * 1024,
                 timeout_s=2,
                 decode_timeout_s=5,
-                phash_tolerance=0,
-                latency_budget_s=2,
             )
         self.assertEqual(outcome, "inconclusive")
         self.assertEqual(detail["reason"], "invalid-challenge-or-witness-set")
@@ -533,10 +576,7 @@ class VideoScoringTests(unittest.IsolatedAsyncioTestCase):
             allowed_origins=[self.ORIGIN],
             max_bytes=1024 * 1024,
             fetch_timeout_s=2,
-            decode_timeout_s=5,
-            phash_tolerance=0,
-            motion_tolerance=0,
-            latency_budget_s=2,
+            decode_timeout_s=15,
             transport=httpx.MockTransport(handler),
         )
 
@@ -558,6 +598,7 @@ class VideoScoringTests(unittest.IsolatedAsyncioTestCase):
         outcome, detail = await self._score(self._witnesses())
         self.assertEqual(outcome, "healthy")
         self.assertEqual(detail["frame_count"], 8)
+        self.assertEqual(detail["latency_budget_ms"], 120_000)
 
         witnesses = self._witnesses(candidate=self.static)
         outcome, detail = await self._score(
@@ -612,6 +653,8 @@ class VideoScoringTests(unittest.IsolatedAsyncioTestCase):
         outcome, detail = await self._score(witnesses, fidelity=True)
         self.assertEqual(outcome, "healthy")
         self.assertEqual(detail["reference_frame_distance_max"], 0)
+        self.assertEqual(detail["phash_tolerance"], 12)
+        self.assertEqual(detail["motion_tolerance"], 8.0)
 
         disagreeing = self._witnesses(fidelity=True, reference_b=self.outlier)
         outcome, detail = await self._score(
@@ -656,9 +699,6 @@ class VideoScoringTests(unittest.IsolatedAsyncioTestCase):
                 max_bytes=1024 * 1024,
                 fetch_timeout_s=2,
                 decode_timeout_s=5,
-                phash_tolerance=0,
-                motion_tolerance=0,
-                latency_budget_s=2,
             )
         self.assertEqual(outcome, "inconclusive")
         self.assertEqual(detail["reason"], "invalid-challenge-or-witness-set")

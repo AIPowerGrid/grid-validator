@@ -457,8 +457,6 @@ async def _probe_image_assignment(
         max_bytes=Settings.MEDIA_MAX_BYTES,
         timeout_s=Settings.MEDIA_FETCH_TIMEOUT_S,
         decode_timeout_s=Settings.IMAGE_DECODE_TIMEOUT_S,
-        phash_tolerance=Settings.PHASH_TOLERANCE,
-        latency_budget_s=Settings.MEDIA_LATENCY_BUDGET_S,
     )
     if verdict == "inconclusive":
         logger.info(
@@ -582,9 +580,6 @@ async def _probe_video_assignment(
         max_bytes=Settings.MEDIA_MAX_BYTES,
         fetch_timeout_s=Settings.MEDIA_FETCH_TIMEOUT_S,
         decode_timeout_s=Settings.VIDEO_DECODE_TIMEOUT_S,
-        phash_tolerance=Settings.VIDEO_PHASH_TOLERANCE,
-        motion_tolerance=Settings.VIDEO_MOTION_TOLERANCE,
-        latency_budget_s=Settings.VIDEO_LATENCY_BUDGET_S,
     )
     if verdict == "inconclusive":
         logger.info(

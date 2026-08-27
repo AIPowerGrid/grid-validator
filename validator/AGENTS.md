@@ -13,9 +13,9 @@ independent-reference and rollout gates pass.
 
 ## Ownership
 
-- **`config.py`** — env-driven `Settings` (grid URL + key, wallet/private key, Base RPC +
-  contract addrs, `MIN_STAKE`/`REQUIRE_STAKE`, probe intervals + latency budgets,
-  pHash tolerance, and exact public HTTPS media origins/byte/time limits).
+- **`config.py`** — env-driven `Settings` (grid URL + key, wallet/private key,
+  Base RPC + contract addrs, `MIN_STAKE`/`REQUIRE_STAKE`, text probe intervals
+  and latency budget, and exact public HTTPS media origins/byte/time limits).
   `Settings.validate()` enforces required fields, rejects malformed Grid URLs,
   rejects malformed EVM addresses for wallet/token/staking fields, validates the
   local dashboard port, and rejects a wallet/private-key mismatch.
@@ -153,9 +153,11 @@ independent-reference and rollout gates pass.
   budget; `healthy` otherwise. Text echo canaries require the answer to be
   exactly the nonce after harmless quote/backtick wrappers are stripped; generated
   arithmetic QA canaries may accept a short answer phrase containing the expected
-  numeric value, but not a larger number that merely contains it. pHash uses
-  Hamming distance vs `PHASH_TOLERANCE`, never equality (absorbs cross-GPU
-  nondeterminism). Assignment-bound JSON is parsed and canonicalized but must
+  numeric value, but not a larger number that merely contains it. Media pHash,
+  motion, and latency thresholds are immutable constants of each versioned
+  scoring policy, never operator configuration; changing one requires a new
+  policy id. pHash uses Hamming distance, not equality, to absorb bounded
+  cross-GPU nondeterminism. Assignment-bound JSON is parsed and canonicalized but must
   be the entire answer; retrieval requires exactly one token; numeric logic
   requires exactly one unambiguous integer.
 - **A skipped check must not penalize a worker** — a missing optional dep returns ok/skip, not

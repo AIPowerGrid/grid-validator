@@ -18,7 +18,7 @@ installer generation.
 - `test_update_check.py` - bounded release selection and nonfatal update checks.
 - `test_systemd_installer.py` - generated service security and behavior.
 - `test_release_tag.py` - binary/Docker release-tag and `latest` publication
-  policy.
+  policy plus deterministic source/build identity stamping.
 - `test_release_packaging.py` - frozen container/release dependencies, action
   pinning, SBOM/provenance contracts, reviewed-source binding, hostile archive
   rejection, native Windows installation, four-platform clean-install CI,
@@ -33,6 +33,9 @@ installer generation.
   visible text, reasoning text, and finish reason.
 - Frozen-binary coverage must prove the dynamically packaged tokenizer is
   usable; registration must withhold the capability if it is unavailable.
+- Source checkouts must report `v<project-version>-dev`; packaging tests must
+  prove binary and container workflows stamp and smoke-test the exact validated
+  release tag before publication.
 - CLI checks must expose the local scorer set so release smokes can distinguish
   a usable frozen scorer from a silently withheld capability.
 - Preserve the no-economic-effect boundary: assignment success/failure must not
@@ -44,8 +47,9 @@ installer generation.
 - Deterministic image tests must use generated local fixtures and prove two
   references agree before an outlier candidate can fail. Reference disagreement,
   missing decoders, unsafe transport, and oversized contracts are inconclusive.
-  Exercise the real bounded image child process and prove local decoder timeout
-  is inconclusive rather than a worker failure.
+  Exercise the real bounded image child process with truncated and
+  decompression-bomb fixtures, prove local decoder timeout is inconclusive
+  rather than a worker failure, and pin the exact versioned pHash boundary.
 - Video tests must generate local MP4 fixtures, exercise the real bounded PyAV
   decoder, reject inconsistent assignment timing and static/corrupt candidates,
   and prove reference agreement precedes candidate fidelity failure. They do

@@ -86,11 +86,16 @@ jobs:
             type=raw,value=${{ needs.validate.outputs.tag }}
 
       - name: Build local smoke image
-        run: docker build -t aipowergrid/validator:publish-smoke .
+        run: |
+          docker build \
+            --build-arg AIPG_VALIDATOR_RELEASE_TAG='${{ needs.validate.outputs.tag }}' \
+            -t aipowergrid/validator:publish-smoke .
 
       - name: Smoke-test local image
         shell: bash
         run: |
+          version="$(docker run --rm aipowergrid/validator:publish-smoke --version)"
+          test "$version" = "aipg-validator ${{ needs.validate.outputs.tag }}"
           tmp="$(mktemp -d)"
           trap 'rm -rf "$tmp"' EXIT
           cat > "$tmp/.env" <<'EOF'
@@ -123,6 +128,8 @@ jobs:
           push: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            AIPG_VALIDATOR_RELEASE_TAG=${{ needs.validate.outputs.tag }}
           provenance: mode=max
           sbom: true
 
@@ -172,6 +179,8 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            AIPG_VALIDATOR_RELEASE_TAG=${{ needs.validate.outputs.tag }}
           provenance: mode=max
           sbom: true
 
