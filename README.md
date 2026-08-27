@@ -28,7 +28,7 @@ What is implemented and testable against production Core:
 
 - CPU-only source install.
 - Public versioned multi-architecture container plus local Docker Compose.
-- `prepare-wallet`, `init`, `check`, `dashboard`, and `run` CLI flow.
+- Consent-based `enroll`, `check`, `dashboard`, and `run` CLI flow.
 - Editable package install with the `aipg-validator` console command.
 - Module entrypoint for `python -m validator`.
 - Read-only local dashboard on `127.0.0.1:8790`.
@@ -79,7 +79,7 @@ What is implemented and testable against production Core:
 Production preview status:
 
 - Production Core runs the sealed shared-quorum validator API at immutable
-  commit `df34ffd4` with migrations through `0029`.
+  commit `6015eca3` as checked on 2026-08-27, with migrations through `0029`.
 - Core `0029` also contains a dark, atomic accounting terminal for future
   compensated quality audits. No scheduler, audit corpus, scoring policy, or
   operator configuration is enabled, and both production audit tables were
@@ -123,14 +123,13 @@ is not yet proven.
 
 ## Download
 
-Source now includes explicit `aipg-validator enroll` (menu option 1): it
+Preview.11 includes explicit `aipg-validator enroll` (menu option 1): it
 creates a dedicated local signer, authenticates a separate node account, and
-saves a validator-only API key without private-key entry. It is **not included
-in binaries through preview.10**. Existing-account pairing remains separate;
+saves a validator-only API key without private-key entry. Existing-account pairing remains separate;
 do not export a personal wallet key or replace a running node's identity.
 
 The current public V0 preview is
-[`v0.1.0-preview.9`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.9).
+[`v0.1.0-preview.11`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.11).
 It is an unsigned, non-economic operator preview, not a stable release.
 
 Expected release assets:
@@ -149,7 +148,7 @@ Every release also carries `install-validator.sh`, `install-validator.ps1`, `val
 `SHA256SUMS`, an SPDX JSON SBOM, and GitHub build provenance. The release
 manifest binds the exact version, tag, source commit, asset sizes, and asset
 hashes, plus the platform-signing state; `SHA256SUMS` covers the manifest
-itself. The `v0.1.0-preview.9` macOS and Windows binaries are explicitly unsigned:
+itself. The `v0.1.0-preview.11` macOS and Windows binaries are explicitly unsigned:
 macOS is not Developer ID signed or notarized, and Windows is not Authenticode
 signed. Verify `SHA256SUMS` and GitHub provenance before running them. Stable
 releases remain blocked until both platform-signing gates are satisfied. The
@@ -163,30 +162,32 @@ gh attestation verify aipg-validator-linux-x64.zip \
   --repo AIPowerGrid/grid-validator
 ```
 
-Once published, download the installer from the exact preview release, verify
+Download the installer from the exact preview release, verify
 its GitHub provenance, and run it:
 
 ```bash
-curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.9/install-validator.sh
+curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.11/install-validator.sh
 gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator
 bash install-validator.sh
 cd ~/.aipg-validator
-aipg-validator prepare-wallet
-# Link the printed address and create a validator key at:
-# https://console.aipowergrid.io/dashboard/validators
-aipg-validator init
+aipg-validator enroll
 aipg-validator self-test
 aipg-validator check --no-probe
-aipg-validator dashboard
 aipg-validator run
 ```
 
-On Windows x64, use PowerShell. The required switch acknowledges that the
+On Windows x64, extract the ZIP and double-click `aipg-validator.exe`. Choose
+**1** and confirm automatic setup, **4** to check registration, then **5** to
+run. Leave that window open. No PowerShell, Google/GitHub login, funded wallet,
+or pasted private key is needed for enrollment. Keep existing configuration
+when upgrading; do not create a replacement identity for a running node.
+
+Alternatively, use the PowerShell installer. The required switch acknowledges that the
 preview executable is not Authenticode signed; the installer verifies SHA-256
 before installing or executing it:
 
 ```powershell
-Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.9/install-validator.ps1 -OutFile install-validator.ps1
+Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.11/install-validator.ps1 -OutFile install-validator.ps1
 gh attestation verify install-validator.ps1 --repo AIPowerGrid/grid-validator
 .\install-validator.ps1 -AcceptUnsignedPreview
 ```
@@ -214,19 +215,20 @@ git clone https://github.com/AIPowerGrid/grid-validator
 cd grid-validator
 
 ./install.sh
+./.venv/bin/aipg-validator enroll
 ./.venv/bin/aipg-validator check --no-probe
-./.venv/bin/aipg-validator dashboard
 ./.venv/bin/aipg-validator check
 ./.venv/bin/aipg-validator run
 ```
 
 `install.sh` creates the virtualenv and installs the package, but never invents
-account credentials. On a fresh checkout, run `prepare-wallet` first. It creates
-the signing identity only on this machine and prints its public address. Link
-that address and create a validator key in the Console, then run `init` to
-complete `.env`.
+account credentials. On a fresh checkout, confirm `enroll` to generate a
+dedicated local signer, authenticate its node account, and save its scoped key.
+Keep the private configuration backed up. Existing-account pairing is not part
+of this flow; it does not merge accounts or change payout wallets.
 
-Required V0 identity config:
+Enrollment writes these V0 configuration fields automatically. The values below
+are placeholders for reference, not instructions to paste a wallet key:
 
 ```ini
 GRID_API_URL=https://api.aipowergrid.io
@@ -256,8 +258,9 @@ First-run command meanings:
 
 | Command | Sends canary jobs? | Purpose |
 |---|---:|---|
+| `aipg-validator enroll` | no | confirm dedicated-account creation; save its signer and validator-only key locally |
 | `aipg-validator prepare-wallet` | no | generate a local signing identity in `.env` with `chmod 600`; print only its public address |
-| `aipg-validator init` | no | write local `.env` with `chmod 600` |
+| `aipg-validator init` | no | advanced API-key configuration for an already prepared signer |
 | `aipg-validator check --no-probe` | no | config, Grid, capability, and scorecard smoke |
 | `aipg-validator self-test` | no | offline bounded image/video decoder qualification |
 | `aipg-validator dashboard` | no | local read-only status page |
@@ -273,24 +276,21 @@ when testing image/video scoring or the future stake gate:
 ./.venv/bin/python -m pip install -e '.[media,stake]'
 ```
 
-Once downloadable binaries are published, use the exact release installer
+Use the exact release installer
 shown in the Download section, then:
 
 ```bash
 cd ~/.aipg-validator
-aipg-validator prepare-wallet
-# Link the printed address and create a validator key in the Console.
-aipg-validator init
+aipg-validator enroll
 aipg-validator self-test
 aipg-validator check --no-probe
-aipg-validator dashboard
 aipg-validator run
 ```
 
-After a GitHub release exists, the same installer can be run from a checkout:
+From a source checkout, select the exact version explicitly:
 
 ```bash
-./scripts/install-binary.sh
+AIPG_VALIDATOR_VERSION=v0.1.0-preview.11 ./scripts/install-binary.sh
 ```
 
 `dashboard` starts a read-only local status page at
@@ -300,16 +300,17 @@ aggregate evidence scorecards, and stake mode. It never renders secrets.
 
 During the V0 preview, use a dedicated validator signing wallet linked to the
 same Grid account that issued the validator key. The private key stays local.
-Answer `no` when setup asks whether on-chain stake is required. That writes:
+Automatic enrollment keeps on-chain stake enforcement off:
 
 ```ini
 VALIDATOR_REQUIRE_STAKE=false
 ```
 
-Signing is required independently of the future stake gate. `prepare-wallet`
+Signing is required independently of the future stake gate. `enroll`
 uses the operating system CSPRNG, stores the private key only in the local
-mode-`0600` `.env`, and prints only the public address. `init` reuses that
-identity and refuses mismatched wallet/private-key configuration.
+mode-`0600` `.env` (owner-only DACL on Windows), and never prints that key.
+Advanced `prepare-wallet` and `init` remain available for an already linked
+dedicated identity; they are not the normal first-run path.
 
 ## Docker
 
@@ -317,14 +318,14 @@ Pull the exact public preview image. It is anonymously available for Linux x64
 and ARM64; prereleases never publish or replace `latest`:
 
 ```bash
-docker pull ghcr.io/aipowergrid/validator:v0.1.0-preview.9
+docker pull ghcr.io/aipowergrid/validator:v0.1.0-preview.11
 ```
 
-`preview.9` bundles the dark image/video decoders. Qualify the exact image
+The preview bundles the dark image/video decoders. Qualify the exact image
 without contacting the Grid:
 
 ```bash
-docker run --rm ghcr.io/aipowergrid/validator:v0.1.0-preview.9 self-test
+docker run --rm ghcr.io/aipowergrid/validator:v0.1.0-preview.11 self-test
 ```
 
 Run a one-shot config/Grid check:
@@ -332,7 +333,7 @@ Run a one-shot config/Grid check:
 ```bash
 docker run --rm \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.9 check --no-probe
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.11 check --no-probe
 ```
 
 Run the validator loop:
@@ -340,7 +341,7 @@ Run the validator loop:
 ```bash
 docker run -d --name aipg-validator --restart unless-stopped \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.9
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.11
 ```
 
 Run the dashboard:
@@ -348,7 +349,7 @@ Run the dashboard:
 ```bash
 docker run --rm -p 8790:8790 \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.9 \
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.11 \
   dashboard --host 0.0.0.0
 ```
 
@@ -416,11 +417,8 @@ public install surface until DNS, hosting, and an exact-release test are live:
 ```bash
 curl -fsSL https://get.aipowergrid.io/validator | bash
 cd ~/.aipg-validator
-aipg-validator prepare-wallet
-# Link the printed address and create a validator key in the Console.
-aipg-validator init
+aipg-validator enroll
 aipg-validator check --no-probe
-aipg-validator dashboard
 aipg-validator run
 ```
 
