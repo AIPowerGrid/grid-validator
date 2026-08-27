@@ -101,13 +101,15 @@ stale/expired reviews, exact removal, malformed payloads, HTTP origin/body guard
 and runtime isolation. A local macOS ARM64 frozen binary passes the packaged app
 smoke. These are **not** proof of a Windows/Linux live account-pairing journey.
 
-The opt-in `tests.test_core_pairing_integration` also passes against Core PR #58
-commit `18c6f8dd`, using only in-memory SQLite. The actual Core service verifies
-the generated signatures, commits link/removal, restricts the private list to
-the intended human account and preserves non-pairing tables. A lost response
-after a real commit is recoverable after client restart. Registration transport
-is a fixture and approval calls the service directly; fresh Google/SIWE HTTP
-proof and real PostgreSQL races remain Core's separately tested responsibilities.
+Five opt-in `tests.test_core_pairing_integration` tests pass against Core PR #58
+commit `0e66da57`, using in-memory SQLite and actual HTTP handlers. Each fixture
+authenticates generated wallets through Core's SIWE challenge/verify flow and
+registers a node with a real signature and scoped API key. Approval requires
+fresh proof; replayed SIWE, stale proof, app tokens, wrong owners and revoked
+node keys are rejected. Link/removal preserves non-pairing tables except normal
+authentication telemetry. A lost response after a real commit is recoverable
+after client restart. The nonce store and ASGI transport remain local fixtures;
+this does not prove Redis or PostgreSQL concurrency.
 
 Run that lane from this repo with a Core dependency Python environment:
 
@@ -116,8 +118,28 @@ VALIDATOR_CORE_SOURCE=/path/to/reviewed/grid-core \
   /path/to/core-venv/bin/python -m unittest tests.test_core_pairing_integration -v
 ```
 
-Ordinary node CI explicitly skips these two cross-repo tests when Core is absent;
-it must not report them as executed. No Core dependency is added to the binary.
+One additional `tests.test_console_pairing_integration` test passes against
+Console PR #21 commit `8fca3356` and the same Core revision. It starts the built
+Next server plus loopback Core, performs the actual Console wallet callback,
+Core SIWE verification and service binding, and obtains real Auth.js session
+cookies. It proves unauthenticated and cross-origin rejection, approval without
+auto-confirmation, explicit local consent, private listing and owner removal.
+All identities are disposable and no production endpoints or funds are used.
+The Console checkout must have a current production build and no `.env*` files
+loaded by Next in production mode; its subprocess receives only an allowlisted
+test environment. Run both modules together:
+
+```sh
+VALIDATOR_CORE_SOURCE=/path/to/reviewed/grid-core \
+VALIDATOR_CONSOLE_SOURCE=/path/to/built/grid-frontend \
+  /path/to/core-venv/bin/python -m unittest \
+  tests.test_core_pairing_integration tests.test_console_pairing_integration -v
+```
+
+Ordinary node CI explicitly skips these six cross-repo tests when the required
+source paths are absent; it must not report them as executed. No Core or Console
+dependency is added to the binary. Google OAuth, wallet-extension interaction,
+HTTPS deployment and Windows/Linux live operation still require separate proof.
 
 Browser QA uses `python -m tests.pairing_app_fixture`. It creates temporary
 synthetic credentials, never calls production and accepts mock approval/expiry/
