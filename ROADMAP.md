@@ -19,15 +19,20 @@ longer architecture, not permission to activate paid audits or economics.
    Windows qualification remains open. Window persistence alone is not enrollment.
 3. Ship explicit dedicated-account enrollment without private-key/API-key
    juggling. Source canary authentication through verified stored evidence is
-   proven; packaged Windows/Linux end-to-end qualification remains required.
+   proven. Published preview.12 also completed clean Linux ARM64 enrollment
+   through three accepted reports; packaged Windows live qualification remains.
 4. Build expiring authenticated pairing for an existing account, without account
    merging or payout-wallet changes. Dedicated-node signup is not pairing.
 5. Make start/stop, registration, heartbeats, assignments, submitted evidence,
    errors, redacted diagnostics, and recovery understandable without a shell.
    The opt-in local `app` ships in preview.12 with native package checks and
-   desktop/mobile browser QA. Real Windows/Linux live qualification remains open.
+   desktop/mobile browser QA. Its packaged child protocol completed Linux ARM64
+   live operation and outage recovery; native user-interface qualification remains.
 6. Prove clean first-run through accepted signed evidence on Windows and Linux,
    including cancellation, offline recovery, restarts, and upgrades.
+   The Linux ARM64 binary passed those lifecycle paths on 2026-08-27. A misleading
+   network-error label found live is fixed in source but still needs release;
+   Windows remains open. See [PRODUCTION_BASELINE.md](PRODUCTION_BASELINE.md).
 7. Qualify at least five independently controlled operators for 72 hours;
    registration, wallets, and first-party canaries do not prove independence.
 8. Maintain hostile-worker tests for template solvers, replay, fabricated

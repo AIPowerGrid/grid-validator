@@ -84,6 +84,8 @@ generator here or imply that passing public templates proves model quality.
 - **`OPERATORS.md`** — plain-language run guide (install, systemd, troubleshooting, FAQ).
   It owns the signed suspend/resume and account-bound signing-wallet/API-key
   rotation runbooks; do not describe local file deletion as credential revocation.
+  It also owns hardened-Linux temporary-directory guidance: one-file binary
+  libraries need executable mapping, without weakening the host's `/tmp` policy.
 - **`DESIGN.md`** — source of truth for validator phases, proof lanes, modality scoring,
   reference pool, future economics, Base anchoring, and Grid-side dependencies.
 - **`ADVERSARIAL_VALIDATION.md`** — attacker model, evidence-dimension boundaries,
@@ -105,6 +107,8 @@ generator here or imply that passing public templates proves model quality.
 - **`PRODUCTION_BASELINE.md`** — dated public capability, assignment, quorum,
   independence, and network-capacity snapshots. It is historical evidence, not
   a substitute for the live public status endpoints.
+  It distinguishes published Linux ARM64 live enrollment/assignment/recovery
+  proof from uncompleted Windows UI and independent-operator qualification.
 - **`SECURITY.md`** — private vulnerability disclosure process and the
   validator-specific evidence, identity, and release-supply-chain scope.
 - **`pyproject.toml`** — package metadata and `aipg-validator` console script.
