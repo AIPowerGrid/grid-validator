@@ -489,6 +489,30 @@ assignments, then rewards/staking after the evidence loop is boring.
 | service will not start | Run `scripts/install-systemd.sh --dry-run`; then check the journal |
 | dashboard will not load | Confirm `DASHBOARD_PORT` is free and the command is still running |
 | Docker exits immediately | Run `docker compose run --rm validator check --no-probe` |
+| Linux binary reports `failed to map segment from shared object` | Check whether its temporary directory is mounted `noexec`; see the private runtime-directory instructions below. Do not create another node identity. |
+
+### Hardened Linux Temporary Directories
+
+The released one-file binary extracts bundled libraries before starting. A
+`noexec` temporary filesystem can prevent those libraries from loading, even
+when the archive checksum and executable permissions are correct. Keep the
+host's `/tmp` policy intact; use a private directory on an executable filesystem:
+
+```bash
+install -d -m 700 "$HOME/.aipg-validator/runtime"
+export TMPDIR="$HOME/.aipg-validator/runtime"
+```
+
+Set this environment for both the verified installer and subsequent validator
+commands. A service needs the same explicit `TMPDIR` in its service environment;
+an export in an interactive shell does not change systemd. If the home filesystem
+is also `noexec`, ask the administrator for an owner-only executable runtime
+directory. Do not make the directory world-writable or remount all of `/tmp`.
+
+This was reproduced with the published preview.12 Linux ARM64 binary on Ubuntu
+22.04. Its normal automatic enrollment and real assignment loop worked after
+selecting the private runtime directory. This is separate from missing packages
+or invalid credentials.
 
 ## FAQ
 

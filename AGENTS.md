@@ -84,6 +84,8 @@ generator here or imply that passing public templates proves model quality.
 - **`OPERATORS.md`** — plain-language run guide (install, systemd, troubleshooting, FAQ).
   It owns the signed suspend/resume and account-bound signing-wallet/API-key
   rotation runbooks; do not describe local file deletion as credential revocation.
+  It also owns hardened-Linux temporary-directory guidance: one-file binary
+  libraries need executable mapping, without weakening the host's `/tmp` policy.
 - **`ACCOUNT_PAIRING.md`** - existing-account visibility association contract,
   explicit two-sided consent, failure recovery, and cross-repo rollout gates.
   Local app support is unreleased source work; preview.12 does not include it.
@@ -99,6 +101,9 @@ generator here or imply that passing public templates proves model quality.
 - **`PREVIEW_COHORT.md`** — public recruitment and qualification contract for
   5-10 independent preview operators, including safe reporting and the
   distinction between node count and independently controlled quorum weight.
+  Its new-operator path is preview.12 automatic dedicated-node enrollment and
+  the local app, not manual wallet/key preparation. Keep independent-control
+  review and advanced credential rotation separate from first-run setup.
   Qualification is 72 hours with bounded heartbeat sampling and an expiring
   external review; the node cannot self-certify operator independence. The
   authenticated CLI/dashboard may show that operator's progress and review
@@ -106,6 +111,8 @@ generator here or imply that passing public templates proves model quality.
 - **`PRODUCTION_BASELINE.md`** — dated public capability, assignment, quorum,
   independence, and network-capacity snapshots. It is historical evidence, not
   a substitute for the live public status endpoints.
+  It distinguishes published Linux ARM64 live enrollment/assignment/recovery
+  proof from uncompleted Windows UI and independent-operator qualification.
 - **`SECURITY.md`** — private vulnerability disclosure process and the
   validator-specific evidence, identity, and release-supply-chain scope.
 - **`pyproject.toml`** — package metadata and `aipg-validator` console script.

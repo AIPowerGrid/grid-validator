@@ -194,6 +194,8 @@ change is deployed; Core still issues no media work by default.
   events, fresh Settings per start, EOF/cancellation cleanup, and sanitized error
   codes. Enrollment is an explicitly confirmed action and uses the existing
   secure enrollment path; stopping it preserves any already-written identity.
+  Classify both the outer exception and its startup-wrapper cause: HTTPX's own
+  transport cause is an httpcore exception and must not erase a network error.
 - **`file_lock.py`** - nonblocking POSIX/Windows process locks, released by OS
   close/crash. Locks are path-local, not proof of cross-host identity uniqueness.
 - **`ui/`** - packaged local HTML/CSS/JS and official logo. See child DOX.

@@ -29,6 +29,8 @@ installer generation.
   diagnostics, invalid-credential child recovery, owned-process stop, OS lock
   exclusion, and runtime acknowledgement/cancellation contracts. No live Grid
   keys or operator home-directory writes.
+  A real unavailable loopback connection covers HTTPX's exception cause chain,
+  including the startup wrapper, without contacting an external service.
 - `test_account_pairing.py` - synthetic Core responses with real EIP-191
   signature recovery, exact contract validation, prior-review/fresh-read consent,
   stale/replaced approvals, cancellation, expired attempts, response-loss/restart

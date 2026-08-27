@@ -437,6 +437,25 @@ class SupervisorTests(unittest.TestCase):
 
 
 class RuntimeStatusTests(unittest.IsolatedAsyncioTestCase):
+    async def test_real_connection_failure_keeps_network_error_category(self):
+        import socket
+
+        # Reserve a port without listening, so no other service can take it.
+        with socket.socket() as unavailable:
+            unavailable.bind(("127.0.0.1", 0))
+            port = unavailable.getsockname()[1]
+            async with httpx.AsyncClient(trust_env=False, timeout=2) as client:
+                with self.assertRaises(
+                    (httpx.ConnectError, httpx.ConnectTimeout)
+                ) as caught:
+                    await client.get(f"http://127.0.0.1:{port}/")
+        failure = caught.exception
+        self.assertIsNotNone(failure.__cause__)
+        self.assertEqual(error_code(failure), "grid_unavailable")
+        wrapped = RuntimeError("private startup detail")
+        wrapped.__cause__ = failure
+        self.assertEqual(error_code(wrapped), "grid_unavailable")
+
     async def test_cancel_during_registration_closes_client(self):
         from validator import main
 
