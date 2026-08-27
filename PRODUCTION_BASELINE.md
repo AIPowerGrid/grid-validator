@@ -5,6 +5,61 @@ This is a dated rollout snapshot, not a live status page. Query
 `GET https://api.aipowergrid.io/v1/validator/capabilities` for current public
 state.
 
+## 2026-08-27 19:54 UTC - Published Windows Binary Live Proof
+
+The protected manual
+[Windows canary run 33110290699](https://github.com/AIPowerGrid/grid-validator/actions/runs/33110290699)
+passed at 19:52:59 UTC using harness commit
+`4502f0449c1848839cb7019831894faadd7e99a4`. It executed the immutable published
+preview.13 Windows x64 binary, not a locally rebuilt candidate, against Core
+`407f29841988fd253afe867a1f5a07e23349219e`. Both preview.12 and preview.13
+archives and manifests passed exact-tag/source/workflow GitHub provenance and
+checksum verification before execution. The preview.13 Windows archive SHA-256
+is `56f59f39153f2c84de00a1dfc4aaccefcd7fa0c83616ed69492a1f10f36a0dad`.
+
+The fresh first-party test demonstrated:
+
+- Cancelled enrollment and merely opening the local app created no identity.
+  Explicit enrollment generated a dedicated signer/key with an owner-only
+  Windows DACL; repeated enrollment preserved the config.
+- Registration, acknowledged heartbeat, real targeted text probes and two
+  Core-accepted signed reports completed, with no pending/dead journal entries.
+  Read-only production verification found two assignment-authoritative,
+  signature-verified reports: one healthy and one failed worker result. A failed
+  worker result is valid evidence, not failure of the validator test.
+- Diagnostics excluded the config path, signing key, API key and local-app token.
+  Stop/start, app restart, rejected credentials and switching the existing
+  identity between verified preview.12 and preview.13 preserved the same config
+  and validator ID.
+- A real executable-specific outbound firewall block produced
+  `grid_unavailable`. Removing it restored an acknowledged heartbeat and a
+  completed polling round with no pending/dead entries. The runner's firewall
+  profiles were restored to their original values.
+- Signed suspension and revocation of the generated account's dedicated API key
+  succeeded; the revoked key then received 401. Independent production queries
+  confirmed the node suspended, no active keys, zero account credit entries and
+  zero worker-ledger or reservation rows for its probe jobs.
+
+The preceding ten-minute
+[run 33109259349](https://github.com/AIPowerGrid/grid-validator/actions/runs/33109259349)
+correctly failed with `no_accepted_evidence_in_window`: normal per-worker/model
+cooldowns left it without assignments. Its generated node was also suspended
+and its key revoked. The successful rerun used a thirty-minute maximum window
+without changing assignment policy, cooldowns or worker targets.
+
+This is hosted Windows Server runtime proof with HTTP-driven local-app controls,
+not a human Windows 10/11 double-click/browser test or independent-operator
+qualification. Neither temporary test node counts as Donli or another external
+operator. Public status after cleanup again showed four fresh active preview.9
+nodes: three first-party pilots and the previously observed external node,
+whose independent-control review remains pending. Verified independence is zero.
+
+No release, production deployment or feature activation occurred in these runs.
+Pairing and compensated-audit tables remain empty; pairing, media issuance and
+validator economics stay off. Public downloads remain preview.13; pairing and
+decoder-fairness source remain unreleased. Human Windows onboarding, live pairing,
+independent media references and the five-operator 72-hour cohort remain open.
+
 ## 2026-08-27 19:06 UTC - Pairing Dependencies Deployed Dark
 
 Core `407f29841988fd253afe867a1f5a07e23349219e` is deployed with Alembic

@@ -1,9 +1,12 @@
 # Native Windows Live Canary
 
-Status: manual qualification harness, not completed Windows evidence. Public
-preview.13 already passed native build/install tests. This separate workflow
-tests its actual packaged local app against the production unpaid text preview.
-It does not publish a release or enable any Core feature.
+Status: preview.13 passed the protected Windows live run
+[33110290699](https://github.com/AIPowerGrid/grid-validator/actions/runs/33110290699)
+on 2026-08-27, including two accepted signed reports, outage/recovery and full
+test-identity retirement. See [PRODUCTION_BASELINE.md](PRODUCTION_BASELINE.md)
+for exact revisions and read-only Core verification. This workflow tests the
+actual published local app against the unpaid text preview; it does not publish
+a release or enable any Core feature. Human desktop onboarding remains separate.
 
 ## Boundaries
 

@@ -71,7 +71,8 @@ generator here or imply that passing public templates proves model quality.
 - **`validator/`** — the whole node (config, stake gate, grid client, canary probing +
   scoring, attestation signing, probe loop, CLI, read-only dashboard, and opt-in
   local operator app). Owned in its own AGENTS.md. Browser controls ship in
-  the native-tested preview.12 release; live Windows qualification is separate.
+  the native-tested preview.12 release. Published preview.13 passed hosted Windows
+  live runtime qualification; human desktop onboarding remains separate.
 - **`README.md`** — V0 scope, quick start, and current public distribution shape.
 - **`QUICKSTART.md`** — one-page operator path that mirrors the worker quickstart:
   source preview, verified binary install, versioned public Docker, systemd,
@@ -115,13 +116,15 @@ generator here or imply that passing public templates proves model quality.
 - **`PRODUCTION_BASELINE.md`** — dated public capability, assignment, quorum,
   independence, and network-capacity snapshots. It is historical evidence, not
   a substitute for the live public status endpoints.
-  It distinguishes published Linux ARM64 live enrollment/assignment/recovery
-  proof from uncompleted Windows UI and independent-operator qualification.
+  It distinguishes published Linux ARM64 and hosted Windows x64 live
+  enrollment/assignment/recovery proof from uncompleted human Windows UI and
+  independent-operator qualification.
 - **`NATIVE_LIVE_CANARY.md`** - owner-approved Windows runtime qualification
   against the unpaid production preview. The manual workflow uses published
   binaries and a disposable identity, tests app controls/recovery, and requires
-  suspension plus key revocation. It is not human double-click or independent
-  operator proof. Only its bounded public report may become an artifact.
+  suspension plus key revocation. Preview.13 passed run `33110290699` with two
+  verified signed reports and confirmed retirement. It is not human double-click
+  or independent operator proof. Only its bounded public report may become an artifact.
 - **`SECURITY.md`** — private vulnerability disclosure process and the
   validator-specific evidence, identity, and release-supply-chain scope.
 - **`pyproject.toml`** — package metadata and `aipg-validator` console script.
