@@ -170,9 +170,7 @@ esac
 echo
 echo "Next steps:"
 echo "  cd $(shell_quote "$CONFIG_DIR")"
-echo "  $run_cmd prepare-wallet"
-echo "  Link the printed public address in Console, then create a validator API key."
-echo "  $run_cmd init"
+echo "  $run_cmd enroll  # dedicated node account; no private-key entry"
 echo "  $run_cmd check --no-probe"
 echo "  $run_cmd dashboard"
 echo "  $run_cmd run"

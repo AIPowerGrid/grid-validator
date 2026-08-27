@@ -751,6 +751,7 @@ class CliInitTests(unittest.TestCase):
 
     def test_api_key_input_refuses_echo_fallback(self):
         with tempfile.TemporaryDirectory() as tmp:
+            cli._write_private_env(Path(tmp) / ".env", [f"VALIDATOR_PRIVATE_KEY={Account.create().key.hex()}"])
             with (
                 patch("validator.cli._env_path", return_value=Path(tmp) / ".env"),
                 patch("builtins.input", return_value=""),
@@ -759,7 +760,7 @@ class CliInitTests(unittest.TestCase):
             ):
                 self.assertEqual(cli.main(["init"]), 1)
             self.assertIn("requires a terminal", output.getvalue())
-            self.assertFalse((Path(tmp) / ".env").exists())
+            self.assertFalse(dotenv_values(Path(tmp) / ".env").get("VALIDATOR_API_KEY"))
 
     def test_init_reports_non_interactive_setup_without_traceback(self):
         old_cwd = os.getcwd()
@@ -775,7 +776,7 @@ class CliInitTests(unittest.TestCase):
 
             self.assertEqual(code, 1)
             out = buf.getvalue()
-            self.assertIn("Interactive setup requires a terminal", out)
+            self.assertIn("aipg-validator enroll", out)
             self.assertNotIn("Traceback", out)
             self.assertFalse(os.path.exists(os.path.join(tmp, ".env")))
 
@@ -784,6 +785,7 @@ class CliInitTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             os.chdir(tmp)
             try:
+                cli._write_private_env(Path(".env"), [f"VALIDATOR_PRIVATE_KEY={Account.create().key.hex()}"])
                 with (
                     patch("builtins.input", side_effect=[""]),
                     patch("getpass.getpass", return_value=""),
@@ -796,7 +798,7 @@ class CliInitTests(unittest.TestCase):
 
             self.assertEqual(code, 1)
             self.assertIn("API key is required", buf.getvalue())
-            self.assertFalse(os.path.exists(os.path.join(tmp, ".env")))
+            self.assertFalse(dotenv_values(Path(tmp) / ".env").get("VALIDATOR_API_KEY"))
 
     def test_init_can_sign_v0_without_requiring_stake(self):
         account = Account.create()
@@ -804,9 +806,10 @@ class CliInitTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             os.chdir(tmp)
             try:
+                cli._write_private_env(Path(".env"), [f"VALIDATOR_PRIVATE_KEY={account.key.hex()}"])
                 with (
-                    patch("builtins.input", side_effect=["", "", "n"]),
-                    patch("getpass.getpass", side_effect=["grid-key", account.key.hex()]),
+                    patch("builtins.input", side_effect=["", "n"]),
+                    patch("getpass.getpass", side_effect=["grid-key"]),
                 ):
                     with redirect_stdout(io.StringIO()):
                         code = cli._cmd_init(argparse.Namespace())
@@ -828,9 +831,10 @@ class CliInitTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             os.chdir(tmp)
             try:
+                cli._write_private_env(Path(".env"), [f"VALIDATOR_PRIVATE_KEY={account.key.hex()}", f"VALIDATOR_WALLET={other.address}"])
                 with (
-                    patch("builtins.input", side_effect=["", other.address]),
-                    patch("getpass.getpass", side_effect=["grid-key", account.key.hex()]),
+                    patch("builtins.input", side_effect=[""]),
+                    patch("getpass.getpass", side_effect=["grid-key"]),
                 ):
                     with redirect_stdout(io.StringIO()):
                         code = cli._cmd_init(argparse.Namespace())
@@ -838,15 +842,16 @@ class CliInitTests(unittest.TestCase):
                 os.chdir(old_cwd)
 
             self.assertEqual(code, 1)
-            self.assertFalse(os.path.exists(os.path.join(tmp, ".env")))
+            self.assertFalse(dotenv_values(Path(tmp) / ".env").get("VALIDATOR_API_KEY"))
 
     def test_init_rejects_malformed_optional_wallet(self):
         old_cwd = os.getcwd()
         with tempfile.TemporaryDirectory() as tmp:
             os.chdir(tmp)
             try:
+                cli._write_private_env(Path(".env"), [f"VALIDATOR_PRIVATE_KEY={Account.create().key.hex()}", "VALIDATOR_WALLET=0xnot-a-wallet"])
                 with (
-                    patch("builtins.input", side_effect=["", "0xnot-a-wallet"]),
+                    patch("builtins.input", side_effect=[""]),
                     patch("getpass.getpass", return_value="grid-key"),
                 ):
                     with redirect_stdout(io.StringIO()):
@@ -855,7 +860,7 @@ class CliInitTests(unittest.TestCase):
                 os.chdir(old_cwd)
 
             self.assertEqual(code, 1)
-            self.assertFalse(os.path.exists(os.path.join(tmp, ".env")))
+            self.assertFalse(dotenv_values(Path(tmp) / ".env").get("VALIDATOR_API_KEY"))
 
 
 if __name__ == "__main__":

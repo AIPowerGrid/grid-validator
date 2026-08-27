@@ -192,8 +192,10 @@ generator here or imply that passing public templates proves model quality.
   container smoke tests must require that exact identity.
 - **`install.sh` / `aipg-validator.service` / `.env.template`** — source-checkout
   install + run-as-service. Installation never generates a signing identity as
-  a side effect. It points operators to `aipg-validator prepare-wallet`, then
-  Console wallet linking/key creation, then `aipg-validator init`.
+  a side effect. New operators explicitly run `aipg-validator enroll` to create
+  a dedicated local signer and authenticate a separate node account using
+  Core's existing SIWE and validator-purpose key endpoints. This is not
+  existing-account pairing and never merges identities or changes payout wallets.
 - **`tests/`** — lightweight unit tests for V0 scoring/operator surfaces.
 
 ## Local Contracts

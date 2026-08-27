@@ -25,17 +25,15 @@ python3 -m venv .venv
 echo "OK Dependencies installed."
 
 if [ ! -f .env ]; then
-  echo "INFO No validator identity found. Prepare one locally before Console enrollment:"
-  echo "   ./.venv/bin/aipg-validator prepare-wallet"
+  echo "INFO No validator identity found. Enroll a dedicated node account:"
+  echo "   ./.venv/bin/aipg-validator enroll"
 else
   echo "INFO .env already exists - preserving it."
 fi
 
 echo
 echo "Next steps:"
-echo "  ./.venv/bin/aipg-validator prepare-wallet    # local signing identity"
-echo "  Link the printed address and create a validator key in the Console"
-echo "  ./.venv/bin/aipg-validator init              # add the scoped API key"
+echo "  ./.venv/bin/aipg-validator enroll           # local signer + scoped API key"
 echo "  ./.venv/bin/aipg-validator check --no-probe  # verify install + API"
 echo "  ./.venv/bin/aipg-validator dashboard         # local status page"
 echo "  ./.venv/bin/aipg-validator run               # start validating"

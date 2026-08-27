@@ -44,7 +44,7 @@ class LauncherTests(unittest.TestCase):
             ):
                 self.assertEqual(cli.main(["menu"]), 0)
             self.assertEqual(run.call_count, 2)
-            self.assertEqual(run.call_args_list[0].args[0][-1], "prepare-wallet")
+            self.assertEqual(run.call_args_list[0].args[0][-1], "enroll")
             self.assertEqual(run.call_args_list[1].args[0][-2:], ["check", "--no-probe"])
             for call in run.call_args_list:
                 self.assertEqual(call.kwargs["env"]["VALIDATOR_ENV"], str(path))
@@ -76,7 +76,7 @@ class LauncherTests(unittest.TestCase):
             ):
                 self.assertEqual(cli.main(["menu"]), 0)
             run.assert_not_called()
-            self.assertIn("option 1 first", output.getvalue())
+            self.assertIn("option 1", output.getvalue())
 
     def test_config_resolution_keeps_existing_identity_and_explicit_override(self):
         with tempfile.TemporaryDirectory() as tmp:

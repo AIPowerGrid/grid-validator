@@ -52,6 +52,26 @@ install.
 
 ## Install
 
+### Dedicated Account Setup (Source; Not In Binaries Through Preview.10)
+
+New source installs can run `aipg-validator enroll` (menu option 1). Confirm
+creation of a dedicated node account. The program generates and stores its
+signer locally, authenticates by wallet signature, and saves a validator-only
+API key. It never asks you to paste a private key. Then run
+`check --no-probe`, followed by `run`; enrollment alone proves no completed work.
+
+Keep the private config backed up. Retrying after a connection failure reuses
+that signer. Existing keys and unrecognized identities are never replaced.
+Advanced automation may use `enroll --env /private/path/node.env --yes` as
+explicit consent. Only the official HTTPS Grid supports this automatic flow.
+There is no account merging or existing Google-account pairing in this command.
+If a key was issued but the local write failed, retrying may leave an unused
+key on the dedicated account; revoke unused keys during account recovery.
+
+Older binary users should not export a personal wallet key to complete setup.
+Wait for the automatic-enrollment release or use an already linked dedicated
+signer with the advanced manual path.
+
 ### Binary Install
 
 Use the exact published preview release and verify the installer provenance

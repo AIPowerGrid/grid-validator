@@ -34,19 +34,13 @@ class ReleasePackagingTests(unittest.TestCase):
         (root / "aipg-validator-release.spdx.json").write_text(
             json.dumps({"spdxVersion": "SPDX-2.3"}), encoding="utf-8"
         )
-        (root / "install-validator.sh").write_text(
-            "#!/usr/bin/env bash\nset -euo pipefail\n"
-            f'RELEASE_TAG="{tag or "__AIPG_VALIDATOR_RELEASE_TAG__"}"\n'
-            "echo prepare-wallet\necho ' init'\n",
-            encoding="utf-8",
-        )
-        (root / "install-validator.ps1").write_text(
-            "# SPDX-License-Identifier: AGPL-3.0-or-later\n"
-            "param([switch]$AcceptUnsignedPreview)\n"
-            f'$releaseTag = "{tag or "__AIPG_VALIDATOR_RELEASE_TAG__"}"\n'
-            "Write-Host prepare-wallet\nWrite-Host ' init'\n",
-            encoding="utf-8",
-        )
+        # Use the actual installers so their operator steps cannot drift from
+        # the verifier while self-consistent synthetic fixtures stay green.
+        for source, target in (("install-binary.sh", "install-validator.sh"), ("install-validator.ps1", "install-validator.ps1")):
+            body = (ROOT / "scripts" / source).read_text(encoding="utf-8")
+            if tag:
+                body = body.replace("__AIPG_VALIDATOR_RELEASE_TAG__", tag)
+            (root / target).write_text(body, encoding="utf-8")
         payloads = [
             *archives,
             "aipg-validator-release.spdx.json",
@@ -168,6 +162,8 @@ class ReleasePackagingTests(unittest.TestCase):
         self.assertIn("environment: validator-release", binaries)
         self.assertIn("name: Assemble verified release payload", binaries)
         self.assertIn("name: Clean install ${{ matrix.asset }}", binaries)
+        self.assertIn('"n" | & $binary enroll', binaries)
+        self.assertIn("Cancelled enrollment created an identity", binaries)
         self.assertIn("install-validator.ps1", binaries)
         self.assertIn("scripts/stamp-release-installers.py", binaries)
         self.assertIn("-AcceptUnsignedPreview", binaries)
@@ -195,12 +191,12 @@ class ReleasePackagingTests(unittest.TestCase):
         self.assertIn('"unsigned_warning": unsigned_warning', binaries)
         self.assertIn("UNSIGNED PREVIEW:", binaries)
         self.assertLess(
-            (ROOT / "scripts" / "install-binary.sh").read_text().index("prepare-wallet"),
-            (ROOT / "scripts" / "install-binary.sh").read_text().index('"  $run_cmd init"'),
+            (ROOT / "scripts" / "install-binary.sh").read_text().index("$run_cmd enroll"),
+            (ROOT / "scripts" / "install-binary.sh").read_text().index("$run_cmd check --no-probe"),
         )
         self.assertLess(
-            (ROOT / "scripts" / "install-validator.ps1").read_text().index("prepare-wallet"),
-            (ROOT / "scripts" / "install-validator.ps1").read_text().index(" init"),
+            (ROOT / "scripts" / "install-validator.ps1").read_text().index(" enroll"),
+            (ROOT / "scripts" / "install-validator.ps1").read_text().index(" check --no-probe"),
         )
         self.assertIn("macOS Developer ID/notarization gate is not satisfied", verifier)
         self.assertIn("Windows Authenticode gate is not satisfied", verifier)
@@ -272,6 +268,22 @@ class ReleasePackagingTests(unittest.TestCase):
 
             self.assertNotEqual(failed.returncode, 0)
             self.assertIn("shell installer is not stamped", failed.stderr)
+
+    def test_verifier_rejects_manual_only_setup_even_with_valid_checksums(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self._write_release_payload(root, tag="v0.1.0-preview.11")
+            installer = root / "install-validator.sh"
+            installer.write_text(installer.read_text().replace(" enroll", " init"))
+            manifest = json.loads((root / "validator-release.json").read_text())
+            for item in manifest["assets"]:
+                if item["name"] == installer.name:
+                    item["bytes"] = installer.stat().st_size
+                    item["sha256"] = hashlib.sha256(installer.read_bytes()).hexdigest()
+            self._rewrite_manifest_and_checksums(root, manifest)
+            failed = self._run_release_verifier(root)
+            self.assertNotEqual(failed.returncode, 0)
+            self.assertIn("enroll before check", failed.stderr)
 
     def test_release_installer_stamper_replaces_exact_placeholder(self):
         with tempfile.TemporaryDirectory() as tmp:

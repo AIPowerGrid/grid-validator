@@ -39,22 +39,24 @@ def run_menu() -> int:
     print(f"\nAI Power Grid Validator {__release_tag__}")
     print(f"Config: {path}")
     print("Preview: no validator rewards or stake required.")
-    print("An API key alone is not a signing identity. Use a dedicated empty wallet.")
+    print("New operator? Choose 1 for automatic dedicated-account setup.")
     print("Never paste your everyday wallet's private key into this app.")
     actions = {
-        "1": ["prepare-wallet"],
+        "1": ["enroll"],
         "3": ["init"],
         "4": ["check", "--no-probe"],
         "5": ["run"],
         "6": ["self-test"],
+        "7": ["prepare-wallet"],
     }
     while True:
-        print("\n1. Prepare/show local signing address")
-        print("2. Open Console (link signing wallet and get a validator API key)")
-        print("3. Configure API key")
+        print("\n1. Set up a new dedicated validator account (recommended)")
+        print("2. Open Console (existing-account management)")
+        print("3. Configure an existing API key (advanced)")
         print("4. Check registration (no probe)")
         print("5. Run validator (leave this window open)")
         print("6. Offline decoder self-test")
+        print("7. Prepare/show signing address only (advanced)")
         print("0. Exit")
         try:
             choice = input("Choose an option: ").strip()
@@ -77,7 +79,7 @@ def run_menu() -> int:
 
                 existing = dotenv_values(path) if path.exists() else {}
                 if not existing.get("VALIDATOR_PRIVATE_KEY"):
-                    print("Prepare a dedicated local identity with option 1 first.")
+                    print("New operators should use automatic setup, option 1.")
                     continue
             path.parent.mkdir(parents=True, exist_ok=True)
             env = os.environ.copy()

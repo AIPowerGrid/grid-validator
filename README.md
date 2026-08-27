@@ -123,6 +123,12 @@ is not yet proven.
 
 ## Download
 
+Source now includes explicit `aipg-validator enroll` (menu option 1): it
+creates a dedicated local signer, authenticates a separate node account, and
+saves a validator-only API key without private-key entry. It is **not included
+in binaries through preview.10**. Existing-account pairing remains separate;
+do not export a personal wallet key or replace a running node's identity.
+
 The current public V0 preview is
 [`v0.1.0-preview.9`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.9).
 It is an unsigned, non-economic operator preview, not a stable release.
