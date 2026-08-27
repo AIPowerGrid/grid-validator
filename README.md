@@ -77,7 +77,7 @@ What is implemented and testable against production Core:
 Production preview status:
 
 - Production Core runs the sealed shared-quorum validator API at immutable
-  commit `fabb767d` with migrations through `0027`.
+  commit `43156ffd` with migrations through `0028`.
 - All three pilot nodes run the published `v0.1.0-preview.8` payload from
   validator commit `122f5565`; the checksummed Linux x64 artifact passed a
   one-node-at-a-time production rollout and Core reports the immutable release

@@ -69,8 +69,11 @@ installer generation.
   quorum; keep that limitation explicit in release docs.
 - Adversarial coverage must include a template-specific solver that can pass an
   objective protocol check while remaining ineligible for quality authority.
-  Add prompt-classification, replay, and model-switching workers before any
-  economic rollout.
+  Core's required CI owns the network challenge generator and executable
+  prompt-classification, replay, and model-switching worker harness. Validator
+  tests must preserve local score-dimension and signed-envelope boundaries; do
+  not fork Core's generator into this repo or treat its red baseline as proof of
+  probe indistinguishability.
 
 ## Work Guidance
 

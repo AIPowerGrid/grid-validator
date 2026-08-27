@@ -10,7 +10,7 @@ evidence does not change worker routing, strikes, payouts, or rewards. There is
 no validator staking, slashing, or compensation in this cohort.
 
 Enrollment is open for the evidence-only cohort. Production Core runs commit
-`fabb767d` with migrations through `0027`, and the immutable public operator
+`43156ffd` with migrations through `0028`, and the immutable public operator
 preview is
 [`v0.1.0-preview.8`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.8).
 The three first-party nodes share one operator and hypervisor, so they do not

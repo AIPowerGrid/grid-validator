@@ -5,6 +5,24 @@ This is a dated rollout snapshot, not a live status page. Query
 `GET https://api.aipowergrid.io/v1/validator/capabilities` for current public
 state.
 
+## 2026-08-27 07:20 UTC
+
+Production Core advanced to immutable commit
+`43156ffd11bc3baa311a589998df8ddd6594583a` with Alembic `0028` after a
+checksummed backup, guarded scratch restore, migration, and schema-drift check.
+The private media worker-control review table existed with zero rows after the
+migration, so deployment backfilled no trust. Image validation, video
+validation, media bond sync, validator rewards, routing effects, strikes, and
+slashing remained disabled.
+
+Public status reported seven connected workers, ten online model entries,
+three active/heartbeat-fresh/participating preview.8 validators, zero verified
+independent operators, and validator economic effect `none`. The three nodes
+remain one first-party control domain. The public capability contract continued
+to label generated text probes as not quality-eligible and exposed image/video
+validation as disabled. The payout and PostgreSQL-backup timers remained active
+through the Core switch; this deployment did not change the validator payload.
+
 ## 2026-08-27 06:01 UTC
 
 Production Core ran immutable commit

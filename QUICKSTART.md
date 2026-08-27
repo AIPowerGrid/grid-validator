@@ -9,7 +9,7 @@ V0 is evidence-only. It does not pay validator rewards, slash workers, change
 routing, or prove exact model weights.
 
 Rollout status: sealed shared-quorum text validation is live on production Core
-commit `fabb767d` with migrations through `0027`. Three first-party pilot nodes
+commit `43156ffd` with migrations through `0028`. Three first-party pilot nodes
 run the exact published `v0.1.0-preview.8` payload from commit `122f5565`.
 On the earlier preview.5 payload they completed a healthy 3-of-5 16K-context
 group and correctly disputed a token-limit group, all without credit,
