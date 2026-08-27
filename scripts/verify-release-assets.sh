@@ -228,11 +228,11 @@ for name, body in (
     elif body.count(installer_placeholder) != 1:
         raise SystemExit(f"build-only {name} installer must retain its tag placeholder")
 for name, body in (("shell", shell_installer), ("PowerShell", power_shell)):
-    prepare = body.find("prepare-wallet")
-    initialize = body.find(" init")
-    if prepare < 0 or initialize < 0 or prepare > initialize:
+    enroll = body.find(" enroll")
+    check = body.find(" check --no-probe")
+    if enroll < 0 or check < 0 or enroll > check:
         raise SystemExit(
-            f"{name} installer must direct operators to prepare-wallet before init"
+            f"{name} installer must direct operators to enroll before check"
         )
 PY
 

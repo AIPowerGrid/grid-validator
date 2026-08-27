@@ -39,6 +39,9 @@ verification, binary installation, systemd installation, and release smoke tests
 - Source and binary installers point new operators to explicit `enroll`, not
   private-key entry. Installation remains network-free with respect to Core
   authentication; enrollment requires a separate confirmed operator action.
+- The release verifier requires enrollment before the registration check in
+  both installers. Its payload tests must use the real installer sources,
+  not synthetic instructions that can drift while still passing their own gate.
 
 ## Verification
 
