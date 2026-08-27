@@ -8,12 +8,14 @@ submit signed evidence through Core's validator attestation endpoint.
 V0 is evidence-only. It does not pay validator rewards, slash workers, change
 routing, or prove exact model weights.
 
-Rollout status: shared-quorum text validation is live on production Core commit
-`49a6eb00` with migrations through `0026`. Three first-party pilot nodes
+Rollout status: sealed shared-quorum text validation is live on production Core
+commit `e18b38f9` with migrations through `0026`. Three first-party pilot nodes
 completed fresh, economically inert 3-of-5 groups on 2026-08-21. This proves
 the live protocol, not independent operation: the pilot nodes share one
 operator and hypervisor.
-All three now run the exact verified pre-release payload from commit `3a505d6`.
+All three now run the exact published `v0.1.0-preview.2` payload from commit
+`1472677d`. Target, model, nonce, and challenge are disclosed only after worker
+execution and are verified against the assignment seal before signing.
 The public binary target is `v0.1.0-preview.2`; install it or use the source
 path, and begin with `check --no-probe` before running an assignment probe.
 

@@ -5,6 +5,35 @@ This is a dated rollout snapshot, not a live status page. Query
 `GET https://api.aipowergrid.io/v1/validator/capabilities` for current public
 state.
 
+## 2026-08-27 00:09 UTC
+
+Production Core ran immutable commit
+`e18b38f95f08e168dbef458d934cd2360c6a2d50` with Alembic `0026`. A fresh
+checksummed PostgreSQL backup restored into a guarded scratch database, upgraded
+to the candidate head, passed `alembic check`, and was removed before cutover.
+All three first-party validators then moved to the published, provenance-verified
+Linux x64 `v0.1.0-preview.2` payload from commit
+`1472677d01ceb67770bf59bd3a2cd48239e17aac`.
+
+Core enabled sealed assignment polling only after all three compatible nodes
+passed registration and no-probe checks. A supervised production poll returned
+one opaque assignment id, public lifecycle/capability metadata, and a
+64-character hexadecimal SHA-256 seal. It contained no target worker, worker
+name, model, Grid nonce, canary kind, probe group, or challenge. After worker
+execution, all three nodes
+verified the terminal disclosure against their stored seal and submitted three
+verified authoritative signatures. The tool-chain group reached `accepted /
+healthy` 3-of-5 quorum.
+
+The three probe job ids joined to zero `grid_ledger`, `grid_den_events`,
+`grid_reservations`, and `grid_credit_ledger` rows. Core continued to report
+`economic_effect: none`; rewards, stake, strikes, routing influence, slashing,
+image assignments, and video assignments remained disabled. Public health
+reported three active/fresh/participating validators and zero independently
+verified operators. Sealing prevents advance assignment disclosure to a
+validator; it does not make a public prompt grammar indistinguishable to the
+worker during execution.
+
 ## 2026-08-26 21:17 UTC
 
 Core reported immutable build
