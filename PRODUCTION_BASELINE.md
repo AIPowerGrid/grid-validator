@@ -5,6 +5,27 @@ This is a dated rollout snapshot, not a live status page. Query
 `GET https://api.aipowergrid.io/v1/validator/capabilities` for current public
 state.
 
+## 2026-08-27 09:02 UTC
+
+Production Core advanced without a schema change to immutable runtime commit
+`df34ffd46e395798647f57a0ecdd026aa2d0152e` with Alembic `0029`. The exact
+candidate used its reviewed hash-locked environment. Backup
+`grid-postgres-20260827T085937Z.dump` restored into a guarded scratch database,
+passed the candidate schema checks, and required no new upgrade operations.
+
+This cutover added the privacy-safe maintainer cohort runbook and made the
+existing digest-bound operator review dry run report current 72-hour progress
+and blockers. Applying an incomplete verification still fails closed. It did
+not add a validator scheduler, reward, routing effect, strike, stake, slashing,
+media-validation gate, or paid-audit scheduler.
+
+All seven workers reconnected. Public status reported three fresh,
+participating `v0.1.0-preview.8` validators, zero independently verified
+operators, and validator economic effect `none`. Charging remained
+allowlist/global-off, payout and PostgreSQL-backup timers remained enabled and
+active, public route smokes passed, and the post-cutover API journal contained
+no warning-or-higher entries.
+
 ## 2026-08-27 08:37 UTC
 
 Production Core advanced to immutable runtime commit
