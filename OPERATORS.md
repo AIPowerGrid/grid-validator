@@ -17,11 +17,11 @@ Core commit `e18b38f9` with migrations through `0026`. Three first-party pilot n
 proved the signed 3-of-5 text flow without economic side effects and now run the
 exact published `v0.1.0-preview.5` payload from commit `07190da8`. Core reports
 that immutable release identity for all three nodes. Each node passed a staged
-`check --no-probe`, atomic symlink switch, and clean service restart; no fresh
-probe was issued during that rollout window, so the latest workload proof remains
-the earlier healthy `preview.3` 3-of-5 group. Public enrollment remains a
-no-reward qualification cohort because those nodes share one operator and
-hypervisor. Always run `check --no-probe` before operating the loop.
+`check --no-probe`, atomic symlink switch, and clean service restart. After the
+cooldown, the fleet completed a healthy 3-of-5 16K-context group and correctly
+disputed a token-limit group with no economic side effects. Public enrollment
+remains a no-reward qualification cohort because those nodes share one operator
+and hypervisor. Always run `check --no-probe` before operating the loop.
 
 ## System Requirements
 
@@ -345,7 +345,7 @@ The node is intentionally defensive around new Grid endpoints:
 |---|---|
 | `/v1/validator/capabilities` | reads non-economic feature flags |
 | `/v1/validator/register` | registers the linked signing wallet and capabilities |
-| `/v1/validator/registration` | reports current registration state |
+| `/v1/validator/registration` | reports registration and the authenticated operator's safe qualification progress |
 | `/v1/validator/suspend` | accepts signed self-suspension for maintenance or exit |
 | `/v1/validator/rotate` | binds the stable validator ID to a linked replacement wallet |
 | `/v1/validator/heartbeat` | refreshes node liveness |

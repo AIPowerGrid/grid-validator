@@ -40,20 +40,23 @@ hostname, or review notes.
 
 ## Join
 
-1. Join the [AI Power Grid Discord](https://discord.gg/W9D8j6HCtC).
-2. Ask to join the **validator preview cohort** and include only:
+1. Create or sign in to a Grid account, run `aipg-validator prepare-wallet`,
+   link the printed public signing wallet in the Console, and create a
+   validator-purpose API key for that account.
+2. Install the exact preview release, complete `aipg-validator init`, and run
+   `aipg-validator check --no-probe`. This registers the node without consuming
+   an assignment and prints its opaque `val_*` validator ID.
+3. Join the [AI Power Grid Discord](https://discord.gg/W9D8j6HCtC) and ask
+   privately to join the **validator preview cohort**. Send only the `val_*`
+   validator ID plus:
    - operating system and CPU architecture;
    - country or broad region;
    - expected online hours; and
    - whether the network is residential, datacenter, or cloud hosted.
-3. Do not post API keys, private keys, signatures, account IDs, full wallet
+4. Do not post API keys, private keys, signatures, account IDs, full wallet
    addresses, assignment payloads, prompts, or worker responses.
-4. Wait for enrollment approval and a dedicated scoped validator key before
-   running an assignment probe. Link the dedicated signing wallet to the same
-   Grid account through the authenticated account flow; never send a private key
-   to the project maintainer.
-5. Install the exact preview release, verify its checksum and GitHub provenance,
-   and run `aipg-validator check --no-probe` before starting the assignment loop.
+5. Wait for the maintainer to mark the registration as a candidate before
+   starting the assignment loop. Never send a private key to the maintainer.
 
 Linux x64 and ARM64 binaries target glibc 2.35 or newer. macOS and Windows
 preview binaries are explicitly unsigned; Linux is the lowest-friction public
@@ -90,7 +93,10 @@ aipg-validator run
 ```
 
 After enrollment, the project maintainer places the registration into candidate
-status. Core samples at most one qualifying heartbeat every five minutes.
+status. `aipg-validator check --no-probe` and the localhost dashboard show only
+the authenticated operator's safe qualification status and progress; they never
+show the internal common-control group or private review reference. Core samples
+at most one qualifying heartbeat every five minutes.
 Verification requires at least 72 hours, at least 80% sample coverage, a fresh
 heartbeat, and a project-maintainer review. A verified review expires after 30
 days by default and must be renewed; operators cannot self-certify through the

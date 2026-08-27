@@ -198,6 +198,7 @@ def _render_html() -> str:
     <div class="panel"><h2>Scorecards</h2><div id="scorecards" class="metric">...</div></div>
     <div class="panel span-2"><h2>Node</h2><dl id="node"></dl></div>
     <div class="panel span-2"><h2>Grid Details</h2><dl id="details"></dl></div>
+    <div class="panel span-4"><h2>Operator Qualification</h2><dl id="qualification"></dl></div>
     <div class="panel span-4"><h2>Validator Capabilities</h2><dl id="capabilities"></dl></div>
     <div class="panel span-4"><h2>Recent Evidence Scorecards</h2><div id="scorecard-table"></div></div>
     <div class="panel span-4"><h2>Visible Text Models</h2><ul id="model-list"></ul></div>
@@ -263,6 +264,8 @@ async function loadStatus() {
   setMetric("grid", statusText(data.grid.ok), statusClass(data.grid.ok));
   setMetric("models", data.grid.model_count || 0, "");
   const caps = data.grid.capabilities || {};
+  const registration = data.grid.registration || {};
+  const qualification = registration.operator_qualification || {};
   const scorecards = data.grid.scorecards || {};
   const features = caps.features || {};
   const targeted = !!caps.targeted_probe_enabled;
@@ -286,6 +289,27 @@ async function loadStatus() {
     ["Probe timeout", `${data.config.probe_timeout_s}s`],
     ["Config error", data.config.error],
     ["Grid error", data.grid.error]
+  ]);
+  setDl("qualification", [
+    ["Validator ID", registration.validator_id || "not registered"],
+    ["Registration", registration.status || "unknown"],
+    ["Operator status", qualification.status || "not reported by Core"],
+    [
+      "Elapsed",
+      typeof qualification.elapsed_seconds === "number"
+        ? `${(qualification.elapsed_seconds / 3600).toFixed(1)}h / ${(
+            (qualification.minimum_seconds || 0) / 3600
+          ).toFixed(1)}h`
+        : ""
+    ],
+    ["Heartbeat samples", `${qualification.heartbeat_samples || 0} / ${qualification.expected_samples || 0}`],
+    ["Heartbeat coverage", `${pct(qualification.sample_coverage)} / ${pct(qualification.minimum_sample_coverage)}`],
+    ["Heartbeat fresh", yesNo(qualification.heartbeat_fresh)],
+    ["Time ready", yesNo(qualification.time_ready)],
+    ["Coverage ready", yesNo(qualification.coverage_ready)],
+    ["Review current", yesNo(qualification.review_current)],
+    ["Independent vote eligible", yesNo(qualification.independent_vote_eligible)],
+    ["Review expires", qualification.expires_at || ""]
   ]);
   setDl("capabilities", [
     ["Endpoint", caps.available ? "available" : "not deployed"],

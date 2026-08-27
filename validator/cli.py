@@ -95,6 +95,55 @@ def _scorecard_lines(scorecards: dict, *, max_items: int = 3) -> list[str]:
     return lines
 
 
+def _qualification_lines(registration: dict) -> list[str]:
+    """Render the authenticated operator's safe qualification progress."""
+    qualification = registration.get("operator_qualification")
+    if not isinstance(qualification, dict):
+        return []
+
+    status = str(qualification.get("status") or "unreviewed")
+    if status == "unreviewed":
+        return [
+            "INFO Operator qualification: unreviewed; share only this validator ID "
+            "privately to request cohort review."
+        ]
+    if status == "candidate":
+        elapsed_hours = float(qualification.get("elapsed_seconds") or 0) / 3600
+        minimum_hours = float(qualification.get("minimum_seconds") or 0) / 3600
+        coverage = float(qualification.get("sample_coverage") or 0)
+        minimum_coverage = float(qualification.get("minimum_sample_coverage") or 0)
+        samples = int(qualification.get("heartbeat_samples") or 0)
+        expected = int(qualification.get("expected_samples") or 0)
+        lines = [
+            "INFO Operator qualification: candidate "
+            f"{elapsed_hours:.1f}h/{minimum_hours:.1f}h; heartbeat coverage "
+            f"{coverage:.0%}/{minimum_coverage:.0%} ({samples}/{expected} samples)."
+        ]
+        if qualification.get("time_ready") and qualification.get("coverage_ready"):
+            lines.append(
+                "INFO Qualification telemetry is ready; maintainer independence "
+                "review is still required."
+            )
+        return lines
+    if status == "verified":
+        if qualification.get("independent_vote_eligible"):
+            expires = qualification.get("expires_at") or "the recorded review expiry"
+            return [f"OK Operator independence: verified through {expires}."]
+        if not qualification.get("review_current"):
+            return [
+                "WARN Operator independence: review expired; maintainer renewal required."
+            ]
+        return [
+            "WARN Operator independence: review is current but the validator heartbeat "
+            "is not fresh."
+        ]
+    if status == "rejected":
+        return [
+            "WARN Operator qualification: rejected; contact the maintainer before running."
+        ]
+    return [f"WARN Operator qualification: unknown status {status!r}."]
+
+
 def _env_path(args=None) -> Path:
     configured = getattr(args, "env", None) or os.getenv("VALIDATOR_ENV")
     return Path(configured).expanduser() if configured else Path.cwd() / ".env"
@@ -347,6 +396,8 @@ def _cmd_check(args) -> int:
                 f"OK Validator registered: {registration.get('validator_id', 'unknown')} "
                 f"({registration.get('status', 'active')})"
             )
+            for line in _qualification_lines(registration):
+                print(line)
             capabilities = await grid.validator_capabilities()
             for line in _capability_lines(capabilities):
                 print(line)

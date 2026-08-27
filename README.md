@@ -228,8 +228,9 @@ attestation submissions are retried before new work. The database stores
 short-lived synthetic assignments and public signed envelopes, never the
 validator private key.
 
-`check` validates config, registers the node, prints validator capability flags,
-shows aggregate scorecard availability, runs one assigned probe round, and
+`check` validates config, registers the node, prints the authenticated
+operator's qualification progress, prints validator capability flags, shows
+aggregate scorecard availability, runs one assigned probe round, and
 prints the accepted attestation count. If no assignment is available, it fails
 clearly instead of reporting a green no-op. Use
 `check --no-probe` for an install/API smoke test that does not submit canary

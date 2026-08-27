@@ -10,16 +10,14 @@ routing, or prove exact model weights.
 
 Rollout status: sealed shared-quorum text validation is live on production Core
 commit `e18b38f9` with migrations through `0026`. Three first-party pilot nodes
-completed fresh, economically inert 3-of-5 groups on 2026-08-21. This proves
-the live protocol, not independent operation: the pilot nodes share one
-operator and hypervisor.
-All three now run the exact published `v0.1.0-preview.3` payload from commit
-`7ba18a52`. Target, model, nonce, and challenge are disclosed only after worker
-execution and are verified against the assignment seal before signing.
-Core reports that immutable release identity for all three first-party nodes,
-and a fresh post-rollout group reached healthy 3-of-5 quorum. Install the same
-release or use the source path, and begin with `check --no-probe` before running
-an assignment probe.
+run the exact published `v0.1.0-preview.5` payload from commit `07190da8`.
+After rollout they completed a healthy 3-of-5 16K-context group and correctly
+disputed a token-limit group, all without credit, reservation, den, or payout
+side effects. This proves the live protocol, not independent operation: the
+pilot nodes share one operator and hypervisor. Target, model, nonce, and
+challenge are disclosed only after worker execution and are verified against
+the assignment seal before signing. Begin with `check --no-probe` before
+running an assignment probe.
 
 ## What You Need
 
