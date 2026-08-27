@@ -39,7 +39,7 @@ concrete detail in children. Delete stale notes instead of explaining history.
 The Grid's validator node. In V0 it is a CPU-only distributed audit runner: it sends
 small canary jobs through the normal Grid path, scores replies (`healthy` / `slow` /
 `failed`), and submits signed attestations. Shared-quorum text validation is
-production-live on Core commit `d8a48f2a` with migrations through `0029`.
+production-live on Core commit `df34ffd4` with migrations through `0029`.
 Three first-party pilot nodes run the verified `v0.1.0-preview.8` payload from
 validator commit `122f5565`; checksum-gated staging, no-probe registration,
 rolling symlink rollout, immutable release reporting, and clean service recovery

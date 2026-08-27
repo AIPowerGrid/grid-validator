@@ -13,7 +13,7 @@ For the shortest install path, start with [QUICKSTART.md](QUICKSTART.md). This
 file is the longer operator runbook.
 
 Current rollout: sealed assignment-bound shared quorum is live on production
-Core commit `d8a48f2a` with migrations through `0029`. Three first-party pilot nodes
+Core commit `df34ffd4` with migrations through `0029`. Three first-party pilot nodes
 proved the signed 3-of-5 text flow without economic side effects and now run the
 exact published `v0.1.0-preview.8` payload from commit `122f5565`. Core reports
 that immutable release identity for all three nodes. Each node passed a staged

@@ -77,7 +77,7 @@ What is implemented and testable against production Core:
 Production preview status:
 
 - Production Core runs the sealed shared-quorum validator API at immutable
-  commit `d8a48f2a` with migrations through `0029`.
+  commit `df34ffd4` with migrations through `0029`.
 - Core `0029` also contains a dark, atomic accounting terminal for future
   compensated quality audits. No scheduler, audit corpus, scoring policy, or
   operator configuration is enabled, and both production audit tables were
