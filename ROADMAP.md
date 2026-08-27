@@ -7,6 +7,40 @@ exist.
 
 For the evidence-only rollout sequence, use [RELEASE_V0.md](RELEASE_V0.md).
 
+## Active Milestone: Usable Independent Preview
+
+This is the current execution order. The numbered phases below describe the
+longer architecture, not permission to activate paid audits or economics.
+
+1. Reconcile reviewed source, published artifacts, deployed versions, and local
+   work. Preserve the unfinished video-decoder fairness patch separately.
+2. Release PR #48's Windows launcher/identity fix after native build and install
+   verification. Window persistence alone does not solve enrollment.
+3. Ship explicit dedicated-account enrollment without private-key/API-key
+   juggling. Source canary authentication through verified stored evidence is
+   proven; packaged Windows/Linux end-to-end qualification remains required.
+4. Build expiring authenticated pairing for an existing account, without account
+   merging or payout-wallet changes. Dedicated-node signup is not pairing.
+5. Make start/stop, registration, heartbeats, assignments, submitted evidence,
+   errors, redacted diagnostics, and recovery understandable without a shell.
+6. Prove clean first-run through accepted signed evidence on Windows and Linux,
+   including cancellation, offline recovery, restarts, and upgrades.
+7. Qualify at least five independently controlled operators for 72 hours;
+   registration, wallets, and first-party canaries do not prove independence.
+8. Maintain hostile-worker tests for template solvers, replay, fabricated
+   evidence, substitution, and probe-aware switching. Generated challenges are
+   protocol/capability evidence, never automatically quality evidence.
+9. Finish decoder fairness, then independent-reference deterministic image and
+   video pilots. Local failures and reference disagreement are inconclusive.
+10. Keep DOX, public claims, release links, and rollback records synchronized;
+    distinguish merged, released, deployed, and verified at every milestone.
+
+Standing boundaries: validator routing influence, rewards, staking, and
+slashing stay off. Paid/blind audit activation and contract changes require
+separate review and explicit approval. The current near-term finish line is
+ordinary users running and recovering nodes without handling private keys,
+plus five independently qualified operators, not validator economics.
+
 ## Product Story
 
 Validators are independent audit nodes. They do not need GPUs. Their job is to
@@ -42,7 +76,7 @@ candidate worker against certified reference output.
 ## Phase 0: Preview Audit Runner
 
 Status: the production Core rollout, first-party text-quorum pilot, and public
-`v0.1.0-preview.3` distribution path are live. Opaque common-control grouping, a
+versioned preview distribution path are live. Opaque common-control grouping, a
 72-hour sampled qualification, expiring reviews, and aggregate-only health are
 implemented; independent operator qualification remains pending. Registration
 quorum remains a separate non-economic signal.
@@ -54,7 +88,7 @@ Live or scaffolded in this repo:
 
 - source install
 - public versioned multi-architecture container plus local Docker build and Compose
-- tag/manual GitHub Actions binary-release workflow
+- protected-tag publication and build-only manual GitHub Actions workflows
 - frozen cross-platform release dependency lock
 - release-binary installer script
 - Linux systemd installer script
@@ -114,18 +148,9 @@ Deliverables:
 - service install/update path
 - operator health page that shows core capability flags
 
-Operator shape:
-
-```bash
-curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.3/install-validator.sh
-gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator
-AIPG_VALIDATOR_VERSION=v0.1.0-preview.3 bash install-validator.sh
-cd ~/.aipg-validator
-aipg-validator init
-aipg-validator check --no-probe
-aipg-validator dashboard
-aipg-validator run
-```
+Use the current immutable download and version-specific operator steps in
+[QUICKSTART.md](QUICKSTART.md). Do not copy a stale preview tag or unreleased
+source command into a binary installation guide.
 
 Definition of done:
 
