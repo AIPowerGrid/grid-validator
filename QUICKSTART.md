@@ -93,7 +93,7 @@ Command safety:
 
 ## Binary Install
 
-This is the intended public path once release artifacts are published:
+Use the immutable preview release for the public binary path:
 
 | Platform | Release asset |
 |---|---|
@@ -150,8 +150,8 @@ Grid account links a different replacement wallet and issues a replacement
 validator API key. Follow [OPERATORS.md](OPERATORS.md) and revoke the old API
 key after the replacement checks healthy.
 
-Until the first public release exists, use the source preview or local Docker
-path.
+The versioned GitHub binaries are public. The Docker examples below remain a
+local-build path until anonymous GHCR access is explicitly verified.
 
 ## Docker
 

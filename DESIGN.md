@@ -489,9 +489,10 @@ Going offline should stop rewards, not slash stake.
 - [x] Image/video scoring design and dark validator-side video contract/fidelity scorer.
 - [x] Dev-manager roadmap and go/no-go boundaries.
 - [x] Cross-platform binary packaging and build-only release qualification.
-- [ ] Publish Docker image on release.
+- [x] Publish a versioned multi-architecture Docker image; anonymous GHCR
+  access remains a separate organization package-visibility gate.
 - [x] Grid validator assignment endpoint.
-- [x] Deploy migrations through `0026` and immutable Core commit `49a6eb00` to production.
+- [x] Deploy migrations through `0026` and immutable Core commit `e18b38f9` to production.
 - [x] Prove registration, assignment, targeted-probe, attestation, and scorecard
   endpoints against production.
 - [x] `POST /v1/validator/probe/{assignment_id}` targeted text execution.
