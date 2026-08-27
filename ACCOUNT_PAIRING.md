@@ -9,6 +9,9 @@ Keep `VALIDATOR_PAIRING_ENABLED=0` until the cross-repo rollout is verified.
 Core's separate [scoped pilot change](https://github.com/AIPowerGrid/grid-core/pull/60)
 adds a default-empty, expiring account allowlist for native qualification. It
 requires a new reviewed Core deployment; it is not in the deployed `407f2984`.
+Its immutable `f51875ce` candidate passed the production-backup scratch-restore
+and schema proof on 2026-08-27 at 20:59 UTC, without cutover, restart or activation.
+That removes the preparation gate, not the live native pairing gate.
 
 ## What It Means
 

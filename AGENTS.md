@@ -104,6 +104,9 @@ generator here or imply that passing public templates proves model quality.
   probe-fingerprinting gaps, red-team acceptance tests, and economic gates.
 - **`ROADMAP.md`** — dev-manager build order from V0 preview through targeted
   validation, text/image/video policy work, and Base-anchored economics.
+  Its active ten-item milestone distinguishes published native runtime proof
+  from human desktop use, staged restore proof from cutover, and registration
+  from independently reviewed qualification. Keep those gates separate.
 - **`RELEASE_V0.md`** — cross-repo evidence-only release runbook: core migration/API,
   console scorecards, validator packaging, canary operation, and rollback notes.
 - **`PREVIEW_COHORT.md`** — public recruitment and qualification contract for

@@ -14,13 +14,18 @@ longer architecture, not permission to activate paid audits or economics.
 
 1. Reconcile reviewed source, published artifacts, deployed versions, and local
    work. Preserve the unfinished video-decoder fairness patch separately.
+   The reviewed harness/docs are merged as `35b4e04`; public binaries remain
+   preview.13. Live Core is `407f2984` with migration `0030`. Pilot-capable Core
+   `f51875ce` is staged and passed a fresh backup/restore proof, but is not live.
 2. PR #48's Windows launcher/identity fix shipped in preview.11; preview.12
-   includes the local app. Native build/install checks pass; ordinary-user live
-   Windows qualification remains open. Window persistence alone is not enrollment.
+   introduced the local app, retained in current preview.13. Native build/install
+   and published Windows Server runtime tests pass; ordinary-user double-click
+   qualification remains open. Window persistence alone is not enrollment.
 3. Ship explicit dedicated-account enrollment without private-key/API-key
    juggling. Source canary authentication through verified stored evidence is
    proven. Published preview.12 also completed clean Linux ARM64 enrollment
-   through three accepted reports; packaged Windows live qualification remains.
+   through three accepted reports. Published preview.13 completed the Windows
+   Server journey through two verified reports; no human desktop claim follows.
 4. Build expiring authenticated pairing for an existing account, without account
    merging or payout-wallet changes. Dedicated-node signup is not pairing.
    Core PR #58 and Console PR #21 are merged and deployed dark; six real
@@ -28,24 +33,37 @@ longer architecture, not permission to activate paid audits or economics.
    pass. The matching local app remains an unpublished build candidate.
    Windows/Linux live pairing proof, immutable client release and supervised
    association/removal remain required. Pairing is still disabled.
+   PR #63's manual native harness is merged and its offline safety suites pass
+   on all four platforms. This is preparation, not a completed pairing canary.
 5. Make start/stop, registration, heartbeats, assignments, submitted evidence,
    errors, redacted diagnostics, and recovery understandable without a shell.
-   The opt-in local `app` ships in preview.12 with native package checks and
+   The opt-in local `app` ships in preview.13 with native package checks and
    desktop/mobile browser QA. Its packaged child protocol completed Linux ARM64
-   live operation and outage recovery; native user-interface qualification remains.
+   and Windows Server live operation and outage recovery; ordinary-user native
+   interface qualification remains.
 6. Prove clean first-run through accepted signed evidence on Windows and Linux,
    including cancellation, offline recovery, restarts, and upgrades.
    The Linux ARM64 binary passed those lifecycle paths on 2026-08-27. A misleading
    network-error label found live was corrected in preview.13 and its published
-   Linux binary passed the real outage/recovery check. Windows remains open.
+   Linux binary passed the real outage/recovery check. Published Windows
+   preview.13 also passed cancellation, accepted evidence, bad credentials,
+   restarts, upgrades, real firewall outage/recovery and credential retirement
+   in run `33110290699`. Hosted HTTP-driven controls do not prove human UI use.
    See [PRODUCTION_BASELINE.md](PRODUCTION_BASELINE.md).
 7. Qualify at least five independently controlled operators for 72 hours;
    registration, wallets, and first-party canaries do not prove independence.
+   At 20:57 UTC on 2026-08-27, Peteq's node was healthy with 33 verified reports;
+   another preview.13 node had three. Its identity still needs confirmation
+   before calling it Donli's. No independent qualification window has started.
 8. Maintain hostile-worker tests for template solvers, replay, fabricated
    evidence, substitution, and probe-aware switching. Generated challenges are
    protocol/capability evidence, never automatically quality evidence.
 9. Finish decoder fairness, then independent-reference deterministic image and
    video pilots. Local failures and reference disagreement are inconclusive.
+   Fairness fixes are reviewed and merged in `5de518b0` with native test coverage,
+   but are not in preview.13. Original local work is preserved separately.
+   Independent reference operators and supervised image/video pilots remain open;
+   media issuance and bond synchronization remain disabled.
 10. Keep DOX, public claims, release links, and rollback records synchronized;
     distinguish merged, released, deployed, and verified at every milestone.
 
