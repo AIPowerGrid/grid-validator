@@ -69,7 +69,9 @@ generator here or imply that passing public templates proves model quality.
 ## Ownership
 
 - **`validator/`** — the whole node (config, stake gate, grid client, canary probing +
-  scoring, attestation signing, probe loop, CLI, local dashboard). Owned in its own AGENTS.md.
+  scoring, attestation signing, probe loop, CLI, read-only dashboard, and opt-in
+  local operator app). Owned in its own AGENTS.md. Browser controls are a source
+  candidate, not included in the published preview.11 release.
 - **`README.md`** — V0 scope, quick start, and current public distribution shape.
 - **`QUICKSTART.md`** — one-page operator path that mirrors the worker quickstart:
   source preview, verified binary install, versioned public Docker, systemd,
@@ -176,6 +178,9 @@ generator here or imply that passing public templates proves model quality.
   offline config. The Docker and frozen-binary checks must both prove the
   packaged token-limit scorer loads. Use `SKIP_DOCKER=1` or `SKIP_BINARY=1`
   only when the local machine genuinely cannot run that lane.
+- **`scripts/smoke-operator-app.py`** — offline native binary proof that UI assets,
+  session authentication, managed child errors/restarts, and safe diagnostics
+  work after freezing. Runs in every native binary build; no live credentials.
 - **`scripts/verify-release-assets.sh`** — publication gate for the exact four
   platform archives, checksum-covered shell and PowerShell installers, SPDX JSON SBOM, and
   `validator-release.json` plus `SHA256SUMS`. The manifest binds version, tag,
@@ -299,9 +304,10 @@ generator here or imply that passing public templates proves model quality.
   --require-hashes --disable-pip`
 - Release-binary smoke:
   `./.venv/bin/python -m pip install -e '.[release]'` then
-  `./.venv/bin/pyinstaller --onefile --name aipg-validator-local`
+  `./.venv/bin/pyinstaller --onefile --collect-data validator --name aipg-validator-local`
   `--specpath build/pyinstaller-local validator/__main__.py`
-  then `./dist/aipg-validator-local --help`; also run at least one
+  then `./dist/aipg-validator-local --help` and
+  `./.venv/bin/python scripts/smoke-operator-app.py ./dist/aipg-validator-local`; also run at least one
   `check --no-probe` smoke from a temp working directory with only a local
   `.env` to prove the binary does not depend on the source checkout.
 
@@ -311,3 +317,4 @@ generator here or imply that passing public templates proves model quality.
   probing, attestation, loop, CLI.
 - [tests/AGENTS.md](tests/AGENTS.md) — validator protocol and operator-surface
   unit tests.
+- [scripts/AGENTS.md](scripts/AGENTS.md) - release, installation, and packaged smoke contracts.

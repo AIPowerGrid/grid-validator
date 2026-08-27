@@ -23,6 +23,8 @@ longer architecture, not permission to activate paid audits or economics.
    merging or payout-wallet changes. Dedicated-node signup is not pairing.
 5. Make start/stop, registration, heartbeats, assignments, submitted evidence,
    errors, redacted diagnostics, and recovery understandable without a shell.
+   The opt-in local `app` source candidate implements these controls; packaged
+   browser verification and a new release are required before public promotion.
 6. Prove clean first-run through accepted signed evidence on Windows and Linux,
    including cancellation, offline recovery, restarts, and upgrades.
 7. Qualify at least five independently controlled operators for 72 hours;

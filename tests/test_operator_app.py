@@ -1,0 +1,337 @@
+# SPDX-FileCopyrightText: 2026 AI Power Grid
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+import asyncio
+import http.client
+import json
+import os
+import subprocess
+import sys
+import tempfile
+import threading
+import unittest
+from pathlib import Path
+from unittest.mock import AsyncMock, patch
+
+import httpx
+
+from validator.file_lock import AlreadyRunning, exclusive_lock
+from validator.operator_app import OperatorServer, Supervisor
+from validator.operator_worker import error_code
+
+
+class OperatorHTTPTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.supervisor = Supervisor(Path(self.tmp.name) / ".env")
+        self.server = OperatorServer(self.supervisor)
+        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
+        self.thread.start()
+
+    def tearDown(self):
+        self.server.shutdown()
+        self.server.server_close()
+        self.supervisor.close()
+        self.thread.join()
+        self.tmp.cleanup()
+
+    def request(self, method, path, body=None, headers=None):
+        connection = http.client.HTTPConnection(
+            "127.0.0.1", self.server.server_port, timeout=5
+        )
+        try:
+            connection.request(method, path, body=body, headers=headers or {})
+            response = connection.getresponse()
+            return response.status, dict(response.getheaders()), response.read()
+        finally:
+            connection.close()
+
+    def credentials(self):
+        return {
+            "Authorization": "Bearer " + self.server.token,
+            "Origin": self.server.origin,
+            "Content-Type": "application/json",
+        }
+
+    def test_static_ui_contains_no_session_token_and_has_csp(self):
+        code, headers, body = self.request("GET", "/")
+        self.assertEqual(code, 200)
+        self.assertNotIn(self.server.token.encode(), body)
+        self.assertIn("frame-ancestors 'none'", headers["Content-Security-Policy"])
+        self.assertNotIn("Access-Control-Allow-Origin", headers)
+        self.assertEqual(headers["Referrer-Policy"], "no-referrer")
+        self.assertIn(b"Set up node", body)
+        for path in ("/app.js", "/app.css", "/logo.png"):
+            self.assertEqual(self.request("GET", path)[0], 200)
+        self.assertFalse(self.supervisor.path.exists())
+
+    def test_private_status_and_diagnostics_require_session(self):
+        for path in ("/status.json", "/diagnostics.json"):
+            self.assertEqual(self.request("GET", path)[0], 401)
+            status, _, body = self.request("GET", path, headers=self.credentials())
+            self.assertEqual(status, 200)
+            self.assertEqual(json.loads(body)["phase"], "stopped")
+            self.assertNotIn(str(self.supervisor.path).encode(), body)
+            self.assertNotIn(self.server.token.encode(), body)
+
+    def test_host_and_foreign_origin_block_reads_and_writes(self):
+        for override in (
+            {"Host": "attacker.example"},
+            {"Origin": "https://attacker.example"},
+            {"Origin": "null"},
+            {"Sec-Fetch-Site": "cross-site"},
+        ):
+            headers = {**self.credentials(), **override}
+            self.assertEqual(
+                self.request("GET", "/status.json", headers=headers)[0], 403
+            )
+            self.assertEqual(
+                self.request("POST", "/control", '{"action":"run"}', headers)[0], 403
+            )
+
+    def test_write_requires_origin_and_token(self):
+        for headers in (
+            {},
+            {"Origin": self.server.origin},
+            {"Authorization": "Bearer " + self.server.token},
+            {**self.credentials(), "Authorization": "Bearer wrong"},
+            {**self.credentials(), "Authorization": "Bearer \xe9"},
+        ):
+            self.assertEqual(
+                self.request("POST", "/control", '{"action":"run"}', headers)[0], 403
+            )
+
+    def test_actions_are_allowlisted_and_bounded(self):
+        for body in (
+            "{}",
+            "[]",
+            '{"action":[]}',
+            '{"action":"shell"}',
+            '{"action":"run","command":"other"}',
+            "x" * 129,
+        ):
+            self.assertEqual(
+                self.request("POST", "/control", body, self.credentials())[0], 400
+            )
+        self.assertEqual(
+            self.request(
+                "POST",
+                "/control",
+                '{"action":"run"}',
+                {**self.credentials(), "Content-Type": "text/plain"},
+            )[0],
+            400,
+        )
+        self.assertFalse(self.supervisor.path.exists())
+
+    def test_authorized_explicit_action_and_conflict(self):
+        with patch.object(self.supervisor, "start", return_value=True) as start:
+            self.assertEqual(
+                self.request(
+                    "POST", "/control", '{"action":"enroll"}', self.credentials()
+                )[0],
+                202,
+            )
+            start.assert_called_once_with("enroll")
+        with patch.object(self.supervisor, "start", return_value=False):
+            self.assertEqual(
+                self.request(
+                    "POST", "/control", '{"action":"run"}', self.credentials()
+                )[0],
+                409,
+            )
+        with patch.object(self.supervisor, "stop") as stop:
+            self.assertEqual(
+                self.request(
+                    "POST", "/control", '{"action":"stop"}', self.credentials()
+                )[0],
+                202,
+            )
+            stop.assert_called_once()
+
+    def test_unknown_paths_cannot_read_files(self):
+        for path in ("/../.env", "/logo.png?token=secret", "/healthz", "/ui/AGENTS.md"):
+            self.assertEqual(self.request("GET", path)[0], 404)
+
+
+class SupervisorTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.supervisor = Supervisor(Path(self.tmp.name) / "node.env")
+
+    def tearDown(self):
+        self.supervisor.close()
+        self.tmp.cleanup()
+
+    def test_events_are_allowlisted_not_a_log_relay(self):
+        node_id = "val_" + "a" * 32
+        self.supervisor.event(
+            {
+                "phase": "registered",
+                "validator_id": node_id,
+                "private_key": "secret",
+                "message": "raw response",
+            }
+        )
+        self.supervisor.event({"phase": "heartbeat"})
+        self.supervisor.event(
+            {"phase": "waiting", "accepted": 2, "pending": 1, "dead": 0}
+        )
+        self.supervisor.event({"phase": [], "error": []})
+        self.supervisor.event(
+            {"phase": "waiting", "accepted": True, "dead": -1, "message": "secret"}
+        )
+        data = self.supervisor.snapshot()
+        self.assertEqual(data["accepted"], 2)
+        self.assertEqual(data["validator_id"], node_id)
+        self.assertTrue(data["heartbeat_at"])
+        self.assertTrue(data["evidence_at"])
+        self.assertNotIn("secret", json.dumps(data))
+        self.assertNotIn("raw response", json.dumps(data))
+        self.assertNotIn("private_key", json.dumps(data))
+
+    def test_event_history_is_bounded(self):
+        for _ in range(100):
+            self.supervisor.event({"phase": "heartbeat"})
+        self.assertEqual(len(self.supervisor.snapshot()["events"]), 40)
+
+    def test_actual_child_rejects_invalid_config_and_can_restart(self):
+        self.supervisor.path.write_text("VALIDATOR_PRIVATE_KEY=\nVALIDATOR_API_KEY=\n")
+        with patch.dict(
+            os.environ, {"VALIDATOR_API_KEY": "", "VALIDATOR_PRIVATE_KEY": ""}
+        ):
+            for _ in range(2):
+                self.assertTrue(self.supervisor.start("run"))
+                self.supervisor.reader.join(timeout=20)
+                self.assertFalse(self.supervisor.reader.is_alive())
+                state = self.supervisor.snapshot()
+                self.assertEqual(state["error"], "configuration_invalid")
+                self.assertFalse(state["running"])
+
+    def test_stop_only_owns_created_process_and_preserves_config(self):
+        self.supervisor.path.write_text("# preserved\n")
+        # A real local child waits for parent EOF; no Grid or signing involved.
+        with patch(
+            "validator.operator_app.command_prefix",
+            return_value=[
+                sys.executable,
+                "-c",
+                'import json,sys; print(json.dumps({"phase":"heartbeat"}),flush=True); sys.stdin.read()',
+            ],
+        ):
+            self.assertTrue(self.supervisor.start("run"))
+            self.assertFalse(self.supervisor.start("run"))
+            self.supervisor.stop()
+            self.supervisor.reader.join(timeout=10)
+        self.assertFalse(self.supervisor.snapshot()["running"])
+        self.assertEqual(self.supervisor.snapshot()["phase"], "stopped")
+        self.assertEqual(self.supervisor.path.read_text(), "# preserved\n")
+
+    def test_parent_close_reaps_child(self):
+        with patch(
+            "validator.operator_app.command_prefix",
+            return_value=[sys.executable, "-c", "import sys; sys.stdin.read()"],
+        ):
+            self.assertTrue(self.supervisor.start("run"))
+            process = self.supervisor.process
+            self.supervisor.close()
+        self.assertIsNotNone(process.poll())
+        self.assertFalse(self.supervisor.start("run"))
+
+    def test_same_state_lock_rejects_concurrent_process_then_releases(self):
+        path = Path(self.tmp.name) / "runtime.lock"
+        command = [
+            sys.executable,
+            "-c",
+            'import sys; from pathlib import Path; from validator.file_lock import exclusive_lock;\nwith exclusive_lock(Path(sys.argv[1])): print("acquired")',
+            str(path),
+        ]
+        with exclusive_lock(path):
+            result = subprocess.run(command, capture_output=True, text=True, timeout=10)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("AlreadyRunning", result.stderr)
+        result = subprocess.run(command, capture_output=True, text=True, timeout=10)
+        self.assertEqual(result.returncode, 0)
+
+    def test_error_classification_never_contains_response(self):
+        response = httpx.Response(
+            401,
+            request=httpx.Request("POST", "https://grid.example"),
+            text="private material",
+        )
+        try:
+            response.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            self.assertEqual(error_code(exc), "credentials_rejected")
+        self.assertEqual(error_code(AlreadyRunning()), "already_running")
+        self.assertEqual(error_code(ValueError("secret")), "runtime_error")
+
+
+class RuntimeStatusTests(unittest.IsolatedAsyncioTestCase):
+    async def test_cancel_during_registration_closes_client(self):
+        from validator import main
+
+        grid = AsyncMock()
+        grid.register_validator.side_effect = asyncio.CancelledError
+        with (
+            patch.object(main, "GridClient", return_value=grid),
+            patch.object(main.attest, "build_registration", return_value={}),
+            patch.object(main.attest, "sign", return_value={}),
+        ):
+            with self.assertRaises(asyncio.CancelledError):
+                await main._run_registered()
+        grid.aclose.assert_awaited_once()
+
+    async def test_runtime_reports_actual_acknowledgements_and_counts(self):
+        from validator import main
+
+        events = []
+        grid = AsyncMock()
+        grid.register_validator.return_value = {"validator_id": "val_" + "b" * 32}
+        with (
+            tempfile.TemporaryDirectory() as tmp,
+            patch.object(
+                main.Settings, "STATE_DB_PATH", str(Path(tmp) / "state.sqlite3")
+            ),
+            patch.object(main.Settings, "UPDATE_CHECK_ENABLED", False),
+            patch.object(main, "GridClient", return_value=grid),
+            patch.object(main.attest, "build_registration", return_value={}),
+            patch.object(main.attest, "sign", return_value={}),
+            patch.object(main, "probe_round", new=AsyncMock(return_value=2)),
+            patch.object(main.asyncio, "sleep", side_effect=asyncio.CancelledError),
+        ):
+            with self.assertRaises(asyncio.CancelledError):
+                await main._run_registered(
+                    lambda phase, **values: events.append({"phase": phase, **values})
+                )
+        self.assertIn({"phase": "heartbeat"}, events)
+        self.assertIn(
+            {"phase": "waiting", "accepted": 2, "pending": 0, "dead": 0}, events
+        )
+        grid.aclose.assert_awaited_once()
+
+    async def test_failed_heartbeat_is_not_reported_healthy(self):
+        from validator import main
+
+        events = []
+        grid = AsyncMock()
+        grid.register_validator.return_value = {"validator_id": "val_" + "b" * 32}
+        grid.heartbeat.side_effect = httpx.ConnectError("secret server detail")
+        with (
+            tempfile.TemporaryDirectory() as tmp,
+            patch.object(
+                main.Settings, "STATE_DB_PATH", str(Path(tmp) / "state.sqlite3")
+            ),
+            patch.object(main.Settings, "UPDATE_CHECK_ENABLED", False),
+            patch.object(main, "GridClient", return_value=grid),
+            patch.object(main.attest, "build_registration", return_value={}),
+            patch.object(main.attest, "sign", return_value={}),
+            patch.object(main.asyncio, "sleep", side_effect=asyncio.CancelledError),
+        ):
+            with self.assertRaises(asyncio.CancelledError):
+                await main._run_registered(
+                    lambda phase, **values: events.append({"phase": phase, **values})
+                )
+        self.assertNotIn({"phase": "heartbeat"}, events)
+        self.assertIn({"phase": "retrying", "error": "grid_unavailable"}, events)
+        self.assertNotIn("secret", json.dumps(events))

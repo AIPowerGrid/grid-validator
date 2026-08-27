@@ -175,13 +175,14 @@ if [ "$SKIP_BINARY" != "1" ]; then
   need_file "$PYINSTALLER"
 
   status "Release binary smoke"
-  "$PYINSTALLER" --onefile --name aipg-validator-smoke \
+  "$PYINSTALLER" --onefile --collect-data validator --name aipg-validator-smoke \
     --distpath "$tmp/dist" \
     --workpath "$tmp/build" \
     --specpath "$tmp/spec" \
     validator/__main__.py >/tmp/aipg-validator-pyinstaller.log 2>&1
   "$tmp/dist/aipg-validator-smoke" --help >/dev/null
   "$tmp/dist/aipg-validator-smoke" self-test
+  "$PY" scripts/smoke-operator-app.py "$tmp/dist/aipg-validator-smoke"
   mkdir -p "$tmp/binary-run"
   write_offline_env "$tmp/binary-run/.env" 8793
   set +e

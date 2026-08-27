@@ -19,6 +19,9 @@ verification, binary installation, systemd installation, and release smoke tests
 - `install-binary.sh`, `install-validator.ps1`, and `install-systemd.sh` own
   operator installation paths.
 - `smoke-release.sh` exercises source, container, binary, and installer paths.
+- `smoke-operator-app.py` starts an actual frozen binary against invalid offline
+  config, verifies packaged assets and local HTTP authentication, exercises
+  child failure/restart, and checks diagnostics omit credentials and paths.
 
 ## Local Contracts
 
@@ -34,6 +37,8 @@ verification, binary installation, systemd installation, and release smoke tests
   placeholder and may install only from explicit local asset/checksum paths.
 - Keep scripts deterministic and non-interactive unless their installer purpose
   explicitly requires operator input. Never print secrets.
+- Collect `validator` package data in PyInstaller. Every native release build
+  runs the app smoke; importing source tests alone does not prove UI packaging.
 - Windows installer output points to the interactive menu with an explicit
   config path. It never runs identity creation or requests credentials itself.
 - Source and binary installers point new operators to explicit `enroll`, not

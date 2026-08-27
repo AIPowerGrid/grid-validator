@@ -36,3 +36,6 @@ aipg-validator = "validator.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["validator*"]
+
+[tool.setuptools.package-data]
+validator = ["ui/*.html", "ui/*.js", "ui/*.css", "ui/*.png"]

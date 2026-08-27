@@ -25,6 +25,10 @@ installer generation.
   control metadata, signed suspension, and account-bound signing-wallet
   rotation.
 - `test_update_check.py` - bounded release selection and nonfatal update checks.
+- `test_operator_app.py` - real loopback HTTP guards, allowlisted controls and
+  diagnostics, invalid-credential child recovery, owned-process stop, OS lock
+  exclusion, and runtime acknowledgement/cancellation contracts. No live Grid
+  keys or operator home-directory writes.
 - `test_self_test.py` - offline, real-process image/video decoder qualification
   for source and packaged runtimes.
 - `test_systemd_installer.py` - generated service security and behavior.

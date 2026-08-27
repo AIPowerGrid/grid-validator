@@ -48,6 +48,7 @@ def run_menu() -> int:
         "5": ["run"],
         "6": ["self-test"],
         "7": ["prepare-wallet"],
+        "8": ["app"],
     }
     while True:
         print("\n1. Set up a new dedicated validator account (recommended)")
@@ -57,6 +58,7 @@ def run_menu() -> int:
         print("5. Run validator (leave this window open)")
         print("6. Offline decoder self-test")
         print("7. Prepare/show signing address only (advanced)")
+        print("8. Open local operator app (browser controls)")
         print("0. Exit")
         try:
             choice = input("Choose an option: ").strip()
