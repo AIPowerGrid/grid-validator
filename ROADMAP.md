@@ -299,8 +299,10 @@ Deterministic or semi-deterministic checks:
 
 Remaining activation gates:
 
-- [x] Core generates and executes default-off `video.fidelity.v1` assignments
+- [x] merged Core source generates and executes default-off
+  `video.fidelity.v1` assignments
   against one candidate and two independently controlled bonded references
+- dark-deploy the reviewed Core source without enabling either media gate
 - publish an explicit-timing LTX recipe through RecipeVault and run a real-workload canary
 - populate and qualify independently operated bonded video references
 - tolerances are calibrated against real LTX and other allowed workflows
