@@ -135,7 +135,10 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   Binary publication must use an owner-created protected `v*` tag on a commit
   reachable from reviewed `master`, pass the protected `validator-release`
   environment, and reverify the downloaded
-  payload against the workflow tag and source commit. Repository settings must
+  payload against the workflow tag and source commit. Packaged shell and
+  PowerShell installers must be stamped with that exact tag; a released
+  installer may never retain a source placeholder or silently target an older
+  preview. Repository settings must
   restrict that environment to the `master` branch and `v*` tags with an
   explicit reviewer, and restrict creation, update, and deletion of `v*` tags
   to the release owner.

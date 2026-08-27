@@ -217,6 +217,16 @@ power_shell = (root / "install-validator.ps1").read_text(encoding="utf-8")
 if not power_shell.startswith("# SPDX-") or "AcceptUnsignedPreview" not in power_shell:
     raise SystemExit("PowerShell installer is missing its preview safety contract")
 shell_installer = (root / "install-validator.sh").read_text(encoding="utf-8")
+installer_placeholder = "__AIPG_VALIDATOR_RELEASE_TAG__"
+for name, body in (
+    ("shell", shell_installer),
+    ("PowerShell", power_shell),
+):
+    if tag:
+        if installer_placeholder in body or body.count(tag) != 1:
+            raise SystemExit(f"{name} installer is not stamped with the release tag")
+    elif body.count(installer_placeholder) != 1:
+        raise SystemExit(f"build-only {name} installer must retain its tag placeholder")
 for name, body in (("shell", shell_installer), ("PowerShell", power_shell)):
     prepare = body.find("prepare-wallet")
     initialize = body.find(" init")
