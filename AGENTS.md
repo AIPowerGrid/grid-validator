@@ -50,7 +50,7 @@ disabled. The live
 `GET /v1/validator/assignments`, `POST /v1/validator/probe/{assignment_id}`, and
 preview scorecards and distinct-validator 3-of-5 probe groups make evidence attributable, but still non-economic: no validator reward,
 routing, strike, or slashing logic may read it as authority. Core candidate
-`0025` adds a default-off, budget-bounded rail that can compensate the audited
+`0027` adds a default-off, budget-bounded rail that can compensate the audited
 worker; it does not pay the validator or increase evidence authority. Future phases harden adversarial
 independent-operator proof, deterministic media workflow certification, rewards, staking, and
 objective-fraud slashing. Do not describe future economic authority as live until the

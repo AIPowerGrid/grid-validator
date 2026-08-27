@@ -97,7 +97,7 @@ What is not production-live yet:
   source node has dark image/video scoring paths, but Core withholds the work.
 - Routing impact.
 - On-chain epoch roots or dispute flow.
-- Blind production-shaped quality audits. Core candidate `0025` contains a
+- Blind production-shaped quality audits. Core candidate `0027` contains a
   default-off, reviewed-wallet worker-compensation rail, but production remains
   evidence-only until its migration and supervised budget/settlement canary are
   deployed. Unpaid jobs retain the retrospective zero-den fingerprint.
