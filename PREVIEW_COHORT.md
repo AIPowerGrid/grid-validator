@@ -9,10 +9,13 @@ This is distributed testing, not decentralized economic validation. Preview
 evidence does not change worker routing, strikes, payouts, or rewards. There is
 no validator staking, slashing, or compensation in this cohort.
 
-Enrollment is open for the evidence-only cohort. Production Core runs commit
-`df34ffd4` with migrations through `0029`, and the immutable public operator
-preview is
-[`v0.1.0-preview.9`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.9).
+Enrollment is open for the evidence-only cohort. As checked on 2026-08-27,
+production Core runs commit `6015eca3` with migrations through `0029`. New
+operators should use the immutable public
+[`v0.1.0-preview.13`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.13),
+which provides explicit automatic enrollment and a local operator app. The
+first-party fleet still runs preview.9; that is a deployment snapshot, not the
+download recommendation.
 The three first-party nodes share one operator and hypervisor, so they do not
 count toward the five independent-operator exit gate.
 
@@ -26,10 +29,14 @@ An operator should have:
 
 - a Linux, macOS, or Windows machine that can stay online;
 - a stable internet connection; no GPU is required;
-- a Grid account with a dedicated validator API key;
-- a dedicated signing wallet linked to that same Grid account; and
-- enough familiarity with a terminal to run the health check and share logs
-  with secrets removed.
+- permission to install and run the preview; and
+- willingness to report their public validator ID and basic operating details.
+
+New enrollment creates a dedicated local signer and obtains a scoped validator
+key for its own node account, only after confirmation. No pre-existing wallet,
+funds, Google/GitHub login, or exported private key is required. Do not paste a
+funded wallet's key into the validator. Optional association with an existing
+human account is separate, unreleased work; preview.13 does not include it.
 
 One organization or person counts as one independent operator, regardless of
 how many nodes they run. Multiple nodes controlled by the same operator do not
@@ -44,12 +51,16 @@ hostname, or review notes.
 
 ## Join
 
-1. Create or sign in to a Grid account, run `aipg-validator prepare-wallet`,
-   link the printed public signing wallet in the Console, and create a
-   validator-purpose API key for that account.
-2. Install the exact preview release, complete `aipg-validator init`, and run
-   `aipg-validator check --no-probe`. This registers the node without consuming
-   an assignment and prints its opaque `val_*` validator ID.
+1. Install the verified preview.13 release using [QUICKSTART.md](QUICKSTART.md).
+   On Windows, extract the ZIP and double-click `aipg-validator.exe`; choose
+   menu option **8: Open local operator app**. No PowerShell is needed for the
+   menu/app flow. Follow the unsigned-preview and verification guidance before
+   running the download.
+2. In the local app, choose **Set up node** on a new installation and confirm
+   with **Create node account**, then choose **Start validator**. Existing operators should keep
+   their protected configuration and use Start validator; do not delete keys or enroll a
+   replacement identity just to upgrade. Wait for acknowledged registration
+   and heartbeat, then copy the public `val_*` validator ID from the app.
 3. Join the [AI Power Grid Discord](https://discord.gg/W9D8j6HCtC) and ask
    privately to join the **validator preview cohort**. Send only the `val_*`
    validator ID plus:
@@ -59,38 +70,35 @@ hostname, or review notes.
    - whether the network is residential, datacenter, or cloud hosted.
 4. Do not post API keys, private keys, signatures, account IDs, full wallet
    addresses, assignment payloads, prompts, or worker responses.
-5. Wait for the maintainer to mark the registration as a candidate before
-   starting the assignment loop. Never send a private key to the maintainer.
+5. Ask the maintainer to begin independent-operator qualification. Running the
+   preview and receiving assignments does not automatically start or complete
+   that review. Never send a private key to the maintainer.
 
 Linux x64 and ARM64 binaries target glibc 2.35 or newer. macOS and Windows
 preview binaries are explicitly unsigned; Linux is the lowest-friction public
-pilot path. The exact `ghcr.io/aipowergrid/validator:v0.1.0-preview.9`
+pilot path. The exact `ghcr.io/aipowergrid/validator:v0.1.0-preview.13`
 container is anonymously pullable on Linux x64 and ARM64; the prerelease does
 not publish `latest`.
 
 ```bash
-curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.9/install-validator.sh
+curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.13/install-validator.sh
 gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator
 bash install-validator.sh
 cd ~/.aipg-validator
-aipg-validator prepare-wallet
-# Link the printed address and create a validator key in the Console.
-aipg-validator init
+aipg-validator enroll
 aipg-validator check --no-probe
+aipg-validator app
 ```
 
 ## Qualification Run
 
-After the preview release and matching Core version are live:
+Use Start validator in the local app and keep it running. A heartbeat alone is not a
+passing end-to-end test: the node must receive an assignment, finish its probe,
+and have its signed evidence accepted. Assignment availability is not guaranteed
+immediately. Do not run a second copy while the app's worker is running.
 
-```bash
-aipg-validator init
-aipg-validator check --no-probe
-aipg-validator dashboard
-aipg-validator check
-```
-
-The operator should then run the node continuously for at least 72 hours:
+For headless operation, stop the app's worker first and run the node
+continuously for at least 72 hours:
 
 ```bash
 aipg-validator run
@@ -128,17 +136,18 @@ above. Report suspected security issues privately using the process in
 
 ## Exit And Revocation
 
-Run `aipg-validator suspend` before stopping the process or service to leave the
-cohort cleanly. A later `aipg-validator check --no-probe` submits a fresh signed
-registration and resumes the same wallet.
+Stop in the local app stops its managed process; it does not revoke keys or
+unlink an account. For a signed self-suspension, stop the local loop first and
+run `aipg-validator suspend`. A later Start validator or `aipg-validator check --no-probe`
+submits a fresh signed registration and resumes the same wallet.
 
-For planned signing-wallet rotation, stop the node, link a different replacement
-wallet to the same canonical Grid account, issue a new validator API key, update
-the local wallet/private-key/API-key settings, and run `aipg-validator rotate`.
-After `aipg-validator check --no-probe` succeeds, revoke every previous validator
-API key in the Console. The stable validator ID and historical evidence remain
-unchanged; old in-flight assignments expire rather than moving to the new key.
+Planned key rotation is an advanced, account-bound procedure documented in
+[OPERATORS.md](OPERATORS.md). Ask the maintainer for help before changing a
+dedicated node identity. Do not assume the human Console session controls an
+automatically enrolled node account, or that deleting local files rotates it.
 
 If either key may have leaked, self-suspension is not sufficient: revoke the old
-API key in the Console and ask the project maintainer for hard registration
-revocation. Deleting local files does not revoke server-side credentials.
+API key through an authenticated session for its owning account, or ask the
+project maintainer for server-side key and registration revocation. This is
+especially important for dedicated node accounts without a human login.
+Deleting local files does not revoke server-side credentials.

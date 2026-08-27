@@ -5,6 +5,91 @@ This is a dated rollout snapshot, not a live status page. Query
 `GET https://api.aipowergrid.io/v1/validator/capabilities` for current public
 state.
 
+## 2026-08-27 18:29 UTC - Preview.13 Network Recovery Release
+
+Immutable unsigned `v0.1.0-preview.13` was published at 18:24:58 UTC from
+reviewed master `5fa00bff24ce7749fa3316b68cecdb975155339d` (PR #57).
+It corrects the HTTPX network-error label found in the preview.12 live test;
+it does not change authentication, scoring, retry policy or economic authority.
+Windows x64, macOS ARM64 and both Linux architectures passed native build,
+packaged-app and clean-install checks in release run `33102892145`.
+
+The complete downloaded payload passed manifest/checksum verification, and
+all four archives, both installers, the SBOM and release manifest passed
+GitHub provenance verification. The Linux ARM64 archive SHA-256 is
+`df39ed403e25b5293f7340ed56492c6696e861048ce42def3adc168c3612896b`.
+The existing first-party Linux canary upgraded with its private config intact.
+An actual disconnected network produced `grid_unavailable`; reconnecting
+restored an acknowledged heartbeat and a completed polling round with zero
+accepted, pending or dead reports. This was a recovery test, not new evidence
+generation: the earlier three verified reports were not duplicated. The node
+then self-suspended and its temporary container was stopped and removed.
+
+Container run `33102892171` published the versioned image with provenance:
+`sha256:3b2d0fb0814e7e8a4ce9fa84a53a2830ab71c630ff00f1748c6aaf643bdc24ea`.
+Anonymous manifest access passed for Linux x64 and ARM64; an anonymous ARM64
+pull passed, and that exact image reported preview.13 and passed its offline
+image/video decoder self-test with networking disabled. No `latest` tag changed.
+
+No production Core deployment or validator-fleet upgrade was performed. Account
+pairing, media issuance, independent-control verification and all validator
+economic authority remain unchanged. Windows live onboarding through accepted
+evidence and the five-independent-operator 72-hour cohort are still open.
+For rollback, stop the local process, reinstall verified preview.12, and reuse
+the existing private config/journal; do not enroll another identity. Preview.12
+still recovers from outages but may display the older generic error label.
+
+## 2026-08-27 18:11 UTC - Clean Linux Binary Live Proof
+
+The published preview.12 Linux ARM64 archive and installer passed GitHub
+provenance verification. The installer verified archive SHA-256
+`4b2f084673d8d6f3e1cd8fd0f94db34540259168f6f03e70cdd9be34e0d377d8`,
+bound by the release manifest to source
+`7a084a674da3c8b09178faacdacd3257b829a023`. The binary ran without a source
+checkout or Python installation in a fresh Ubuntu 22.04/glibc 2.35 ARM64
+container on Docker Desktop's Linux VM. This is a real Linux runtime, not a
+standalone Windows or Linux desktop qualification.
+
+The bounded first-party test demonstrated:
+
+- Cancelling enrollment created no identity. Explicit automatic enrollment
+  created its own signer and a key with exactly the four validator scopes.
+  The config was owner-only `0600`; repeating enrollment did not alter it.
+- Signed registration, heartbeat, three real Grid-issued text assignments,
+  local scoring and three Core-accepted signed reports completed. Read-only
+  production queries confirmed all three signatures were verified and their
+  authority was assignment-bound. One reported healthy and two reported failed
+  worker results; accepted evidence does not mean all workers passed.
+- The local journal had zero pending/dead work after delivery. Queries joining
+  those probe job IDs found zero worker-ledger rows and zero reservations; the
+  node account had zero credit-ledger writes.
+- Invalid credentials failed without changing config. A full container restart
+  preserved the same config and validator ID.
+- Disconnecting the container network caused a retry event. Reconnecting it
+  restored acknowledged heartbeats and a completed empty polling round, without
+  changing identity or duplicating the three reports.
+- The same existing identity registered using verified preview.11 and again
+  after installation of verified preview.12. This proves the upgrade path for
+  that config; the initial enrollment in this test was on preview.12.
+- Signed suspension succeeded after testing. The temporary container was
+  stopped; protected credentials were retained outside source control for
+  deliberate recovery, not deleted as a substitute for server-side revocation.
+
+Two practical issues were found. Docker's `noexec` `/tmp` prevented bundled
+libraries from mapping; an owner-only executable `TMPDIR` fixed startup without
+weakening `/tmp` (see [OPERATORS.md](OPERATORS.md#hardened-linux-temporary-directories)).
+Preview.12 labelled the real HTTPX transport failure as `runtime_error` because
+its classifier discarded HTTPX's type in favor of the underlying httpcore
+cause. Recovery itself worked. A source fix and a real loopback connection
+regression test now preserve `grid_unavailable`; that fix is not in the immutable
+preview.12 artifact and still needs a subsequent qualified release.
+
+No Core deployment, migration, validator economic authority, media issuance,
+independence review or account pairing was enabled. This pilot is first-party
+and does not count toward five independently controlled operators. Windows
+double-click/live enrollment through accepted evidence, human account pairing,
+media calibration and the 72-hour independent cohort remain separate gates.
+
 ## 2026-08-27 15:42 UTC - Local Operator App Release
 
 Immutable unsigned preview `v0.1.0-preview.12` was published at 15:34 UTC from

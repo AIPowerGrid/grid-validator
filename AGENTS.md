@@ -77,13 +77,21 @@ generator here or imply that passing public templates proves model quality.
   source preview, verified binary install, versioned public Docker, systemd,
   health checks, and V0
   safety boundaries.
-  Current downloads target preview.12 with confirmed local dedicated-account
+  Current downloads target preview.13 with confirmed local dedicated-account
   enrollment, the Windows menu, and opt-in operator app; preserve deployed-fleet snapshots
   separately. Do not direct first-time operators to paste private keys or claim
   existing-account pairing is shipped.
+  Preview.13 preserves the network-error category through HTTPX's exception
+  chain; its published Linux binary passed controlled live outage/recovery.
 - **`OPERATORS.md`** — plain-language run guide (install, systemd, troubleshooting, FAQ).
   It owns the signed suspend/resume and account-bound signing-wallet/API-key
   rotation runbooks; do not describe local file deletion as credential revocation.
+  It also owns hardened-Linux temporary-directory guidance: one-file binary
+  libraries need executable mapping, without weakening the host's `/tmp` policy.
+- **`ACCOUNT_PAIRING.md`** - existing-account visibility association contract,
+  explicit two-sided consent, failure recovery, and cross-repo rollout gates.
+  Local app support is unreleased source work; preview.13 does not include it.
+  Core PR #58 and Console PR #21 remain separate deployment dependencies.
 - **`DESIGN.md`** — source of truth for validator phases, proof lanes, modality scoring,
   reference pool, future economics, Base anchoring, and Grid-side dependencies.
 - **`ADVERSARIAL_VALIDATION.md`** — attacker model, evidence-dimension boundaries,
@@ -95,6 +103,9 @@ generator here or imply that passing public templates proves model quality.
 - **`PREVIEW_COHORT.md`** — public recruitment and qualification contract for
   5-10 independent preview operators, including safe reporting and the
   distinction between node count and independently controlled quorum weight.
+  Its new-operator path is preview.13 automatic dedicated-node enrollment and
+  the local app, not manual wallet/key preparation. Keep independent-control
+  review and advanced credential rotation separate from first-run setup.
   Qualification is 72 hours with bounded heartbeat sampling and an expiring
   external review; the node cannot self-certify operator independence. The
   authenticated CLI/dashboard may show that operator's progress and review
@@ -102,6 +113,8 @@ generator here or imply that passing public templates proves model quality.
 - **`PRODUCTION_BASELINE.md`** — dated public capability, assignment, quorum,
   independence, and network-capacity snapshots. It is historical evidence, not
   a substitute for the live public status endpoints.
+  It distinguishes published Linux ARM64 live enrollment/assignment/recovery
+  proof from uncompleted Windows UI and independent-operator qualification.
 - **`SECURITY.md`** — private vulnerability disclosure process and the
   validator-specific evidence, identity, and release-supply-chain scope.
 - **`pyproject.toml`** — package metadata and `aipg-validator` console script.
@@ -130,7 +143,9 @@ generator here or imply that passing public templates proves model quality.
   resolve the broad `pyproject.toml` ranges independently with pip. A job named
   `test` that only compiles or smoke-tests the CLI is not a test gate.
   Pull requests and `master` pushes assemble, verify, and clean-install the exact
-  four-platform binary payload without publishing it. Linux x64 and ARM64
+  four-platform binary payload without publishing it. Each target executes local
+  account-pairing contract and consent tests before packaged-app smoke checks.
+  Linux x64 and ARM64
   binaries are built and clean-installed on Ubuntu 22.04 runners, establishing
   a glibc 2.35 baseline instead of inheriting `ubuntu-latest` silently.
   Protected `v*` tag pushes are the only

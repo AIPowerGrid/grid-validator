@@ -20,9 +20,17 @@
       <div><h2>Accepted evidence</h2><strong id="accepted">0</strong><span>This app session</span></div>
       <div><h2>Recovery queue</h2><strong id="pending">Not checked</strong><span id="dead"></span></div>
     </section>
+    <section class="account" aria-labelledby="account-title">
+      <div class="section-title"><h2 id="account-title">Account link <span class="optional">Optional</span></h2><div class="controls"><button id="pair-start" disabled>Link account</button><button id="pair-refresh" disabled>Check link</button></div></div>
+      <p id="pair-status" role="status" aria-live="polite">Not checked</p>
+      <p id="pair-error" class="error" role="alert" hidden></p>
+      <div class="pair-details" id="pair-details" hidden><code id="pair-node"></code><span id="pair-expiry"></span><strong id="pair-code" hidden></strong></div>
+      <div class="controls"><a id="pair-open" class="button" target="_blank" rel="noopener noreferrer" hidden>Open Console</a><button id="pair-confirm" hidden>Compare code and confirm</button><button id="pair-cancel" hidden>Cancel request</button><button id="pair-unlink" hidden>Remove account link</button></div>
+    </section>
     <section class="activity"><div class="section-title"><h2>Activity</h2><button id="diagnostics" title="Download redacted diagnostics" disabled>Download diagnostics</button></div><ul id="events"><li class="empty">No activity yet.</li></ul></section>
     <footer><span>Evidence-only preview<br>No validator rewards, stake, or worker penalties</span><button id="quit" disabled>Exit app</button></footer>
   </main>
   <dialog id="consent"><form method="dialog"><h2>Set up a dedicated validator account?</h2><p>A new signing identity will be saved on this computer and registered with the Grid to obtain a validator-only API key. No personal private key or funds are required.</p><p>This does not link or merge an existing account. Keep your existing node configuration when upgrading.</p><div class="controls"><button value="cancel">Cancel</button><button value="confirm" id="confirm">Create node account</button></div></form></dialog>
+  <dialog id="pair-consent" aria-labelledby="pair-consent-title"><form method="dialog"><h2 id="pair-consent-title"></h2><p id="pair-consent-text"></p><strong id="pair-consent-code" hidden></strong><p id="pair-consent-boundary">Your node keeps its own identity and keys. No account merging, wallet changes, payments, or validator rewards.</p><div class="controls"><button value="cancel">Cancel</button><button value="confirm" id="pair-consent-confirm">Continue</button></div></form></dialog>
 </body>
 </html>

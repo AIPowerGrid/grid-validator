@@ -20,6 +20,8 @@ import httpx
 from validator.file_lock import AlreadyRunning, exclusive_lock
 from validator.operator_app import OperatorServer, Supervisor
 from validator.operator_worker import error_code
+from validator.account_pairing import PairingController
+from tests.test_account_pairing import FakeCore
 
 
 class OperatorHTTPTests(unittest.TestCase):
@@ -75,6 +77,130 @@ class OperatorHTTPTests(unittest.TestCase):
             self.assertEqual(json.loads(body)["phase"], "stopped")
             self.assertNotIn(str(self.supervisor.path).encode(), body)
             self.assertNotIn(self.server.token.encode(), body)
+
+    def test_pairing_reads_are_cached_and_private_not_diagnostics(self):
+        core = FakeCore()
+        self.supervisor.pairing = PairingController(
+            lambda: core.identity, httpx.MockTransport(core.handle)
+        )
+        self.assertEqual(self.request("GET", "/pairing.json")[0], 401)
+        code, _, body = self.request("GET", "/pairing.json", headers=self.credentials())
+        self.assertEqual(code, 200)
+        self.assertEqual(json.loads(body), {"status": "idle", "busy": False})
+        self.assertEqual(core.calls, [])
+        self.assertEqual(
+            self.request("POST", "/pairing", '{"action":"start"}', self.credentials())[
+                0
+            ],
+            200,
+        )
+        core.status = "approved"
+        code, _, body = self.request(
+            "POST", "/pairing", '{"action":"refresh"}', self.credentials()
+        )
+        view = json.loads(body)
+        self.assertEqual(view["status"], "approved")
+        self.assertEqual(core.signatures, [])
+        fields = {k: view[k] for k in ("pairing_id", "review_hash", "comparison_code")}
+        form = json.dumps({"action": "confirm", **fields})
+        self.assertLessEqual(len(form), 256)
+        code, _, body = self.request("POST", "/pairing", form, self.credentials())
+        self.assertEqual(json.loads(body)["status"], "linked")
+        self.assertEqual(len(core.signatures), 1)
+        for path in ("/diagnostics.json", "/status.json"):
+            code, _, body = self.request("GET", path, headers=self.credentials())
+            for private in (
+                core.identity.api_key,
+                core.identity.private_key,
+                core.pair_id,
+                core.code,
+                core.operator_account,
+            ):
+                self.assertNotIn(private.encode(), body)
+
+    def test_pairing_guards_reject_cross_site_and_unbounded_writes(self):
+        core = FakeCore()
+        self.supervisor.pairing = PairingController(
+            lambda: core.identity, httpx.MockTransport(core.handle)
+        )
+        for override in (
+            {"Host": "evil.example"},
+            {"Origin": "https://evil.example"},
+            {"Sec-Fetch-Site": "cross-site"},
+            {"Authorization": "Bearer wrong"},
+        ):
+            headers = {**self.credentials(), **override}
+            self.assertIn(
+                self.request("GET", "/pairing.json", headers=headers)[0], (401, 403)
+            )
+            self.assertEqual(
+                self.request("POST", "/pairing", '{"action":"start"}', headers)[0], 403
+            )
+        for body in (
+            '{"action":"start","action":"refresh"}',
+            '{"action":"start","private_key":"x"}',
+            '{"action":"sign","payload":{}}',
+            "x" * 257,
+        ):
+            self.assertEqual(
+                self.request("POST", "/pairing", body, self.credentials())[0], 400
+            )
+        for override in (
+            {"Transfer-Encoding": "chunked"},
+            {"Content-Type": "text/plain"},
+        ):
+            self.assertEqual(
+                self.request(
+                    "POST",
+                    "/pairing",
+                    '{"action":"refresh"}',
+                    {**self.credentials(), **override},
+                )[0],
+                400,
+            )
+        self.assertEqual(core.calls, [])
+        self.assertFalse(self.supervisor.path.exists())
+
+    def test_pairing_does_not_block_owned_run_stop_or_cached_status(self):
+        entered, release = threading.Event(), threading.Event()
+        core = FakeCore()
+
+        def handle(request):
+            entered.set()
+            self.assertTrue(release.wait(4))
+            return core.handle(request)
+
+        self.supervisor.pairing = PairingController(
+            lambda: core.identity, httpx.MockTransport(handle)
+        )
+        thread = threading.Thread(
+            target=lambda: self.request(
+                "POST", "/pairing", '{"action":"refresh"}', self.credentials()
+            )
+        )
+        thread.start()
+        try:
+            self.assertTrue(entered.wait(3))
+            self.assertTrue(
+                json.loads(
+                    self.request("GET", "/pairing.json", headers=self.credentials())[2]
+                )["busy"]
+            )
+            with patch.object(self.supervisor, "stop") as stop:
+                self.assertEqual(
+                    self.request(
+                        "POST", "/control", '{"action":"stop"}', self.credentials()
+                    )[0],
+                    202,
+                )
+                stop.assert_called_once()
+            self.assertEqual(
+                self.request("GET", "/status.json", headers=self.credentials())[0], 200
+            )
+        finally:
+            release.set()
+            thread.join(5)
+        self.assertFalse(thread.is_alive())
 
     def test_host_and_foreign_origin_block_reads_and_writes(self):
         for override in (
@@ -311,6 +437,25 @@ class SupervisorTests(unittest.TestCase):
 
 
 class RuntimeStatusTests(unittest.IsolatedAsyncioTestCase):
+    async def test_real_connection_failure_keeps_network_error_category(self):
+        import socket
+
+        # Reserve a port without listening, so no other service can take it.
+        with socket.socket() as unavailable:
+            unavailable.bind(("127.0.0.1", 0))
+            port = unavailable.getsockname()[1]
+            async with httpx.AsyncClient(trust_env=False, timeout=2) as client:
+                with self.assertRaises(
+                    (httpx.ConnectError, httpx.ConnectTimeout)
+                ) as caught:
+                    await client.get(f"http://127.0.0.1:{port}/")
+        failure = caught.exception
+        self.assertIsNotNone(failure.__cause__)
+        self.assertEqual(error_code(failure), "grid_unavailable")
+        wrapped = RuntimeError("private startup detail")
+        wrapped.__cause__ = failure
+        self.assertEqual(error_code(wrapped), "grid_unavailable")
+
     async def test_cancel_during_registration_closes_client(self):
         from validator import main
 

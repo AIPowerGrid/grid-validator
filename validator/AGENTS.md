@@ -143,6 +143,25 @@ change is deployed; Core still issues no media work by default.
   new identity. No key creation, browser launch, or Grid request occurs just
   by opening the menu. Enrollment still requires proof of control of the
   account-linked signing wallet; the menu cannot bypass that Core check.
+  `operator_config` reads fresh, bounded identity configuration for app status
+  and pairing without importing cached runtime Settings. Explicit environment
+  values override the file, including empty values. It never writes config.
+- **`account_pairing.py`** - optional private visibility association using the
+  already registered node's dedicated signer and scoped key. This unreleased
+  client requires the default-off Core pairing API and matching Console page.
+  Initial support is pinned to the official HTTPS Grid and Console origins;
+  custom Grid configuration is not rewritten. Validate exact canonical payload
+  fields, registered node ID/local signer, audience, purpose, UUIDs, permission
+  list and expiry. Core is the authority for account UUID ownership.
+  Start/refresh/cancel never sign. Confirm/unlink require a locally displayed
+  review plus a fresh matching Core read; unlink consent binds the exact
+  association while Core refreshes its signed timestamps. Never expose a raw
+  signing endpoint. Serialize pairing actions separately from runtime controls.
+  HTTPS requests ignore proxies/redirects, reject encoded/non-JSON/duplicate-key
+  bodies, cap replies at 16 KiB, and use 10-second I/O timeouts under a 30-second
+  action budget (an in-progress read may finish after that budget). Failures use
+  fixed operator error codes, never remote response text. Closing prevents new
+  requests/signatures, but cannot undo an already submitted confirmation.
   Option 1 performs explicit dedicated-account enrollment; option 7 prepares
   an identity only for advanced/manual use. Enrollment ships in preview.11.
   Option 8 opens the operator app, published in preview.12 after native package
@@ -167,10 +186,16 @@ change is deployed; Core still issues no media work by default.
   Windows). Closing a browser tab does not
   stop the app; Exit app stops owned work before closing the server. Local stop
   is neither signed suspension nor key revocation.
+  `/pairing.json` reads cached private state only; `/pairing` accepts bounded,
+  exact start/refresh/cancel/confirm/unlink actions under the same local session
+  and origin guards. Pairing metadata never enters `/diagnostics.json` or the
+  public read-only dashboard. Identity/key changes remain out of scope.
 - **`operator_worker.py`** - private child protocol: allowlisted structured
   events, fresh Settings per start, EOF/cancellation cleanup, and sanitized error
   codes. Enrollment is an explicitly confirmed action and uses the existing
   secure enrollment path; stopping it preserves any already-written identity.
+  Classify both the outer exception and its startup-wrapper cause: HTTPX's own
+  transport cause is an httpcore exception and must not erase a network error.
 - **`file_lock.py`** - nonblocking POSIX/Windows process locks, released by OS
   close/crash. Locks are path-local, not proof of cross-host identity uniqueness.
 - **`ui/`** - packaged local HTML/CSS/JS and official logo. See child DOX.
