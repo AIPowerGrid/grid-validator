@@ -5,7 +5,7 @@ import logging
 import struct
 import unittest
 import zlib
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import httpx
 
@@ -406,6 +406,20 @@ class ImageFidelityTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(outcome, "inconclusive")
         self.assertEqual(detail["reason"], "references-disagree")
 
+    async def test_disagreeing_image_references_override_invalid_candidates(self):
+        for candidate in (b"not an image", self.blank):
+            with self.subTest(candidate_kind="corrupt" if candidate != self.blank else "blank"):
+                outcome, detail = await self._score(
+                    self._witnesses(candidate=candidate, reference_b=self.outlier),
+                    handler_bodies={
+                        "candidate": candidate,
+                        "reference-a": self.reference,
+                        "reference-b": self.outlier,
+                    },
+                )
+                self.assertEqual(outcome, "inconclusive")
+                self.assertEqual(detail["reason"], "references-disagree")
+
     async def test_candidate_outlier_is_failed_only_after_references_agree(self):
         witnesses = self._witnesses(candidate=self.outlier)
         outcome, detail = await self._score(
@@ -594,6 +608,48 @@ class VideoScoringTests(unittest.IsolatedAsyncioTestCase):
         self.assertAlmostEqual(profile.duration_s, 1.0)
         self.assertTrue(any(distance >= 2 for distance in profile.motion_distances))
 
+    def test_ffmpeg_local_failures_are_not_invalid_worker_bytes(self):
+        import av
+
+        for failure_type in (
+            av.error.MemoryError,
+            av.error.DecoderNotFoundError,
+            av.error.PermissionError,
+            av.error.ExitError,
+            av.error.FFmpegError,
+        ):
+            with self.subTest(failure_type=failure_type.__name__):
+                failure = failure_type(1, "synthetic local failure")
+                with patch("av.open", side_effect=failure):
+                    with self.assertRaises(failure_type):
+                        media_prober._decode_video_profile(self.reference, "video/mp4", 10)
+
+    def test_decoder_child_classifies_local_errors_without_exposing_details(self):
+        import av
+
+        for failure in (
+            av.error.MemoryError(12, "synthetic private path"),
+            av.error.DecoderNotFoundError(1, "synthetic private path"),
+            RuntimeError("synthetic private path"),
+            media_prober.VideoWitnessInvalid("undecodable"),
+        ):
+            with self.subTest(failure_type=type(failure).__name__):
+                connection = Mock()
+                with (
+                    patch.object(media_prober, "_limit_media_decoder"),
+                    patch.object(media_prober, "_decode_video_profile", side_effect=failure),
+                ):
+                    media_prober._video_decode_worker(
+                        connection, self.reference, "video/mp4", 10, 5,
+                    )
+                expected = (
+                    ("invalid", "undecodable")
+                    if isinstance(failure, media_prober.VideoWitnessInvalid)
+                    else ("error", type(failure).__name__)
+                )
+                connection.send.assert_called_once_with(expected)
+                connection.close.assert_called_once_with()
+
     async def test_contract_accepts_valid_video_and_rejects_repeated_still(self):
         outcome, detail = await self._score(self._witnesses())
         self.assertEqual(outcome, "healthy")
@@ -624,6 +680,7 @@ class VideoScoringTests(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(outcome, "failed")
         self.assertEqual(detail["reason"], "candidate-decode-failed")
+        self.assertEqual(detail["decoder_reason"], "undecodable")
 
     async def test_local_decoder_timeout_is_inconclusive(self):
         with patch.object(
@@ -634,6 +691,31 @@ class VideoScoringTests(unittest.IsolatedAsyncioTestCase):
             outcome, detail = await self._score(self._witnesses())
         self.assertEqual(outcome, "inconclusive")
         self.assertEqual(detail["reason"], "local-decoder-timeout")
+
+    async def test_local_decoder_process_failure_is_inconclusive(self):
+        with patch.object(
+            media_prober,
+            "decode_video_bounded",
+            side_effect=media_prober.MediaWitnessError("local process failed"),
+        ):
+            outcome, detail = await self._score(self._witnesses())
+        self.assertEqual(outcome, "inconclusive")
+        self.assertEqual(detail["reason"], "local-video-decoder-failed")
+
+    async def test_corrupt_reference_is_inconclusive(self):
+        corrupt = b"not a video"
+        witnesses = self._witnesses(fidelity=True, reference_a=corrupt)
+        outcome, detail = await self._score(
+            witnesses,
+            fidelity=True,
+            bodies={
+                "candidate": self.reference,
+                "reference-a": corrupt,
+                "reference-b": self.reference,
+            },
+        )
+        self.assertEqual(outcome, "inconclusive")
+        self.assertEqual(detail["reason"], "reference-decode-failed")
 
     async def test_inconsistent_assignment_timing_is_inconclusive_before_fetch(self):
         with patch.object(
@@ -668,6 +750,50 @@ class VideoScoringTests(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(outcome, "inconclusive")
         self.assertEqual(detail["reason"], "references-disagree")
+
+    async def test_disagreeing_video_references_override_invalid_candidates(self):
+        for candidate in (b"not a video", self.static):
+            with self.subTest(candidate_kind="corrupt" if candidate != self.static else "static"):
+                outcome, detail = await self._score(
+                    self._witnesses(fidelity=True, candidate=candidate, reference_b=self.outlier),
+                    fidelity=True,
+                    bodies={
+                        "candidate": candidate,
+                        "reference-a": self.reference,
+                        "reference-b": self.outlier,
+                    },
+                )
+                self.assertEqual(outcome, "inconclusive")
+                self.assertEqual(detail["reason"], "references-disagree")
+
+    async def test_invalid_reference_contract_overrides_corrupt_candidate(self):
+        candidate = b"not a video"
+        outcome, detail = await self._score(
+            self._witnesses(fidelity=True, candidate=candidate, reference_a=self.static),
+            fidelity=True,
+            bodies={
+                "candidate": candidate,
+                "reference-a": self.static,
+                "reference-b": self.reference,
+            },
+        )
+        self.assertEqual(outcome, "inconclusive")
+        self.assertEqual(detail["reason"], "reference-a-contract-failed")
+
+    async def test_agreeing_references_still_reject_corrupt_candidate(self):
+        candidate = b"not a video"
+        outcome, detail = await self._score(
+            self._witnesses(fidelity=True, candidate=candidate),
+            fidelity=True,
+            bodies={
+                "candidate": candidate,
+                "reference-a": self.reference,
+                "reference-b": self.reference,
+            },
+        )
+        self.assertEqual(outcome, "failed")
+        self.assertEqual(detail["reason"], "candidate-decode-failed")
+        self.assertEqual(detail["decoder_reason"], "undecodable")
 
     async def test_fidelity_fails_candidate_outlier_after_references_agree(self):
         witnesses = self._witnesses(fidelity=True, candidate=self.outlier)

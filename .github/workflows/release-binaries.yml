@@ -99,6 +99,7 @@ jobs:
           uv run --frozen --extra media --extra release python -m unittest discover -s tests -p test_launcher.py
           uv run --frozen --extra media --extra release python -m unittest discover -s tests -p test_enrollment.py
           uv run --frozen --extra media --extra release python -m unittest discover -s tests -p test_operator_app.py
+          uv run --frozen --extra media --extra release python -m unittest discover -s tests -p test_media_prober.py
 
       - name: Smoke-test binary
         timeout-minutes: 5

@@ -246,7 +246,13 @@ change is deployed; Core still issues no media work by default.
   references, and three committed witnesses. Unsafe transport, malformed or
   inconsistent timing contracts, missing PyAV, reference decode
   failure/disagreement, and local
-  decoder timeout are inconclusive. Candidate malformed decode, contract,
+  decoder timeout/process failure are inconclusive. The decoder preserves a
+  typed boundary between proven-invalid committed media and local native
+  decoder failure: only explicit structural violations or PyAV InvalidDataError
+  are invalid media; FFmpeg allocation, missing-decoder, permission and unknown
+  errors are local failures. Both image and video fidelity require usable,
+  agreeing references before any candidate failure, including corrupt bytes,
+  wrong dimensions, blank images or static video. Candidate malformed decode, contract,
   blank/static, or reference-outlier failures may produce failed evidence only
   after all commitments verify. A real-workload canary and the remaining rollout
   gates are still required before operators enable it. Official artifacts built
