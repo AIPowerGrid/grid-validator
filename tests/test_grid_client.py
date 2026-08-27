@@ -2,6 +2,7 @@ import unittest
 
 import httpx
 
+from validator import __release_tag__
 from validator.config import Settings
 from validator.grid_client import GridClient
 
@@ -43,6 +44,19 @@ class _CaptureHTTP(_HTTP):
 
 
 class GridClientTests(unittest.IsolatedAsyncioTestCase):
+    async def test_heartbeat_advertises_immutable_release_identity(self):
+        client = GridClient.__new__(GridClient)
+        client._http = _CaptureHTTP(_Response(data={"ok": True}))
+
+        result = await client.heartbeat()
+
+        self.assertEqual(result, {"ok": True})
+        self.assertEqual(client._http.posts[0][0], "/v1/validator/heartbeat")
+        self.assertEqual(
+            client._http.posts[0][1]["json"]["software_version"],
+            __release_tag__,
+        )
+
     async def test_client_sends_grid_native_and_bearer_auth_headers(self):
         old_key = Settings.VALIDATOR_API_KEY
         old_url = Settings.GRID_API_URL

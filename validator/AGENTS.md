@@ -36,6 +36,8 @@ independent-reference and rollout gates pass.
   behavior unless core deliberately drops one auth style.
   Assignment and probe endpoints fail closed when absent. Worker inventory is
   dashboard-only and must never become an alternate targeting authority.
+  Heartbeats advertise the immutable release tag, not only the base Python
+  package version, so qualification can distinguish reviewed preview payloads.
 - **`prober.py`** — independent text scoring for randomized exact-instruction,
   arithmetic, strict-JSON, exact 4K/16K/32K context-retrieval, multistep-logic,
   restricted-AST Python functions against assignment-only hidden inputs, exact
@@ -76,6 +78,9 @@ independent-reference and rollout gates pass.
   video capabilities only with Pillow/ImageHash/PyAV, plus a non-empty
   validated witness-origin allowlist. Runtime registration and
   evidence are always signed; low-level unsigned helpers exist only for isolated tests.
+  Registration and rotation advertise the immutable release tag as
+  `software_version`; the base package version is not a sufficient rollout
+  identity when multiple previews share it.
 - **`main.py`** — entrypoint: `run()` (signed registration, optional stake gate,
   heartbeat, then assignment loop) and assignment-only `probe_round`. The loop
   polls text plus runtime-supported media modalities, independently verifies

@@ -15,7 +15,7 @@ import hashlib
 from datetime import datetime, timezone
 
 from .config import Settings
-from . import __version__
+from . import __release_tag__
 
 logger = logging.getLogger("validator.attest")
 
@@ -82,7 +82,7 @@ def build_registration(ts: int) -> dict:
     return {
         "registration_schema": "aipg.validator.registration.v1",
         "validator": Settings.VALIDATOR_WALLET,
-        "software_version": __version__,
+        "software_version": __release_tag__,
         "capabilities": runtime_capabilities(),
         "ts": ts,
     }
@@ -105,7 +105,7 @@ def build_rotation(validator_id: str, previous_signing_wallet: str, ts: int) -> 
         "validator_id": validator_id,
         "previous_signing_wallet": previous_signing_wallet.lower(),
         "validator": Settings.VALIDATOR_WALLET,
-        "software_version": __version__,
+        "software_version": __release_tag__,
         "capabilities": runtime_capabilities(),
         "ts": ts,
     }

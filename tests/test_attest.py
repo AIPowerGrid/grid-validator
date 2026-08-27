@@ -4,6 +4,7 @@ from unittest.mock import patch
 from eth_account import Account
 from eth_account.messages import encode_defunct
 
+from validator import __release_tag__
 from validator import attest
 from validator.config import Settings
 
@@ -33,6 +34,7 @@ class AttestationTests(unittest.TestCase):
                 "text.token_limit.v1",
             ],
         )
+        self.assertEqual(payload["software_version"], __release_tag__)
 
     def test_registration_withholds_token_limit_when_encoder_is_unavailable(self):
         with (
@@ -64,6 +66,7 @@ class AttestationTests(unittest.TestCase):
         self.assertEqual(rotation["previous_signing_wallet"], previous)
         self.assertEqual(rotation["validator"], replacement)
         self.assertEqual(rotation["capabilities"], ["text.code.v1"])
+        self.assertEqual(rotation["software_version"], __release_tag__)
 
     def test_registration_advertises_image_only_when_runtime_is_ready(self):
         with (
