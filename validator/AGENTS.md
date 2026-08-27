@@ -160,11 +160,13 @@ change is deployed; Core still issues no media work by default.
   CLI error, not a Python traceback.
 - **`operator_app.py`** - opt-in, loopback-only browser controls. An ephemeral
   fragment token authenticates status, diagnostics, and fixed run/stop/enroll
-  commands. Require exact Host and same-origin writes; do not enable CORS,
+  commands plus explicit app exit. Require exact Host and same-origin writes; do not enable CORS,
   expose logs/config/paths, accept arbitrary commands, or adopt external PIDs.
-  Own only the child started here. Stop closes its control pipe, waits up to
-  25 seconds, then kills that child if needed. Closing a browser tab does not
-  stop the app. Local stop is neither signed suspension nor key revocation.
+  Own only the process tree started here. Stop closes its control pipe, waits up to
+  25 seconds, then kills that child if needed (its owned bootloader tree on
+  Windows). Closing a browser tab does not
+  stop the app; Exit app stops owned work before closing the server. Local stop
+  is neither signed suspension nor key revocation.
 - **`operator_worker.py`** - private child protocol: allowlisted structured
   events, fresh Settings per start, EOF/cancellation cleanup, and sanitized error
   codes. Enrollment is an explicitly confirmed action and uses the existing

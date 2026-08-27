@@ -234,15 +234,25 @@ class Supervisor:
         try:
             process.wait(timeout=25)
         except subprocess.TimeoutExpired:
-            process.kill()
-            process.wait()
+            if os.name == "nt":
+                # A frozen Windows executable has a bootloader plus an app child.
+                subprocess.run(
+                    ["taskkill", "/PID", str(process.pid), "/T", "/F"],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    timeout=10,
+                )
+            else:
+                process.kill()
+            process.wait(timeout=5)
 
-    def close(self) -> None:
+    def close(self) -> bool:
         with self.lock:
             self.closed = True
         self.stop()
         if self.reader:
-            self.reader.join(timeout=30)
+            self.reader.join(timeout=45)
+        return self.reader is None or not self.reader.is_alive()
 
 
 class OperatorServer(ThreadingHTTPServer):
@@ -342,11 +352,17 @@ class OperatorHandler(BaseHTTPRequestHandler):
             not isinstance(body, dict)
             or set(body) != {"action"}
             or not isinstance(body["action"], str)
-            or body["action"] not in {"run", "stop", "enroll"}
+            or body["action"] not in {"run", "stop", "enroll", "quit"}
         ):
             self._send(400, {"error": "invalid_action"})
             return
-        if body["action"] == "stop":
+        if body["action"] == "quit":
+            if not self.server.supervisor.close():
+                self._send(409, {"ok": False})
+                return
+            self._send(202, {"ok": True})
+            threading.Thread(target=self.server.shutdown, daemon=True).start()
+        elif body["action"] == "stop":
             self.server.supervisor.stop()
             self._send(202, {"ok": True})
         else:

@@ -20,6 +20,7 @@ package and frozen binary; no CDN, remote font, or third-party script is loaded.
   Zero assignments is not a worker failure or evidence of completed validation.
 - Stop affects the owned local process only. It does not unlink a wallet, revoke
   a key, suspend registration, or delete durable assignments/evidence.
+  Exit app additionally closes the local server after stopping its child.
 - Keep unavailable/error states actionable. Disable controls when the app
   session is unavailable; keep status and controls usable at mobile widths.
 - Preserve the separate read-only dashboard. This UI is an unreleased source

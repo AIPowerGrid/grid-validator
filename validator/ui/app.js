@@ -18,6 +18,7 @@ const errors = {
   local_access:"The app could not start the validator. Check access to the executable and configuration folder."
 };
 let busy = false;
+let closed = false;
 async function request(path, options={}) {
   const response = await fetch(path, {...options, cache:"no-store", headers:{Authorization:`Bearer ${token}`, ...options.headers}});
   if (!response.ok) throw new Error(response.status === 401 || response.status === 403 ? "Local session expired. Reopen the app from the validator menu." : "The local app could not complete that operation. Refresh or reopen it.");
@@ -33,6 +34,7 @@ function render(data) {
   el("start").disabled = !data.configured || data.running || busy;
   el("stop").disabled = !data.running || data.phase === "stopping" || busy;
   el("diagnostics").disabled = false;
+  el("quit").disabled = busy;
   el("registration").textContent = data.validator_id ? "Registered" : "Not checked";
   el("validator-id").textContent = data.validator_id;
   const seconds = age(data.heartbeat_at);
@@ -56,17 +58,19 @@ function render(data) {
   if (items.length) el("events").replaceChildren(...items);
 }
 async function refresh() {
-  try { render(await request("/status.json")); }
+  if (closed) return;
+  try { const data = await request("/status.json"); if (!closed) render(data); }
   catch(error) {
+    if (closed) return;
     showError(error.message);
     el("phase").textContent = "Local app unavailable";
-    for (const id of ["setup","start","stop","diagnostics"]) el(id).disabled = true;
+    for (const id of ["setup","start","stop","diagnostics","quit"]) el(id).disabled = true;
   }
 }
 async function control(action) {
-  if (busy) return;
+  if (busy || closed) return;
   busy = true;
-  for (const id of ["setup","start","stop"]) el(id).disabled = true;
+  for (const id of ["setup","start","stop","quit"]) el(id).disabled = true;
   try { await request("/control", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action})}); }
   catch(error) {
     busy=false;
@@ -75,10 +79,21 @@ async function control(action) {
     return;
   }
   busy=false;
+  if (action === "quit") {
+    closed = true;
+    el("phase").textContent = "App closed";
+    el("message").textContent = "Local validator work stopped. Configuration and recovery journal were kept.";
+    el("connection").textContent = "Not running";
+    el("heartbeat").className = "stale";
+    for (const id of ["setup","start","stop","diagnostics","quit"]) el(id).disabled = true;
+    showError("");
+    return;
+  }
   await refresh();
 }
 el("start").addEventListener("click", () => control("run"));
 el("stop").addEventListener("click", () => control("stop"));
+el("quit").addEventListener("click", () => control("quit"));
 el("setup").addEventListener("click", () => {
   el("consent").returnValue = "";
   el("consent").showModal();
@@ -97,5 +112,5 @@ el("diagnostics").addEventListener("click", async () => {
     const link=document.createElement("a"); link.href=url; link.download="aipg-validator-diagnostics.json"; link.click(); setTimeout(() => URL.revokeObjectURL(url),1000);
   } catch(error) { showError(error.message); }
 });
-async function poll() { await refresh(); setTimeout(poll,3000); }
+async function poll() { await refresh(); if (!closed) setTimeout(poll,3000); }
 poll();

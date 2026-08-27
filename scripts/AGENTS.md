@@ -21,7 +21,9 @@ verification, binary installation, systemd installation, and release smoke tests
 - `smoke-release.sh` exercises source, container, binary, and installer paths.
 - `smoke-operator-app.py` starts an actual frozen binary against invalid offline
   config, verifies packaged assets and local HTTP authentication, exercises
-  child failure/restart, and checks diagnostics omit credentials and paths.
+  child failure/restart and explicit app exit, and checks diagnostics omit
+  credentials and paths. Windows fallback cleanup must stop the owned onefile
+  process tree; killing only its bootloader can leave a child holding stdout.
 
 ## Local Contracts
 

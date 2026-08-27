@@ -52,6 +52,7 @@ def smoke(binary: Path) -> None:
             assert line.startswith("Local validator app: "), "App did not open"
             url = urlsplit(line.removeprefix("Local validator app: ").strip())
             assert url.hostname == "127.0.0.1" and url.port and len(url.fragment) >= 32
+            print("Packaged app listening on loopback.", flush=True)
             origin = f"http://{url.netloc}"
 
             def request(
@@ -78,6 +79,7 @@ def smoke(binary: Path) -> None:
                 code, payload = request(asset)
                 assert code == 200 and payload, "Packaged UI asset missing"
             assert request("/status.json", auth=False)[0] == 401
+            print("Packaged assets and session guard passed.", flush=True)
             for _ in range(2):
                 assert request("/control", "run")[0] == 202
                 deadline = time.monotonic() + 30
@@ -94,6 +96,7 @@ def smoke(binary: Path) -> None:
                         "Managed child did not fail cleanly"
                     )
                     time.sleep(0.1)
+            print("Managed child failure and restart passed.", flush=True)
             code, diagnostics = request("/diagnostics.json")
             assert code == 200
             for secret in (url.fragment, str(config), "VALIDATOR_PRIVATE_KEY"):
@@ -102,15 +105,28 @@ def smoke(binary: Path) -> None:
                 )
             assert request("/control", "stop")[0] == 202
             assert "VALIDATOR_PRIVATE_KEY=invalid" in config.read_text(encoding="utf-8")
+            assert request("/control", "quit")[0] == 202
+            assert process.wait(timeout=30) == 0, "App did not exit cleanly"
+            print("Packaged app shutdown passed.", flush=True)
         finally:
-            process.terminate()
+            if process.poll() is None:
+                if os.name == "nt":
+                    # TerminateProcess alone leaves a onefile bootloader's child alive.
+                    subprocess.run(
+                        ["taskkill", "/PID", str(process.pid), "/T", "/F"],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                        timeout=15,
+                    )
+                else:
+                    process.terminate()
             try:
                 process.wait(timeout=15)
             except subprocess.TimeoutExpired:
                 process.kill()
                 process.wait()
             reader.join(timeout=5)
-            if process.stdout:
+            if process.stdout and not reader.is_alive():
                 process.stdout.close()
     print(
         "Packaged operator app: assets, authentication, child failure/restart, safe diagnostics passed."

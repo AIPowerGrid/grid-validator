@@ -13,7 +13,7 @@ import tempfile
 import threading
 import unittest
 from pathlib import Path
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import httpx
 
@@ -155,6 +155,18 @@ class OperatorHTTPTests(unittest.TestCase):
         for path in ("/../.env", "/logo.png?token=secret", "/healthz", "/ui/AGENTS.md"):
             self.assertEqual(self.request("GET", path)[0], 404)
 
+    def test_explicit_quit_closes_only_owned_supervisor_and_server(self):
+        self.assertEqual(
+            self.request("POST", "/control", '{"action":"quit"}', self.credentials())[
+                0
+            ],
+            202,
+        )
+        self.thread.join(timeout=5)
+        self.assertFalse(self.thread.is_alive())
+        self.assertTrue(self.supervisor.closed)
+        self.assertFalse(self.supervisor.start("run"))
+
 
 class SupervisorTests(unittest.TestCase):
     def setUp(self):
@@ -255,6 +267,19 @@ class SupervisorTests(unittest.TestCase):
             self.supervisor.close()
         self.assertIsNotNone(process.poll())
         self.assertFalse(self.supervisor.start("run"))
+
+    def test_windows_force_stop_targets_the_owned_frozen_process_tree(self):
+        process = Mock(pid=12345)
+        process.wait.side_effect = [subprocess.TimeoutExpired("owned-child", 25), 0]
+        with (
+            patch("validator.operator_app.os.name", "nt"),
+            patch("validator.operator_app.subprocess.run") as stop_tree,
+        ):
+            Supervisor._stop_deadline(process)
+        self.assertEqual(
+            stop_tree.call_args.args[0], ["taskkill", "/PID", "12345", "/T", "/F"]
+        )
+        process.kill.assert_not_called()
 
     def test_same_state_lock_rejects_concurrent_process_then_releases(self):
         path = Path(self.tmp.name) / "runtime.lock"

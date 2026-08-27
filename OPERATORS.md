@@ -90,8 +90,8 @@ Waiting without an assignment is normal during cooldown or limited capacity.
 identity and recovery journal. It does not revoke credentials or suspend the
 registration. An interrupted enrollment may have already persisted a signer
 or issued a key; retry the same configuration, never create another identity
-to work around it. Closing the browser tab leaves the app/node running; exit
-the app process to shut down its child. A separate systemd/CLI instance is not
+to work around it. Closing the browser tab leaves the app/node running; choose
+**Exit app** to stop its child and close the app. A separate systemd/CLI instance is not
 controlled by this page; it must be stopped through its original launcher.
 
 The app binds only `127.0.0.1`, chooses an available port, and uses a random
