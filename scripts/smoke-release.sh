@@ -200,6 +200,10 @@ if [ "$SKIP_BINARY" != "1" ]; then
   "$install_dir/aipg-validator" --help >/dev/null
   [ "$(stat_mode "$config_dir")" = "700" ] || die "installer config dir is not mode 700"
   grep -F "cd '$config_dir'" "$tmp/install.out" >/dev/null
+  grep -F "prepare-wallet" "$tmp/install.out" >/dev/null
+  prepare_line="$(grep -n -m1 -F "prepare-wallet" "$tmp/install.out" | cut -d: -f1)"
+  init_line="$(grep -n -m1 -F " init" "$tmp/install.out" | cut -d: -f1)"
+  [ "$prepare_line" -lt "$init_line" ] || die "installer must print prepare-wallet before init"
 fi
 
 status "Smoke release checks passed"

@@ -132,7 +132,7 @@ class ReleaseIdentityStampTests(unittest.TestCase):
             )
 
     def test_matching_stable_and_preview_tags_are_stamped(self):
-        for tag in ("v0.1.0", "v0.1.0-preview.4", "v0.1.0-rc.1"):
+        for tag in ("v0.1.0", "v0.1.0-preview.5", "v0.1.0-rc.1"):
             with self.subTest(tag=tag), tempfile.TemporaryDirectory() as tmp:
                 root = Path(tmp)
                 init_path = self._repo(root)
