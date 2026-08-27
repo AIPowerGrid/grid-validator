@@ -5,6 +5,31 @@ This is a dated rollout snapshot, not a live status page. Query
 `GET https://api.aipowergrid.io/v1/validator/capabilities` for current public
 state.
 
+## 2026-08-27 08:37 UTC
+
+Production Core advanced to immutable runtime commit
+`d8a48f2af7109c199582b9f3305940ac4ae5dc0f` with Alembic `0029`. The migration
+was applied before the runtime cutover because every ordinary worker terminal
+now checks the compensated-audit hold table. A checksummed production backup
+was restored into a guarded scratch database, migrated from `0028` to `0029`,
+and passed `alembic check` before the production schema changed.
+
+The new compensated-audit accounting and terminal path are dark. Production
+contained zero `grid_validator_audit_jobs` rows and zero
+`grid_validator_audit_budget_counters` rows before and after startup. No audit
+scheduler, operator configuration, private corpus, challenge selection, or
+quality scoring integration is deployed. Existing sealed assignment probes
+remain unpaid, use the existing zero-den terminal acknowledgment, and have no
+economic authority.
+
+Post-cutover public health reported seven connected workers and the exact Core
+runtime commit. Public validator status reported three heartbeat-fresh,
+participating `v0.1.0-preview.8` validators, zero independently verified
+operators, and validator economic effect `none`. Image and video validation,
+validator rewards, staking, routing influence, strikes, and slashing remained
+disabled. Payout and PostgreSQL-backup timers remained active, and the
+deployment-window journal contained no warning-or-higher entries.
+
 ## 2026-08-27 07:20 UTC
 
 Production Core advanced to immutable commit

@@ -10,11 +10,15 @@ evidence does not change worker routing, strikes, payouts, or rewards. There is
 no validator staking, slashing, or compensation in this cohort.
 
 Enrollment is open for the evidence-only cohort. Production Core runs commit
-`43156ffd` with migrations through `0028`, and the immutable public operator
+`d8a48f2a` with migrations through `0029`, and the immutable public operator
 preview is
 [`v0.1.0-preview.8`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.8).
 The three first-party nodes share one operator and hypervisor, so they do not
 count toward the five independent-operator exit gate.
+
+Core's new compensated-audit accounting is deployed dark: it has no scheduler,
+quality workload, or effect on this cohort. Preview qualification remains
+unpaid and evidence-only.
 
 ## Who Should Join
 
