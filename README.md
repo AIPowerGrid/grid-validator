@@ -126,14 +126,14 @@ is not yet proven.
 
 ## Download
 
-Preview.12 includes the local operator app (menu option 8) and explicit
+Preview.13 includes the local operator app (menu option 8) and explicit
 `aipg-validator enroll` (menu option 1): enrollment
 creates a dedicated local signer, authenticates a separate node account, and
 saves a validator-only API key without private-key entry. Existing-account pairing remains separate;
 do not export a personal wallet key or replace a running node's identity.
 
 Source development adds an optional **Account link** flow in the local app.
-It is **not in preview.12 or enabled in production**. See
+It is **not in preview.13 or enabled in production**. See
 [Account Pairing](ACCOUNT_PAIRING.md) for its consent, recovery and rollout gates.
 
 The current public V0 preview is

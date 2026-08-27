@@ -104,7 +104,7 @@ It omits credentials, config paths, raw logs, and challenge content. Missing or
 invalid credentials and connection failures are shown without leaking server
 responses. Existing-account pairing remains separate, unreleased work. Source
 builds include optional account-link controls; they require the matching Core
-and Console deployment and are not available in preview.12. See
+and Console deployment and are not available in preview.13. See
 [Account Pairing](ACCOUNT_PAIRING.md) before testing or enabling that flow.
 
 ### Binary Install
