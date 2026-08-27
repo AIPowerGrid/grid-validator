@@ -5,6 +5,33 @@ This is a dated rollout snapshot, not a live status page. Query
 `GET https://api.aipowergrid.io/v1/validator/capabilities` for current public
 state.
 
+## 2026-08-27 14:40 UTC - Enrollment Release
+
+Immutable unsigned preview `v0.1.0-preview.11` was published from reviewed
+master commit `55996c67bf9ee1e6ab13057a53a8249e472f9cae` (PR #50). The owner
+approved the protected release jobs after four native builds and four clean
+installs passed. All nine downloaded assets passed the exact-tag/source
+manifest and checksum verifier. GitHub provenance verification bound the
+downloaded manifest and macOS archive to that source, tag, hosted runner,
+repository, and binary-release workflow. Anonymous release and GHCR reads
+succeeded. Preview.10 remains an unpublished binary draft after GitHub upload
+failures; preview.11 is the usable enrollment release, not a tag replacement.
+
+The public Linux AMD64/ARM64 container index is
+`sha256:950451a72fb101973bb5ad7c4aa8cb5655cd8c80313d069201b9b67fc94114b8`.
+The pulled container and downloaded macOS binary passed the offline bounded
+image/video decoder self-test. The downloaded binary reported preview.11 and
+re-registered the existing maintainer canary without changing its validator
+ID. A subsequent probe check correctly returned no assignment and nonzero
+exit status: no new evidence was submitted. The canary was signed-suspended
+again. This is upgrade/registration proof, not clean Windows/Linux live
+enrollment through accepted evidence; that qualification remains open.
+
+The three deployed first-party pilots remain on preview.9. No Core deployment,
+schema change, fleet rollout, media assignment activation, or economic effect
+was part of this release. Preserve the existing private configuration when
+upgrading; the previous binary is the rollback target, not a new node identity.
+
 ## 2026-08-27 14:10 UTC - Dedicated Enrollment Canary
 
 An unreleased source candidate completed the existing production wallet

@@ -39,7 +39,7 @@ concrete detail in children. Delete stale notes instead of explaining history.
 The Grid's validator node. In V0 it is a CPU-only distributed audit runner: it sends
 small canary jobs through the normal Grid path, scores replies (`healthy` / `slow` /
 `failed`), and submits signed attestations. Shared-quorum text validation is
-production-live on Core commit `df34ffd4` with migrations through `0029`.
+production-live on Core commit `6015eca3` as checked on 2026-08-27, with migrations through `0029`.
 Three first-party pilot nodes run the verified `v0.1.0-preview.9` payload from
 validator commit `9d7b68f`; checksum-gated staging, offline media self-tests,
 no-probe registration, rolling symlink rollout, immutable release reporting,
@@ -75,6 +75,10 @@ generator here or imply that passing public templates proves model quality.
   source preview, verified binary install, versioned public Docker, systemd,
   health checks, and V0
   safety boundaries.
+  Current downloads target preview.11 with confirmed local dedicated-account
+  enrollment and the Windows menu; preserve earlier deployed-fleet snapshots
+  separately. Do not direct first-time operators to paste private keys or claim
+  existing-account pairing is shipped.
 - **`OPERATORS.md`** — plain-language run guide (install, systemd, troubleshooting, FAQ).
   It owns the signed suspend/resume and account-bound signing-wallet/API-key
   rotation runbooks; do not describe local file deletion as credential revocation.
