@@ -336,6 +336,10 @@ Deterministic or semi-deterministic checks:
 
 Remaining activation gates:
 
+- release the reviewed decoder-fairness fixes after native tests: local FFmpeg
+  failures are inconclusive, and unusable/disagreeing references override every
+  image/video candidate failure. These source fixes do not activate media or
+  change versioned tolerances; preview.13 does not contain them.
 - [x] merged Core source generates and executes default-off
   `video.fidelity.v1` assignments
   against one candidate and two independently controlled bonded references

@@ -106,11 +106,17 @@ installer generation.
   Exercise the real bounded image child process with truncated and
   decompression-bomb fixtures, prove local decoder timeout is inconclusive
   rather than a worker failure, and pin the exact versioned pHash boundary.
+  Corrupt or blank candidates cannot override disagreement between references.
 - Video tests must generate local MP4 fixtures, exercise the real bounded PyAV
   decoder, reject inconsistent assignment timing and static/corrupt candidates,
+  prove corrupt references and local decoder/process failures are inconclusive,
   and prove reference agreement precedes candidate fidelity failure. They do
   not prove prompt relevance, production workflow calibration, or cross-GPU
   fidelity.
+  Include PyAV allocation/missing-codec/permission/unknown errors, sanitized
+  child messages, corrupt/static candidates with disagreeing references, and
+  invalid reference contracts with corrupt candidates. The media suite runs
+  on all four native binary build targets as well as source CI.
 - Prove the node rejects mismatched assignment/result metadata and recomputes
   prompt, response, and canonical evidence hashes before signing. Core's
   returned verdict must not replace the node's local score.

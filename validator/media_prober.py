@@ -79,6 +79,10 @@ class ImageWitnessInvalid(MediaWitnessError):
     """The committed image bytes are structurally invalid worker output."""
 
 
+class VideoWitnessInvalid(MediaWitnessError):
+    """The committed video bytes are structurally invalid worker output."""
+
+
 @dataclass(frozen=True)
 class VerifiedMediaWitness:
     body: bytes
@@ -387,6 +391,10 @@ async def score_image_fidelity_witnesses(
             or result.grayscale_stddev < 3
         ):
             return "inconclusive", {**detail, "reason": f"{label}-structure-unusable"}
+    reference_distance = phash_distance(decoded[1].phash, decoded[2].phash)
+    detail["reference_distance"] = reference_distance
+    if reference_distance > IMAGE_FIDELITY_V1_PHASH_TOLERANCE:
+        return "inconclusive", {**detail, "reason": "references-disagree"}
     if isinstance(decoded[0], ImageWitnessInvalid):
         return "failed", {**detail, "reason": f"candidate-{decoded[0]}"}
     profiles = [result for result in decoded if isinstance(result, ImageProfile)]
@@ -401,11 +409,6 @@ async def score_image_fidelity_witnesses(
     candidate_hash = candidate.phash
     reference_hash_a = reference_a.phash
     reference_hash_b = reference_b.phash
-    reference_distance = phash_distance(reference_hash_a, reference_hash_b)
-    detail["reference_distance"] = reference_distance
-    if reference_distance > IMAGE_FIDELITY_V1_PHASH_TOLERANCE:
-        return "inconclusive", {**detail, "reason": "references-disagree"}
-
     candidate_distances = [
         phash_distance(candidate_hash, reference_hash_a),
         phash_distance(candidate_hash, reference_hash_b),
@@ -655,47 +658,53 @@ def _decode_video_profile(body: bytes, content_type: str, max_frames: int) -> Vi
     from PIL import ImageStat
 
     container_format = "mp4" if content_type == "video/mp4" else "webm"
-    with av.open(io.BytesIO(body), mode="r", format=container_format) as container:
-        streams = list(container.streams.video)
-        if len(streams) != 1:
-            raise MediaWitnessError("video must contain exactly one video stream")
-        stream = streams[0]
-        width = int(stream.codec_context.width or 0)
-        height = int(stream.codec_context.height or 0)
-        if (
-            not 1 <= width <= _MAX_VIDEO_DIMENSION
-            or not 1 <= height <= _MAX_VIDEO_DIMENSION
-            or width * height > _MAX_VIDEO_PIXELS
-        ):
-            raise MediaWitnessError("video stream dimensions are invalid")
-        rate = stream.average_rate or stream.guessed_rate
-        fps = float(rate) if rate is not None else 0.0
-        if not 0 < fps <= _MAX_VIDEO_FPS:
-            raise MediaWitnessError("video frame rate is invalid")
+    try:
+        with av.open(io.BytesIO(body), mode="r", format=container_format) as container:
+            streams = list(container.streams.video)
+            if len(streams) != 1:
+                raise VideoWitnessInvalid("video must contain exactly one video stream")
+            stream = streams[0]
+            width = int(stream.codec_context.width or 0)
+            height = int(stream.codec_context.height or 0)
+            if (
+                not 1 <= width <= _MAX_VIDEO_DIMENSION
+                or not 1 <= height <= _MAX_VIDEO_DIMENSION
+                or width * height > _MAX_VIDEO_PIXELS
+            ):
+                raise VideoWitnessInvalid("video stream dimensions are invalid")
+            rate = stream.average_rate or stream.guessed_rate
+            fps = float(rate) if rate is not None else 0.0
+            if not 0 < fps <= _MAX_VIDEO_FPS:
+                raise VideoWitnessInvalid("video frame rate is invalid")
 
-        hashes: list[str] = []
-        timestamps: list[float] = []
-        blank_frames = 0
-        for frame in container.decode(stream):
-            if len(hashes) >= max_frames:
-                raise MediaWitnessError("video exceeded the frame limit")
-            if (int(frame.width), int(frame.height)) != (width, height):
-                raise MediaWitnessError("video dimensions changed during decode")
-            image = frame.to_image().convert("RGB")
-            hashes.append(str(imagehash.phash(image)))
-            grayscale = image.convert("L").resize((64, 64))
-            if float(ImageStat.Stat(grayscale).stddev[0]) < 3:
-                blank_frames += 1
-            if frame.time is not None:
-                timestamp = float(frame.time)
-                if timestamps and timestamp <= timestamps[-1]:
-                    raise MediaWitnessError("video timestamps are not strictly increasing")
-                timestamps.append(timestamp)
+            hashes: list[str] = []
+            timestamps: list[float] = []
+            blank_frames = 0
+            for frame in container.decode(stream):
+                if len(hashes) >= max_frames:
+                    raise VideoWitnessInvalid("video exceeded the frame limit")
+                if (int(frame.width), int(frame.height)) != (width, height):
+                    raise VideoWitnessInvalid("video dimensions changed during decode")
+                image = frame.to_image().convert("RGB")
+                hashes.append(str(imagehash.phash(image)))
+                grayscale = image.convert("L").resize((64, 64))
+                if float(ImageStat.Stat(grayscale).stddev[0]) < 3:
+                    blank_frames += 1
+                if frame.time is not None:
+                    timestamp = float(frame.time)
+                    if timestamps and timestamp <= timestamps[-1]:
+                        raise VideoWitnessInvalid("video timestamps are not strictly increasing")
+                    timestamps.append(timestamp)
+    except VideoWitnessInvalid:
+        raise
+    # FFmpeg's base error also includes local allocation and missing-codec errors.
+    except av.error.InvalidDataError as exc:
+        raise VideoWitnessInvalid("undecodable") from exc
 
     if len(hashes) < 2:
-        raise MediaWitnessError("video decoded fewer than two frames")
+        raise VideoWitnessInvalid("video decoded fewer than two frames")
     if timestamps and len(timestamps) != len(hashes):
-        raise MediaWitnessError("video timestamps are incomplete")
+        raise VideoWitnessInvalid("video timestamps are incomplete")
     duration_s = (
         timestamps[-1] - timestamps[0] + (1.0 / fps)
         if timestamps
@@ -724,6 +733,8 @@ def _video_decode_worker(
     try:
         _limit_media_decoder(timeout_s, 2 * 1024 * 1024 * 1024)
         send_conn.send(("ok", asdict(_decode_video_profile(body, content_type, max_frames))))
+    except VideoWitnessInvalid as exc:
+        send_conn.send(("invalid", str(exc)))
     except Exception as exc:  # noqa: BLE001 - native decoders expose library-specific errors
         send_conn.send(("error", type(exc).__name__))
     finally:
@@ -766,6 +777,8 @@ def decode_video_bounded(
         if process.is_alive():
             process.terminate()
             process.join(2)
+    if status == "invalid" and isinstance(payload, str):
+        raise VideoWitnessInvalid(payload)
     if status != "ok" or not isinstance(payload, dict):
         raise MediaWitnessError("video decode failed")
     try:
@@ -883,7 +896,7 @@ async def score_video_witnesses(
         _MAX_VIDEO_FRAMES,
         expected_frames + max(2, math.ceil(expected_frames * 0.02)),
     )
-    decoded: list[VideoProfile | Exception] = []
+    decoded: list[VideoProfile | VideoWitnessInvalid] = []
     for witness in verified:
         try:
             decoded.append(await asyncio.to_thread(
@@ -894,21 +907,44 @@ async def score_video_witnesses(
             ))
         except VideoDecodeTimeout:
             return "inconclusive", {**detail, "reason": "local-decoder-timeout"}
-        except Exception as exc:  # decoder failures are classified by witness role below
+        except VideoWitnessInvalid as exc:
             decoded.append(exc)
-    if fidelity and any(isinstance(result, Exception) for result in decoded[1:]):
+        except Exception:  # local decoder/process failure is not worker evidence
+            return "inconclusive", {**detail, "reason": "local-video-decoder-failed"}
+    if fidelity and any(isinstance(result, VideoWitnessInvalid) for result in decoded[1:]):
         return "inconclusive", {**detail, "reason": "reference-decode-failed"}
-    if isinstance(decoded[0], Exception):
-        return "failed", {**detail, "reason": "candidate-decode-failed"}
+    if fidelity:
+        references = [result for result in decoded[1:] if isinstance(result, VideoProfile)]
+        if len(references) != 2:
+            return "inconclusive", {**detail, "reason": "video-decode-incomplete"}
+        for label, profile in zip(("reference-a", "reference-b"), references):
+            failures = _video_contract_failures(expected, profile)
+            if failures:
+                return "inconclusive", {**detail, "reason": f"{label}-contract-failed", "checks": failures}
+        try:
+            reference_mean, reference_max, reference_motion = _profile_distances(*references)
+        except MediaWitnessError:
+            return "inconclusive", {**detail, "reason": "video-profile-shape-mismatch"}
+        detail.update({
+            "reference_frame_distance_mean": round(reference_mean, 3),
+            "reference_frame_distance_max": reference_max,
+            "reference_motion_delta": round(reference_motion, 3),
+        })
+        if (
+            reference_max > VIDEO_FIDELITY_V1_PHASH_TOLERANCE
+            or reference_motion > VIDEO_FIDELITY_V1_MOTION_TOLERANCE
+        ):
+            return "inconclusive", {**detail, "reason": "references-disagree"}
+    if isinstance(decoded[0], VideoWitnessInvalid):
+        return "failed", {
+            **detail,
+            "reason": "candidate-decode-failed",
+            "decoder_reason": str(decoded[0]),
+        }
     profiles = [result for result in decoded if isinstance(result, VideoProfile)]
     if len(profiles) != len(ordered):
         return "inconclusive", {**detail, "reason": "video-decode-incomplete"}
 
-    if fidelity:
-        for label, profile in (("reference-a", profiles[1]), ("reference-b", profiles[2])):
-            failures = _video_contract_failures(expected, profile)
-            if failures:
-                return "inconclusive", {**detail, "reason": f"{label}-contract-failed", "checks": failures}
     candidate_failures = _video_contract_failures(expected, profiles[0])
     if candidate_failures:
         return "failed", {**detail, "reason": "candidate-contract-failed", "checks": candidate_failures}
@@ -925,24 +961,15 @@ async def score_video_witnesses(
     })
     if fidelity:
         try:
-            reference_mean, reference_max, reference_motion = _profile_distances(profiles[1], profiles[2])
             candidate_a = _profile_distances(profiles[0], profiles[1])
             candidate_b = _profile_distances(profiles[0], profiles[2])
         except MediaWitnessError:
             return "inconclusive", {**detail, "reason": "video-profile-shape-mismatch"}
         detail.update({
-            "reference_frame_distance_mean": round(reference_mean, 3),
-            "reference_frame_distance_max": reference_max,
-            "reference_motion_delta": round(reference_motion, 3),
             "candidate_frame_distance_means": [round(candidate_a[0], 3), round(candidate_b[0], 3)],
             "candidate_frame_distance_maxes": [candidate_a[1], candidate_b[1]],
             "candidate_motion_deltas": [round(candidate_a[2], 3), round(candidate_b[2], 3)],
         })
-        if (
-            reference_max > VIDEO_FIDELITY_V1_PHASH_TOLERANCE
-            or reference_motion > VIDEO_FIDELITY_V1_MOTION_TOLERANCE
-        ):
-            return "inconclusive", {**detail, "reason": "references-disagree"}
         if (
             candidate_a[1] > VIDEO_FIDELITY_V1_PHASH_TOLERANCE
             or candidate_b[1] > VIDEO_FIDELITY_V1_PHASH_TOLERANCE

@@ -255,7 +255,9 @@ generator here or imply that passing public templates proves model quality.
   bounded bytes/time/MIME, SHA-256 recomputation, structural checks, and
   reference comparison only after two references agree. Video decoding runs in
   a killable child process with time, frame, dimension, and Linux resource
-  bounds. Consensus-affecting pHash, motion, and latency thresholds are fixed
+  bounds. Local FFmpeg allocation/missing-codec failures are inconclusive;
+  reference disagreement takes precedence even over malformed candidates.
+  Consensus-affecting pHash, motion, and latency thresholds are fixed
   by the versioned policy; only local limits that yield inconclusive evidence
   are operator configurable. A node advertises each capability only when its media dependencies
   and HTTPS origin allowlist are ready; Core must still withhold assignments
