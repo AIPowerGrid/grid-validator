@@ -5,6 +5,64 @@ This is a dated rollout snapshot, not a live status page. Query
 `GET https://api.aipowergrid.io/v1/validator/capabilities` for current public
 state.
 
+## 2026-08-27 - Linux ARM64 Live Account-Pairing Proof
+
+The actual frozen, unpublished Linux ARM64 binary from reviewed commit
+`35b4e04590daa7d5180af99aa3d0056090d3954a` passed the native pairing harness
+against Core `f51875ce` / Alembic `0030` and Console `db301013`.
+Candidate build: [33115798738](https://github.com/AIPowerGrid/grid-validator/actions/runs/33115798738).
+Archive SHA-256: `f0430d71db2a62fba8b91e04618f43cc4ad7718ffd5dd2d7ccbc6fc6c0027add`.
+This is a reviewed CI artifact, not a published or release-attested binary.
+
+A fresh dedicated node and separate unfunded Console account were admitted
+through an expiring two-account pilot. Global pairing stayed off. The Console
+used its real HTTPS nonce, wallet callback, Auth.js session and account routes;
+no user browser session, funded wallet or mocked Core was used. The test driver
+supplied the independently obtained Console code through the real hidden TTY
+review. This was automated maintainer consent, not human desktop proof.
+
+The harness verified cancelled setup creates no identity, signed enrollment
+and heartbeat, an unconfirmed request cancellation, two accepted reports
+before pairing, and these two separate association cycles:
+
+- Node-side removal after explicit Console/local consent and restart recovery.
+- Console-owner removal after fresh consent and restart recovery.
+
+Both cycles deliberately discarded the confirmation response and recovered the
+committed association from a fresh app. Stale local review after restart was
+rejected; Console approval alone never created the link. Cross-origin approval
+was rejected. After removal, the same node submitted another accepted report;
+its configuration bytes were unchanged and diagnostics were redacted.
+
+Independent read-only PostgreSQL checks confirmed three signature-verified
+reports, unchanged account identities, payout settings, key identities/scopes
+and independence-review state, and zero test credits, reservations, deposits,
+payouts or worker-ledger entries. Authentication timestamps were excluded from
+the identity comparison; intentional final key revocation was checked separately.
+The test node is suspended with zero active keys. No active test link remains;
+the bounded pairing tables retain the completed/revoked test metadata.
+
+The ephemeral service override was removed, original environment bytes and
+payout/backup timer states matched their baseline, and public pairing returned
+503 again. Media, staking, rewards, routing authority and blind/paid audits were
+not activated. The disposable container was removed. Private keys, account IDs,
+pairing IDs/codes and raw logs are not public artifacts.
+
+[Public report](LINUX_PAIRING_CANARY_REPORT.json) SHA-256:
+`ad4ca6a81a3d1f616fa95ef664b8396927c3c7933e608f4f50bfdce42b83d344`.
+The local test driver initially raced PTY child-exit collection after the first
+successful review; its wait was corrected before the second phase. No app,
+Core or Console code was changed to obtain this result. The container also
+passed 70 focused pairing/harness/media tests; those mocked safety tests are
+separate from the live evidence above.
+
+Remaining gates: native Windows pairing, ordinary-user desktop recovery,
+published pairing-enabled client and five independently reviewed operators
+with a 72-hour qualification. Public downloads remain preview.13. At the
+21:57 UTC follow-up Peteq was fresh, but Donli's heartbeat was about 36 minutes
+old. Donli's four verified reports prove prior operation, not current uptime;
+his key remained valid and the reason he stopped contacting Core was unknown.
+
 ## 2026-08-27 21:07 UTC - Pilot-Capable Core Dark Cutover
 
 Production now runs `f51875ce8fe550640008f1824625e2f5a071f88b`. Guarded

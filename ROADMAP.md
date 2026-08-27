@@ -31,10 +31,13 @@ longer architecture, not permission to activate paid audits or economics.
    Core PR #58 and Console PR #21 are merged and deployed dark; six real
    cross-repo HTTP integration tests and all four native build/install targets
    pass. The matching local app remains an unpublished build candidate.
-   Windows/Linux live pairing proof, immutable client release and supervised
-   association/removal remain required. Pairing is still disabled.
+   Linux ARM64 live pairing, response-loss recovery, both removal paths and
+   useful work before/after passed on unpublished `35b4e045`. Windows pairing,
+   human desktop proof and immutable client release remain required. Pairing
+   is disabled again after the scoped test.
    PR #63's manual native harness is merged and its offline safety suites pass
-   on all four platforms. This is preparation, not a completed pairing canary.
+   on all four platforms. Its completed Linux run is first-party automated
+   evidence, not independent-operator or Windows proof.
 5. Make start/stop, registration, heartbeats, assignments, submitted evidence,
    errors, redacted diagnostics, and recovery understandable without a shell.
    The opt-in local `app` ships in preview.13 with native package checks and
@@ -57,6 +60,9 @@ longer architecture, not permission to activate paid audits or economics.
    live check found three verified reports and a fresh heartbeat. His basic
    operation is confirmed; the independent-control declaration, human desktop
    recovery checks and qualification window remain separate and uncompleted.
+   A later 21:57 UTC check found Peteq fresh but Donli's last heartbeat at
+   21:21 UTC. Donli still has one valid key and four verified reports; the cause
+   of the interruption is unknown and requires his local app status.
 8. Maintain hostile-worker tests for template solvers, replay, fabricated
    evidence, substitution, and probe-aware switching. Generated challenges are
    protocol/capability evidence, never automatically quality evidence.

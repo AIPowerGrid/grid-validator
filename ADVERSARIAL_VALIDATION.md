@@ -51,6 +51,13 @@ The executable contract lives in
 `grid_api/routers/tests/test_validator_anti_gaming.py` and
 `validator_adversaries.py` in the public Core repository.
 
+At the 2026-08-27 production check, Core `f51875ce` reports sealed assignments
+and `text.generated.v8` batches with a unique challenge per validator as live.
+The earlier production disclosure/replay proof is recorded in
+[PRODUCTION_BASELINE.md](PRODUCTION_BASELINE.md). Blind quality and
+worker-terminal indistinguishability remain false; quality eligibility and
+validator economic authority remain disabled.
+
 ## Evidence Dimensions
 
 | Dimension | Examples | Current authority |
@@ -65,14 +72,15 @@ No generated public-template canary is quality-eligible.
 
 ## Known Fingerprints
 
-- Without sealed polling, the assignment API reveals the target, model, nonce,
+- Older unsealed polling reveals the target, model, nonce,
   and challenge before the validator invokes the probe, allowing a colluding
-  validator to warn the target. The staged sealed-assignment protocol withholds
+  validator to warn the target. Production's sealed-assignment protocol withholds
   those fields until the worker has produced the terminal result and binds the
   disclosure to the earlier SHA-256 commitment.
 - Prompt families remain recognizable even when their values are random.
-- Production v7 text groups repeat one challenge across validators. Core v8
-  changes the group into a capability batch with a unique challenge per member.
+- Historical v7 text groups repeat one challenge across validators. Production
+  v8 groups are capability batches with a unique challenge per member. Sharing
+  a public generator still leaves the prompt family recognizable.
 - A validator probe currently ends with `den: 0`. Although this arrives after
   the answer, it labels examples that can train a future probe detector.
 - First-party pilot validators share one operator and hypervisor.
@@ -83,11 +91,11 @@ recognizing a prompt during execution or eliminate validator-controlled timing.
 
 ## Required Hardening
 
-1. **Sealed assignment polling:** give the validator only an opaque id,
+1. **Sealed assignment polling (live):** give the validator only an opaque id,
    capability, deadline, and commitment before execution; reveal and verify the
    target, nonce, model, and challenge only with the terminal result. Preserve
    compatibility until the public node fleet has upgraded.
-2. **Unique batch work:** issue a distinct challenge and commitment to every
+2. **Unique batch work (live):** issue a distinct challenge and commitment to every
    validator in a shared capability batch; aggregate the lane, not an identical
    exam prompt.
 3. **Ordinary worker economics:** pay bounded audit work through a reviewed

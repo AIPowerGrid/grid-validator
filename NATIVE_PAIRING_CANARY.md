@@ -1,8 +1,13 @@
 # Native Pairing Qualification
 
-Status: **test tooling, not completed live evidence**. The offline harness tests
-pass locally. Native live Windows/Linux pairing, public release and activation
-remain separate gates. This is a maintainer procedure, not instructions for
+Status: **Linux ARM64 live candidate run passed; Windows pairing remains open**.
+On 2026-08-27, the actual unpublished `35b4e045` Linux binary completed the
+procedure against production Core and Console, with three verified reports and
+complete node/key retirement. The separate Console account used real wallet
+authentication; an automated test driver entered its code through the real
+hidden TTY review. This proves neither human desktop interaction nor independent
+control. Public release and activation remain separate gates; see
+[PRODUCTION_BASELINE.md](PRODUCTION_BASELINE.md). This is a maintainer procedure, not instructions for
 Donli or other ordinary operators. They should use [QUICKSTART.md](QUICKSTART.md).
 
 `scripts/native-pairing-canary.py` exercises an actual candidate binary through
