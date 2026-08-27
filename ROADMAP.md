@@ -279,8 +279,8 @@ Definition of done:
 
 ## Phase 5: Video Validation
 
-Goal: score basic video contract honesty first, then add semi-deterministic
-workflow checks where the stack supports it.
+Goal: validate governed deterministic video workflows against two independent
+references before any video evidence can influence network behavior.
 
 General video checks:
 
@@ -291,7 +291,7 @@ General video checks:
 
 Deterministic or semi-deterministic checks:
 
-- [ ] workflow hash
+- [x] governed recipe root and model digest bound to the assignment
 - [x] per-frame pHash
 - [x] lightweight pHash motion profile
 - [ ] optical flow and prompt/key-event checks
@@ -299,9 +299,10 @@ Deterministic or semi-deterministic checks:
 
 Remaining activation gates:
 
-- [x] Core generates and executes default-off versioned video-contract assignments
+- [x] Core generates and executes default-off `video.fidelity.v1` assignments
+  against one candidate and two independently controlled bonded references
 - publish an explicit-timing LTX recipe through RecipeVault and run a real-workload canary
-- witness retention and trusted reference selection are operational
+- populate and qualify independently operated bonded video references
 - tolerances are calibrated against real LTX and other allowed workflows
 - media-enabled binaries pass the release matrix
 - multi-operator canaries remain evidence-only before routing influence
