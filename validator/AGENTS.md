@@ -96,8 +96,11 @@ independent-reference and rollout gates pass.
   a startup error before the Grid client starts; do not silently return success.
   The direct `python -m validator.main` module path must also print clean
   startup errors and exit nonzero, not traceback.
-- **`cli.py`** — `aipg-validator init | check | dashboard | run | queue | suspend | rotate` (interactive
-  `.env` at chmod 600; capability/scorecard-aware health check with
+- **`cli.py`** — `aipg-validator prepare-wallet | init | check | dashboard | run | queue | suspend | rotate`.
+  `prepare-wallet` uses the operating-system CSPRNG, writes a local signing
+  identity atomically at mode `0600`, prints only the public address, and is
+  idempotent. `init` reuses that prepared identity while adding the scoped API
+  key. The remaining commands provide the capability/scorecard-aware health check with
   `--no-probe`; check reports the locally usable scorer set before registration;
   stake-disabled preview check reports an explicit skip, while
   stake-required check fails closed on missing stake deps/config; startup
@@ -133,7 +136,7 @@ independent-reference and rollout gates pass.
   Assignment-bound attestations must echo the Grid's returned probe
   `evidence_hash`; do not let the node invent a different hash after a targeted
   probe.
-- **Signing identity must be coherent:** `Settings.validate()` and `aipg-validator init`
+- **Signing identity must be coherent:** `Settings.validate()`, `prepare-wallet`, and `aipg-validator init`
   must reject malformed `VALIDATOR_WALLET` values and any
   `VALIDATOR_WALLET` / `VALIDATOR_PRIVATE_KEY` mismatch. If init receives a private key
   and no wallet, deriving the wallet is preferred to writing an unverifiable config.

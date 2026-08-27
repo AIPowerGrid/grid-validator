@@ -53,10 +53,12 @@ before running it:
 > before accepting the OS warning. Prefer Linux or Docker for pilot nodes.
 
 ```bash
-curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.3/install-validator.sh
+curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.4/install-validator.sh
 gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator
-AIPG_VALIDATOR_VERSION=v0.1.0-preview.3 bash install-validator.sh
+AIPG_VALIDATOR_VERSION=v0.1.0-preview.4 bash install-validator.sh
 cd ~/.aipg-validator
+aipg-validator prepare-wallet
+# Link the printed address and create a validator key in the Console.
 aipg-validator init
 aipg-validator check --no-probe
 aipg-validator dashboard
@@ -74,9 +76,9 @@ AIPG_VALIDATOR_INSTALL_DIR=/usr/local/bin \
 On Windows x64, use the native PowerShell installer:
 
 ```powershell
-Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.3/install-validator.ps1 -OutFile install-validator.ps1
+Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.4/install-validator.ps1 -OutFile install-validator.ps1
 gh attestation verify install-validator.ps1 --repo AIPowerGrid/grid-validator
-$env:AIPG_VALIDATOR_VERSION = "v0.1.0-preview.3"
+$env:AIPG_VALIDATOR_VERSION = "v0.1.0-preview.4"
 .\install-validator.ps1 -AcceptUnsignedPreview
 ```
 
@@ -135,14 +137,16 @@ cd grid-validator
 ./install.sh
 ```
 
-The installer creates `.venv` and installs dependencies. If stdin is an
-interactive terminal and `.env` is missing, it runs `aipg-validator init`. In
-non-interactive automation it does not write config; run init yourself or create
-`.env` from `.env.template`.
+The installer creates `.venv` and installs dependencies. It does not create an
+identity automatically. Run `aipg-validator prepare-wallet`; it writes the
+private key only to the local mode-`0600` `.env` and prints the public address.
+Link that address at `https://console.aipowergrid.io/dashboard/validators`,
+create a validator-purpose API key there, and run `aipg-validator init` to
+complete the same file.
 
 For the V0 preview:
 
-- use your validator Grid API key
+- use the validator-purpose Grid API key created after linking the signing wallet
 - set `VALIDATOR_REQUIRE_STAKE=false`
 - leave `VALIDATOR_STAKING_ADDR` empty
 - use a dedicated `VALIDATOR_PRIVATE_KEY`; signing registration and evidence is
@@ -241,13 +245,13 @@ Override the bind address only when you know the machine/network boundary:
 Docker is the easiest server path once `.env` exists.
 
 ```bash
-docker pull ghcr.io/aipowergrid/validator:v0.1.0-preview.3
+docker pull ghcr.io/aipowergrid/validator:v0.1.0-preview.4
 docker run --rm \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.3 check --no-probe
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.4 check --no-probe
 docker run -d --name aipg-validator --restart unless-stopped \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.3
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.4
 ```
 
 Run the dashboard container when you want a local browser view:
@@ -255,7 +259,7 @@ Run the dashboard container when you want a local browser view:
 ```bash
 docker run --rm -p 8790:8790 \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.3 \
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.4 \
   dashboard --host 0.0.0.0
 ```
 
@@ -413,7 +417,7 @@ assignments, then rewards/staking after the evidence loop is boring.
 | attestations remain pending | Check Core reachability; the node retries the durable local outbox automatically |
 | outbox reports dead letters | Stop and inspect Core rejection logs before removing the local state database |
 | registration fails with 403 | Confirm the key purpose is validator and the signing wallet is linked to the same Grid account |
-| `VALIDATOR_PRIVATE_KEY is required` | Generate or choose a dedicated local signing key, then link its wallet before setup |
+| `VALIDATOR_PRIVATE_KEY is required` | Run `aipg-validator prepare-wallet`, link the printed address, then complete `init` |
 | `Interactive setup requires a terminal` | Run `aipg-validator init` from a shell, or create `.env` from `.env.template` |
 | `web3 not installed` | Install stake extras with `./.venv/bin/python -m pip install -e '.[stake]'`, or keep `VALIDATOR_REQUIRE_STAKE=false` for V0 preview |
 | `Stake contract not deployed and REQUIRE_STAKE=true` | Expected in V0; set `VALIDATOR_REQUIRE_STAKE=false` unless you are testing the future stake gate |
