@@ -117,9 +117,9 @@ Deliverables:
 Operator shape:
 
 ```bash
-curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.2/install-validator.sh
+curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.3/install-validator.sh
 gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator
-AIPG_VALIDATOR_VERSION=v0.1.0-preview.2 bash install-validator.sh
+AIPG_VALIDATOR_VERSION=v0.1.0-preview.3 bash install-validator.sh
 cd ~/.aipg-validator
 aipg-validator init
 aipg-validator check --no-probe

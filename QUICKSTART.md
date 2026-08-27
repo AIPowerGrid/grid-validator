@@ -16,7 +16,8 @@ operator and hypervisor.
 All three now run the exact published `v0.1.0-preview.2` payload from commit
 `1472677d`. Target, model, nonce, and challenge are disclosed only after worker
 execution and are verified against the assignment seal before signing.
-The public binary target is `v0.1.0-preview.2`; install it or use the source
+The external cohort binary target is `v0.1.0-preview.3`; it reports the exact
+immutable release identity to Core. Install it or use the source
 path, and begin with `check --no-probe` before running an assignment probe.
 
 ## What You Need
@@ -115,9 +116,9 @@ before running it:
 > Docker are the least-friction preview paths.
 
 ```bash
-curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.2/install-validator.sh
+curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.3/install-validator.sh
 gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator
-AIPG_VALIDATOR_VERSION=v0.1.0-preview.2 bash install-validator.sh
+AIPG_VALIDATOR_VERSION=v0.1.0-preview.3 bash install-validator.sh
 cd ~/.aipg-validator
 aipg-validator init
 aipg-validator check --no-probe
@@ -128,9 +129,9 @@ aipg-validator run
 Windows x64 PowerShell:
 
 ```powershell
-Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.2/install-validator.ps1 -OutFile install-validator.ps1
+Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.3/install-validator.ps1 -OutFile install-validator.ps1
 gh attestation verify install-validator.ps1 --repo AIPowerGrid/grid-validator
-$env:AIPG_VALIDATOR_VERSION = "v0.1.0-preview.2"
+$env:AIPG_VALIDATOR_VERSION = "v0.1.0-preview.3"
 .\install-validator.ps1 -AcceptUnsignedPreview
 ```
 

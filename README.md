@@ -109,7 +109,7 @@ is not yet proven.
 ## Download
 
 The public V0 preview is published as
-[`v0.1.0-preview.2`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.2).
+[`v0.1.0-preview.3`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.3).
 It is an unsigned, non-economic operator preview, not a stable release.
 
 Expected release assets:
@@ -128,7 +128,7 @@ Every release also carries `install-validator.sh`, `install-validator.ps1`, `val
 `SHA256SUMS`, an SPDX JSON SBOM, and GitHub build provenance. The release
 manifest binds the exact version, tag, source commit, asset sizes, and asset
 hashes, plus the platform-signing state; `SHA256SUMS` covers the manifest
-itself. The `v0.1.0-preview.2` macOS and Windows binaries are explicitly unsigned:
+itself. The `v0.1.0-preview.3` macOS and Windows binaries are explicitly unsigned:
 macOS is not Developer ID signed or notarized, and Windows is not Authenticode
 signed. Verify `SHA256SUMS` and GitHub provenance before running them. Stable
 releases remain blocked until both platform-signing gates are satisfied. The
@@ -146,9 +146,9 @@ Once published, download the installer from the exact preview release, verify
 its GitHub provenance, and run it:
 
 ```bash
-curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.2/install-validator.sh
+curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.3/install-validator.sh
 gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator
-AIPG_VALIDATOR_VERSION=v0.1.0-preview.2 bash install-validator.sh
+AIPG_VALIDATOR_VERSION=v0.1.0-preview.3 bash install-validator.sh
 cd ~/.aipg-validator
 aipg-validator init
 aipg-validator check --no-probe
@@ -161,9 +161,9 @@ preview executable is not Authenticode signed; the installer verifies SHA-256
 before installing or executing it:
 
 ```powershell
-Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.2/install-validator.ps1 -OutFile install-validator.ps1
+Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.3/install-validator.ps1 -OutFile install-validator.ps1
 gh attestation verify install-validator.ps1 --repo AIPowerGrid/grid-validator
-$env:AIPG_VALIDATOR_VERSION = "v0.1.0-preview.2"
+$env:AIPG_VALIDATOR_VERSION = "v0.1.0-preview.3"
 .\install-validator.ps1 -AcceptUnsignedPreview
 ```
 
