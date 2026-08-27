@@ -5,6 +5,34 @@ This is a dated rollout snapshot, not a live status page. Query
 `GET https://api.aipowergrid.io/v1/validator/capabilities` for current public
 state.
 
+## 2026-08-27 13:17 UTC
+
+The public validator release advanced to immutable unsigned prerelease
+`v0.1.0-preview.9` from commit
+`9d7b68fd7cf549c7e245cdb07877486c9e59c962`. Its nine release assets matched
+`SHA256SUMS`; anonymous release downloads and the Linux AMD64/ARM64 GHCR index
+were reachable. The exact published container reported preview.9 and passed
+the offline bounded image and video decoder self-test.
+
+All three participating first-party Linux x64 validators rolled one at a time
+from preview.8 using archive SHA-256
+`4375a07e8ea1db722b8c09497237bc56271cac840ee9c7362018f951736cafb8`.
+Each staged binary reported preview.9, passed the offline media self-test and
+authenticated `check --no-probe`, then moved through an atomic `current`
+symlink switch and clean systemd restart. All services remained active, every
+private `.env` remained owner-only mode `0600`, no media origin allowlist was
+configured, warning-or-higher deployment journals were empty, and preview.8
+remained installed for rollback.
+
+Post-rollout public status reported four active and heartbeat-fresh
+registrations: the three participating first-party pilots on preview.9 and one
+separate preview.8 registration. It reported zero independently verified
+operators and validator economic effect `none`. Image and video assignments,
+blind quality scoring, worker-terminal indistinguishability, validator rewards,
+staking, routing influence, strikes, and slashing remained disabled. The
+rollout qualifies the media-capable artifact and service recovery path; it does
+not enable media evidence or prove independent operator control.
+
 ## 2026-08-27 09:02 UTC
 
 Production Core advanced without a schema change to immutable runtime commit

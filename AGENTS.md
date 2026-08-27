@@ -40,10 +40,10 @@ The Grid's validator node. In V0 it is a CPU-only distributed audit runner: it s
 small canary jobs through the normal Grid path, scores replies (`healthy` / `slow` /
 `failed`), and submits signed attestations. Shared-quorum text validation is
 production-live on Core commit `df34ffd4` with migrations through `0029`.
-Three first-party pilot nodes run the verified `v0.1.0-preview.8` payload from
-validator commit `122f5565`; checksum-gated staging, no-probe registration,
-rolling symlink rollout, immutable release reporting, and clean service recovery
-were proven against production on 2026-08-27. After the one-hour preview
+Three first-party pilot nodes run the verified `v0.1.0-preview.9` payload from
+validator commit `9d7b68f`; checksum-gated staging, offline media self-tests,
+no-probe registration, rolling symlink rollout, immutable release reporting,
+and clean service recovery were proven against production on 2026-08-27. After the one-hour preview
 cooldown elapsed, the `preview.5` fleet completed a healthy 3-of-5 16K-context
 group and a correctly disputed token-limit group. Both groups carried three
 distinct nonces, evidence commitments, and verified signatures, with no credit,
@@ -183,7 +183,7 @@ generator here or imply that passing public templates proves model quality.
   fail unless both platform-signing identities are verified.
 - **`scripts/classify-release-tag.sh`** — shared binary/Docker tag policy.
   Only stable `vX.Y.Z` tags may publish `latest`; bounded prerelease tags such
-  as `v0.1.0-preview.8` remain explicitly versioned.
+  as `v0.1.0-preview.9` remain explicitly versioned.
 - **`scripts/stamp-release-tag.py`** — deterministic build identity stamping.
   Moving source and branch builds identify as `v<project-version>-dev`; only a
   release workflow may stamp its already validated tag, and packaged binary and

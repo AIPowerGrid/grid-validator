@@ -15,9 +15,10 @@ file is the longer operator runbook.
 Current rollout: sealed assignment-bound shared quorum is live on production
 Core commit `df34ffd4` with migrations through `0029`. Three first-party pilot nodes
 proved the signed 3-of-5 text flow without economic side effects and now run the
-exact published `v0.1.0-preview.8` payload from commit `122f5565`. Core reports
+exact published `v0.1.0-preview.9` payload from commit `9d7b68f`. Core reports
 that immutable release identity for all three nodes. Each node passed a staged
-`check --no-probe`, atomic symlink switch, and clean service restart. After the
+offline image/video decoder self-test, `check --no-probe`, atomic symlink
+switch, and clean service restart. After the
 earlier preview.5 cooldown, the fleet completed a healthy 3-of-5 16K-context
 group and correctly disputed a token-limit group with no economic side effects.
 Public enrollment remains a no-reward qualification cohort because those nodes
