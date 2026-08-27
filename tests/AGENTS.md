@@ -31,6 +31,37 @@ installer generation.
   keys or operator home-directory writes.
   A real unavailable loopback connection covers HTTPX's exception cause chain,
   including the startup wrapper, without contacting an external service.
+- `test_account_pairing.py` - synthetic Core responses with real EIP-191
+  signature recovery, exact contract validation, prior-review/fresh-read consent,
+  stale/replaced approvals, cancellation, expired attempts, response-loss/restart
+  recovery, exact-association unlink, config preservation and transport limits.
+  No mock result proves Core's transaction or authorization implementation.
+  This suite runs on all four native binary targets. Synthetic credential files
+  use the production protected atomic writer, including the Windows DACL path.
+- `test_core_pairing_integration.py` - opt-in tests against actual Core HTTP
+  handlers, signature verification, scoped-key authentication and transactions.
+  Set `VALIDATOR_CORE_SOURCE` and use a Core dependency environment. Real SIWE
+  challenge/verify and signed registration precede link, private list and exact
+  unlink; reject replayed SIWE, stale proof, app tokens, wrong owners and revoked
+  node keys. Prove response-loss recovery and unchanged non-pairing state except
+  normal authentication telemetry. SQLite, ASGI transport and a single-process
+  nonce store are fixtures; this does not prove Redis/PostgreSQL concurrency.
+- `test_console_pairing_integration.py` - additionally set
+  `VALIDATOR_CONSOLE_SOURCE` to a built, env-file-free Console checkout. Starts
+  disposable loopback Core and Next servers and uses the real wallet-login
+  callback, Core SIWE/service binding, Auth.js cookies and pairing proxies.
+  Proves anonymous/cross-origin rejection, approval without automatic node
+  consent, explicit confirmation, private listing, owner removal and state
+  preservation. Subprocess env is allowlisted; keys are generated in-memory,
+  logs are not printed, and servers/temp files are cleaned up on failure.
+  No Google, wallet-extension UI, HTTPS, native live or production proof.
+  Both optional modules skip explicitly when their source paths are absent;
+  Core/Console dependencies never enter the validator binary.
+- `pairing_app_fixture.py` - manual, loopback browser QA with temporary random
+  credentials and stdin-controlled mock approval/expiry/outage; never contacts
+  production or runs a validator. Remove its temporary state on shutdown.
+  Local pairing HTTP tests also prove origin/token/body guards, cached-only
+  reads, metadata exclusion from diagnostics and runtime-control isolation.
 - `test_self_test.py` - offline, real-process image/video decoder qualification
   for source and packaged runtimes.
 - `test_systemd_installer.py` - generated service security and behavior.

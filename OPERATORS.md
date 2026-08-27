@@ -102,7 +102,10 @@ the menu if the local session expires. **Download diagnostics** includes only
 version, public validator ID, status, timestamps, counts, and bounded activity.
 It omits credentials, config paths, raw logs, and challenge content. Missing or
 invalid credentials and connection failures are shown without leaking server
-responses. Existing-account pairing remains separate, unfinished work.
+responses. Existing-account pairing remains separate, unreleased work. Source
+builds include optional account-link controls; they require the matching Core
+and Console deployment and are not available in preview.12. See
+[Account Pairing](ACCOUNT_PAIRING.md) before testing or enabling that flow.
 
 ### Binary Install
 

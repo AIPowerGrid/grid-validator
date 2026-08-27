@@ -88,6 +88,10 @@ generator here or imply that passing public templates proves model quality.
   rotation runbooks; do not describe local file deletion as credential revocation.
   It also owns hardened-Linux temporary-directory guidance: one-file binary
   libraries need executable mapping, without weakening the host's `/tmp` policy.
+- **`ACCOUNT_PAIRING.md`** - existing-account visibility association contract,
+  explicit two-sided consent, failure recovery, and cross-repo rollout gates.
+  Local app support is unreleased source work; preview.13 does not include it.
+  Core PR #58 and Console PR #21 remain separate deployment dependencies.
 - **`DESIGN.md`** — source of truth for validator phases, proof lanes, modality scoring,
   reference pool, future economics, Base anchoring, and Grid-side dependencies.
 - **`ADVERSARIAL_VALIDATION.md`** — attacker model, evidence-dimension boundaries,
@@ -139,7 +143,9 @@ generator here or imply that passing public templates proves model quality.
   resolve the broad `pyproject.toml` ranges independently with pip. A job named
   `test` that only compiles or smoke-tests the CLI is not a test gate.
   Pull requests and `master` pushes assemble, verify, and clean-install the exact
-  four-platform binary payload without publishing it. Linux x64 and ARM64
+  four-platform binary payload without publishing it. Each target executes local
+  account-pairing contract and consent tests before packaged-app smoke checks.
+  Linux x64 and ARM64
   binaries are built and clean-installed on Ubuntu 22.04 runners, establishing
   a glibc 2.35 baseline instead of inheriting `ubuntu-latest` silently.
   Protected `v*` tag pushes are the only

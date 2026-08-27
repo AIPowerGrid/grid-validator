@@ -23,6 +23,9 @@ longer architecture, not permission to activate paid audits or economics.
    through three accepted reports; packaged Windows live qualification remains.
 4. Build expiring authenticated pairing for an existing account, without account
    merging or payout-wallet changes. Dedicated-node signup is not pairing.
+   Core PR #58, Console PR #21 and local app source now implement their parts;
+   cross-repo integration, native live proof, reviewed merge/release and dark
+   deployment remain required. No pairing activation is implied by these PRs.
 5. Make start/stop, registration, heartbeats, assignments, submitted evidence,
    errors, redacted diagnostics, and recovery understandable without a shell.
    The opt-in local `app` ships in preview.12 with native package checks and

@@ -24,6 +24,8 @@ verification, binary installation, systemd installation, and release smoke tests
   child failure/restart and explicit app exit, and checks diagnostics omit
   credentials and paths. Windows fallback cleanup must stop the owned onefile
   process tree; killing only its bootloader can leave a child holding stdout.
+  It also checks the private cached pairing endpoint and invalid-config recovery
+  without Core traffic. This is package qualification, not live pairing proof.
 
 ## Local Contracts
 

@@ -25,6 +25,20 @@ package and frozen binary; no CDN, remote font, or third-party script is loaded.
   session is unavailable; keep status and controls usable at mobile widths.
 - Preserve the separate read-only dashboard. This UI ships in preview.12;
   native offline package checks do not replace live end-to-end qualification.
+- Existing-account linking is newer, unreleased work. Require explicit start,
+  separate Console approval, a displayed comparison code, and a second local
+  confirmation. Polls, reload, dialog opening, Escape and cancellation never
+  sign. Capture the reviewed pairing ID/hash/code when opening confirmation;
+  never replace them with later poll results at submit time.
+- Opening the app reads cached local pairing state only. Core reads begin on
+  explicit Check link/start; pending/approved attempts may resume read-only
+  polling no faster than every six seconds. Stop polling on expiry/error/linked,
+  and while a consent dialog is open. Never automatically open external pages.
+  Only the canonical HTTPS Console approval URL may be rendered as a link.
+- Removal requires its own confirmation and affects only the exact account
+  association, not runtime, credentials, evidence, payout wallets or trust.
+  Retry/restart queries Core's current association before attempting another
+  confirmation. Do not interpret a failed HTTP reply as proof of no commit.
 
 ## Verification
 
@@ -32,6 +46,10 @@ Run `tests.test_operator_app`, the packaged `scripts/smoke-operator-app.py`, and
 browser QA at desktop and narrow mobile widths. Exercise consent cancel/Escape,
 repeat start/stop, invalid credentials, expired local session, error rendering,
 diagnostic download, and no horizontal overflow.
+For linking, run `python -m tests.pairing_app_fixture` with synthetic credentials;
+its stdin controls mock approval/expiry/outage. Test explicit confirmation,
+cancel, reload, removal and recovery at 320/390/1280px. This does not replace
+real Core/Console/native-host integration or live operator qualification.
 
 ## Child DOX Index
 
