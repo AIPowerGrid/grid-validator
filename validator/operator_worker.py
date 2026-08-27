@@ -17,17 +17,18 @@ from .file_lock import AlreadyRunning
 
 
 def error_code(exc: BaseException) -> str:
-    cause = exc.__cause__ or exc
-    if isinstance(cause, httpx.HTTPStatusError):
-        return (
-            "credentials_rejected"
-            if cause.response.status_code in {401, 403}
-            else "grid_unavailable"
-        )
-    if isinstance(cause, httpx.HTTPError):
-        return "grid_unavailable"
-    if isinstance(exc, AlreadyRunning):
-        return "already_running"
+    # HTTPX transport errors wrap httpcore errors; retain the public HTTPX type.
+    for cause in (exc, exc.__cause__):
+        if isinstance(cause, httpx.HTTPStatusError):
+            return (
+                "credentials_rejected"
+                if cause.response.status_code in {401, 403}
+                else "grid_unavailable"
+            )
+        if isinstance(cause, httpx.HTTPError):
+            return "grid_unavailable"
+        if isinstance(cause, AlreadyRunning):
+            return "already_running"
     return "runtime_error"
 
 

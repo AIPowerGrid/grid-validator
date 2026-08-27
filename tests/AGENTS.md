@@ -29,6 +29,8 @@ installer generation.
   diagnostics, invalid-credential child recovery, owned-process stop, OS lock
   exclusion, and runtime acknowledgement/cancellation contracts. No live Grid
   keys or operator home-directory writes.
+  A real unavailable loopback connection covers HTTPX's exception cause chain,
+  including the startup wrapper, without contacting an external service.
 - `test_self_test.py` - offline, real-process image/video decoder qualification
   for source and packaged runtimes.
 - `test_systemd_installer.py` - generated service security and behavior.
