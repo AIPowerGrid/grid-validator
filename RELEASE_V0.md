@@ -161,6 +161,20 @@ Production evidence captured on 2026-08-26:
 - Core still reported `economic_effect: none`, no independent operators, and
   media issuance disabled.
 
+Production evidence captured on 2026-08-27:
+
+- immutable Core commit `e18b38f9`, Alembic `0026`, and a fresh successful
+  backup/restore/schema-drift proof before cutover;
+- three active first-party validators running published
+  `v0.1.0-preview.2` commit `1472677d` after checksum and provenance
+  verification;
+- sealed polling withheld target, model, nonce, group, canary kind, and
+  challenge until the worker completed, then all three nodes matched the
+  terminal disclosures to their assignment seals; and
+- one tool-chain group reached `accepted / healthy` with three verified
+  authoritative signatures and zero matching credit, reservation, den-event,
+  or worker-ledger rows.
+
 The capability response continues to report that independence is not required
 for ordinary preview acceptance. Use the public
 [network status](https://console.aipowergrid.io/network) and authenticated
