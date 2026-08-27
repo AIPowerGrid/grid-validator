@@ -5,6 +5,40 @@ This is a dated rollout snapshot, not a live status page. Query
 `GET https://api.aipowergrid.io/v1/validator/capabilities` for current public
 state.
 
+## 2026-08-27 18:29 UTC - Preview.13 Network Recovery Release
+
+Immutable unsigned `v0.1.0-preview.13` was published at 18:24:58 UTC from
+reviewed master `5fa00bff24ce7749fa3316b68cecdb975155339d` (PR #57).
+It corrects the HTTPX network-error label found in the preview.12 live test;
+it does not change authentication, scoring, retry policy or economic authority.
+Windows x64, macOS ARM64 and both Linux architectures passed native build,
+packaged-app and clean-install checks in release run `33102892145`.
+
+The complete downloaded payload passed manifest/checksum verification, and
+all four archives, both installers, the SBOM and release manifest passed
+GitHub provenance verification. The Linux ARM64 archive SHA-256 is
+`df39ed403e25b5293f7340ed56492c6696e861048ce42def3adc168c3612896b`.
+The existing first-party Linux canary upgraded with its private config intact.
+An actual disconnected network produced `grid_unavailable`; reconnecting
+restored an acknowledged heartbeat and a completed polling round with zero
+accepted, pending or dead reports. This was a recovery test, not new evidence
+generation: the earlier three verified reports were not duplicated. The node
+then self-suspended and its temporary container was stopped and removed.
+
+Container run `33102892171` published the versioned image with provenance:
+`sha256:3b2d0fb0814e7e8a4ce9fa84a53a2830ab71c630ff00f1748c6aaf643bdc24ea`.
+Anonymous manifest access passed for Linux x64 and ARM64; an anonymous ARM64
+pull passed, and that exact image reported preview.13 and passed its offline
+image/video decoder self-test with networking disabled. No `latest` tag changed.
+
+No production Core deployment or validator-fleet upgrade was performed. Account
+pairing, media issuance, independent-control verification and all validator
+economic authority remain unchanged. Windows live onboarding through accepted
+evidence and the five-independent-operator 72-hour cohort are still open.
+For rollback, stop the local process, reinstall verified preview.12, and reuse
+the existing private config/journal; do not enroll another identity. Preview.12
+still recovers from outages but may display the older generic error label.
+
 ## 2026-08-27 18:11 UTC - Clean Linux Binary Live Proof
 
 The published preview.12 Linux ARM64 archive and installer passed GitHub

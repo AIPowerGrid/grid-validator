@@ -69,14 +69,14 @@ If a key was issued but the local write failed, retrying may leave an unused
 key on the dedicated account; revoke unused keys during account recovery.
 
 Older binary users should not export a personal wallet key to complete setup.
-Upgrade to preview.12, preserving existing configuration. New operators can
+Upgrade to preview.13, preserving existing configuration. New operators can
 extract the Windows ZIP, double-click `aipg-validator.exe`, and choose 8 for the
 local app described below. The menu's setup/check/run commands remain available.
 PowerShell is optional.
 
 ### Local Operator App
 
-Preview.12 includes `aipg-validator app` (menu option 8). Native packaged-app
+Preview.13 includes `aipg-validator app` (menu option 8). Native packaged-app
 and clean-install tests pass on Windows x64, macOS ARM64, and Linux x64/ARM64.
 These offline gates are not a claim of complete live Windows qualification;
 registration through accepted signed evidence still needs that real-host proof.
@@ -117,7 +117,7 @@ before running it:
 > before accepting the OS warning. Prefer Linux or Docker for pilot nodes.
 
 ```bash
-curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.12/install-validator.sh
+curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.13/install-validator.sh
 gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator
 bash install-validator.sh
 cd ~/.aipg-validator
@@ -133,14 +133,14 @@ The installer places the binary in `$HOME/.local/bin` and creates
 ```bash
 AIPG_VALIDATOR_INSTALL_DIR=/usr/local/bin \
   AIPG_VALIDATOR_CONFIG_DIR=/var/lib/aipg-validator \
-  AIPG_VALIDATOR_VERSION=v0.1.0-preview.12 \
+  AIPG_VALIDATOR_VERSION=v0.1.0-preview.13 \
   ./scripts/install-binary.sh
 ```
 
 For scripted Windows x64 installs, use the native PowerShell installer:
 
 ```powershell
-Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.12/install-validator.ps1 -OutFile install-validator.ps1
+Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.13/install-validator.ps1 -OutFile install-validator.ps1
 gh attestation verify install-validator.ps1 --repo AIPowerGrid/grid-validator
 .\install-validator.ps1 -AcceptUnsignedPreview
 ```
@@ -152,7 +152,7 @@ remain blocked on signing.
 From a source checkout, select the exact release explicitly:
 
 ```bash
-AIPG_VALIDATOR_VERSION=v0.1.0-preview.12 ./scripts/install-binary.sh
+AIPG_VALIDATOR_VERSION=v0.1.0-preview.13 ./scripts/install-binary.sh
 ```
 
 Running nodes perform a notification-only release check at most every six
@@ -305,14 +305,14 @@ Override the bind address only when you know the machine/network boundary:
 Docker is the easiest server path once `.env` exists.
 
 ```bash
-docker pull ghcr.io/aipowergrid/validator:v0.1.0-preview.12
-docker run --rm ghcr.io/aipowergrid/validator:v0.1.0-preview.12 self-test
+docker pull ghcr.io/aipowergrid/validator:v0.1.0-preview.13
+docker run --rm ghcr.io/aipowergrid/validator:v0.1.0-preview.13 self-test
 docker run --rm \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.12 check --no-probe
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.13 check --no-probe
 docker run -d --name aipg-validator --restart unless-stopped \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.12
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.13
 ```
 
 Run the dashboard container when you want a local browser view:
@@ -320,7 +320,7 @@ Run the dashboard container when you want a local browser view:
 ```bash
 docker run --rm -p 8790:8790 \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.12 \
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.13 \
   dashboard --host 0.0.0.0
 ```
 
@@ -478,11 +478,11 @@ assignments, then rewards/staking after the evidence loop is boring.
 | attestations remain pending | Check Core reachability; the node retries the durable local outbox automatically |
 | outbox reports dead letters | Stop and inspect Core rejection logs before removing the local state database |
 | registration fails with 403 | Confirm the key purpose is validator and the signing wallet is linked to the same Grid account |
-| Windows `.exe` closes immediately | Upgrade to preview.12, extract the ZIP, and double-click its executable. It opens a persistent menu. Keep existing configuration. |
+| Windows `.exe` closes immediately | Upgrade to preview.13, extract the ZIP, and double-click its executable. It opens a persistent menu. Keep existing configuration. |
 | Windows setup mentions `fchmod` | Known identity-creation bug through preview.9, fixed in preview.11. Upgrade the executable; more API keys will not help. |
 | Console shows a different wallet than `prepare-wallet` | Stop and request enrollment assistance; a public address alone is not proof of control. Never export a funded wallet key to get past registration. |
-| `VALIDATOR_PRIVATE_KEY is required` | New operators: choose Set up node in the preview.12 app, or menu option 1. Existing operators: restore the correct private config; do not replace the identity or paste a personal wallet key. |
-| Setup asks you to type a private key | You are using an older build. Stop and upgrade to preview.12; automatic enrollment creates its own local signer. |
+| `VALIDATOR_PRIVATE_KEY is required` | New operators: choose Set up node in the preview.13 app, or menu option 1. Existing operators: restore the correct private config; do not replace the identity or paste a personal wallet key. |
+| Setup asks you to type a private key | You are using an older build. Stop and upgrade to preview.13; automatic enrollment creates its own local signer. |
 | `Setup needs confirmation` | Confirm in the executable menu, or use explicit `enroll --yes` only for deliberate automation. Do not paste credentials into command arguments. |
 | `web3 not installed` | Install stake extras with `./.venv/bin/python -m pip install -e '.[stake]'`, or keep `VALIDATOR_REQUIRE_STAKE=false` for V0 preview |
 | `Stake contract not deployed and REQUIRE_STAKE=true` | Expected in V0; set `VALIDATOR_REQUIRE_STAKE=false` unless you are testing the future stake gate |

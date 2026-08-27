@@ -137,7 +137,7 @@ It is **not in preview.12 or enabled in production**. See
 [Account Pairing](ACCOUNT_PAIRING.md) for its consent, recovery and rollout gates.
 
 The current public V0 preview is
-[`v0.1.0-preview.12`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.12).
+[`v0.1.0-preview.13`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.13).
 It is an unsigned, non-economic operator preview, not a stable release.
 
 Expected release assets:
@@ -156,7 +156,7 @@ Every release also carries `install-validator.sh`, `install-validator.ps1`, `val
 `SHA256SUMS`, an SPDX JSON SBOM, and GitHub build provenance. The release
 manifest binds the exact version, tag, source commit, asset sizes, and asset
 hashes, plus the platform-signing state; `SHA256SUMS` covers the manifest
-itself. The `v0.1.0-preview.12` macOS and Windows binaries are explicitly unsigned:
+itself. The `v0.1.0-preview.13` macOS and Windows binaries are explicitly unsigned:
 macOS is not Developer ID signed or notarized, and Windows is not Authenticode
 signed. Verify `SHA256SUMS` and GitHub provenance before running them. Stable
 releases remain blocked until both platform-signing gates are satisfied. The
@@ -174,7 +174,7 @@ Download the installer from the exact preview release, verify
 its GitHub provenance, and run it:
 
 ```bash
-curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.12/install-validator.sh
+curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.13/install-validator.sh
 gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator
 bash install-validator.sh
 cd ~/.aipg-validator
@@ -202,7 +202,7 @@ preview executable is not Authenticode signed; the installer verifies SHA-256
 before installing or executing it:
 
 ```powershell
-Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.12/install-validator.ps1 -OutFile install-validator.ps1
+Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.13/install-validator.ps1 -OutFile install-validator.ps1
 gh attestation verify install-validator.ps1 --repo AIPowerGrid/grid-validator
 .\install-validator.ps1 -AcceptUnsignedPreview
 ```
@@ -305,7 +305,7 @@ aipg-validator run
 From a source checkout, select the exact version explicitly:
 
 ```bash
-AIPG_VALIDATOR_VERSION=v0.1.0-preview.12 ./scripts/install-binary.sh
+AIPG_VALIDATOR_VERSION=v0.1.0-preview.13 ./scripts/install-binary.sh
 ```
 
 `dashboard` starts a read-only local status page at
@@ -333,14 +333,14 @@ Pull the exact public preview image. It is anonymously available for Linux x64
 and ARM64; prereleases never publish or replace `latest`:
 
 ```bash
-docker pull ghcr.io/aipowergrid/validator:v0.1.0-preview.12
+docker pull ghcr.io/aipowergrid/validator:v0.1.0-preview.13
 ```
 
 The preview bundles the dark image/video decoders. Qualify the exact image
 without contacting the Grid:
 
 ```bash
-docker run --rm ghcr.io/aipowergrid/validator:v0.1.0-preview.12 self-test
+docker run --rm ghcr.io/aipowergrid/validator:v0.1.0-preview.13 self-test
 ```
 
 Run a one-shot config/Grid check:
@@ -348,7 +348,7 @@ Run a one-shot config/Grid check:
 ```bash
 docker run --rm \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.12 check --no-probe
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.13 check --no-probe
 ```
 
 Run the validator loop:
@@ -356,7 +356,7 @@ Run the validator loop:
 ```bash
 docker run -d --name aipg-validator --restart unless-stopped \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.12
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.13
 ```
 
 Run the dashboard:
@@ -364,7 +364,7 @@ Run the dashboard:
 ```bash
 docker run --rm -p 8790:8790 \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.12 \
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.13 \
   dashboard --host 0.0.0.0
 ```
 
