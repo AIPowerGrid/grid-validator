@@ -95,6 +95,9 @@ generator here or imply that passing public templates proves model quality.
 - **`PREVIEW_COHORT.md`** — public recruitment and qualification contract for
   5-10 independent preview operators, including safe reporting and the
   distinction between node count and independently controlled quorum weight.
+  Its new-operator path is preview.12 automatic dedicated-node enrollment and
+  the local app, not manual wallet/key preparation. Keep independent-control
+  review and advanced credential rotation separate from first-run setup.
   Qualification is 72 hours with bounded heartbeat sampling and an expiring
   external review; the node cannot self-certify operator independence. The
   authenticated CLI/dashboard may show that operator's progress and review
