@@ -88,7 +88,7 @@ generator here or imply that passing public templates proves model quality.
   libraries need executable mapping, without weakening the host's `/tmp` policy.
 - **`ACCOUNT_PAIRING.md`** - existing-account visibility association contract,
   explicit two-sided consent, failure recovery, and cross-repo rollout gates.
-  Local app support is unreleased source work; preview.12 does not include it.
+  Local app support is unreleased source work; preview.13 does not include it.
   Core PR #58 and Console PR #21 remain separate deployment dependencies.
 - **`DESIGN.md`** — source of truth for validator phases, proof lanes, modality scoring,
   reference pool, future economics, Base anchoring, and Grid-side dependencies.

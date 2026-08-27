@@ -1,6 +1,6 @@
 # Optional Account Pairing
 
-Status: unreleased source implementation. **Not part of preview.12 and not
+Status: unreleased source implementation. **Not part of preview.13 and not
 enabled in production.** Depends on [Core PR #58](https://github.com/AIPowerGrid/grid-core/pull/58)
 and [Console PR #21](https://github.com/AIPowerGrid/grid-frontend/pull/21).
 Keep `VALIDATOR_PAIRING_ENABLED=0` until the cross-repo rollout is verified.
