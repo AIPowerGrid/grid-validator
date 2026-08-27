@@ -5,6 +5,25 @@ This is a dated rollout snapshot, not a live status page. Query
 `GET https://api.aipowergrid.io/v1/validator/capabilities` for current public
 state.
 
+## 2026-08-27 14:10 UTC - Dedicated Enrollment Canary
+
+An unreleased source candidate completed the existing production wallet
+challenge/verify and validator-purpose key flow with a newly generated,
+dedicated local signer. No browser login, pasted private key, identity merge,
+funding, or Core deployment was needed. Signed registration succeeded, followed
+by one real stop-sequence assignment. A read-only production query confirmed
+one stored attestation with `authority=authoritative`,
+`signature_status=verified`, and `verdict=failed`: the worker failed the probe,
+not the enrollment or evidence-delivery path. The canary was explicitly
+suspended afterward; it is maintainer-controlled and is not an independent
+qualification candidate. Credentials remain private and outside source control.
+
+This proves source enrollment through accepted signed evidence on one host,
+not clean Windows/Linux packaged enrollment, independent control, or a release.
+Core still reports no validator economic effect. Public status before this
+canary reported Core `6015eca3a5177c066048c3b6dc515ba86b257ee7`, four fresh and
+participating preview.9 nodes, and zero independently verified operators.
+
 ## 2026-08-27 13:17 UTC
 
 The public validator release advanced to immutable unsigned prerelease

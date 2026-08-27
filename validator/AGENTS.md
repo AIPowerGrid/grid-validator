@@ -98,12 +98,23 @@ change is deployed; Core still issues no media work by default.
   a startup error before the Grid client starts; do not silently return success.
   The direct `python -m validator.main` module path must also print clean
   startup errors and exit nonzero, not traceback.
-- **`cli.py`** — `aipg-validator menu | prepare-wallet | init | self-test | check | dashboard | run | queue | suspend | rotate`.
+- **`enrollment.py`** — explicit dedicated-account setup through the official
+  Core wallet challenge/verify and validator-purpose key endpoints. Requires
+  operator confirmation (or explicit `enroll --yes`), persists a newly generated
+  signer before network calls, and holds an OS-released lock across setup.
+  Validates exact SIWE purpose/address/origin/chain/freshness before signing and
+  exact validator scopes before saving. HTTPS only, no redirects or environment
+  proxies, bounded replies, no raw server errors or secrets in output. Existing
+  credentials are never replaced; interrupted dedicated enrollment reuses its
+  signer. `VALIDATOR_IDENTITY_ORIGIN` is a local recovery marker, not proof of
+  independent control. Does not pair, merge, fund, or alter an existing account.
+- **`cli.py`** — `aipg-validator menu | enroll | prepare-wallet | init | self-test | check | dashboard | run | queue | suspend | rotate`.
   `prepare-wallet` uses the operating-system CSPRNG, writes a local signing
   identity atomically at mode `0600` on POSIX or with a protected owner-only
   DACL on Windows, prints only the public address, and is
-  idempotent. `init` reuses that prepared identity while adding the scoped API
-  key. Apply Windows permissions before writing secret bytes; failure must
+  idempotent. `init` is advanced key configuration for an existing signer; it
+  redirects new operators to `enroll` and never prompts for a private key.
+  Apply Windows permissions before writing secret bytes; failure must
   leave any prior config untouched. API-key entry is hidden and refuses an
   echo fallback. The remaining commands provide the capability/scorecard-aware health check with
   `--no-probe`; check reports the locally usable scorer set before registration
@@ -128,6 +139,9 @@ change is deployed; Core still issues no media work by default.
   new identity. No key creation, browser launch, or Grid request occurs just
   by opening the menu. Enrollment still requires proof of control of the
   account-linked signing wallet; the menu cannot bypass that Core check.
+  Option 1 performs explicit dedicated-account enrollment; option 7 prepares
+  an identity only for advanced/manual use. Source enrollment is not available
+  in binaries through preview.10; do not advertise it until a tested release.
 - **`update_check.py`** — bounded, notification-only GitHub release check. It
   validates tag syntax, ignores drafts, bypasses environment proxies, and
   constructs its own canonical release URL. It never downloads or executes an

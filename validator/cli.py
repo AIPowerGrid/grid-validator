@@ -284,22 +284,18 @@ def _cmd_prepare_wallet(args) -> int:
 
 
 def _cmd_init(args) -> int:
-    """Interactive .env creation — no prior knowledge required."""
+    """Advanced API-key configuration for an already prepared local signer."""
     from .config import normalize_grid_url, normalize_wallet, wallet_from_private_key
 
     env_path = _env_path(args)
     existing = dotenv_values(env_path) if env_path.exists() else {}
     existing_pk = str(existing.get("VALIDATOR_PRIVATE_KEY") or "").strip()
     existing_wallet = str(existing.get("VALIDATOR_WALLET") or "").strip()
+    if not existing_pk:
+        print("New validator? Choose automatic setup (menu option 1), or run `aipg-validator enroll`.")
+        print("No private key needs to be pasted. Existing configuration was kept.")
+        return 1
     try:
-        if (
-            env_path.exists()
-            and not existing_pk
-            and input(f"{env_path} exists. Overwrite? [y/N] ").lower() != "y"
-        ):
-            print("Keeping existing .env.")
-            return 0
-
         print("\nAIPG Validator setup - press Enter to accept [defaults].\n")
         grid_default = str(existing.get("GRID_API_URL") or "https://api.aipowergrid.io").strip()
         grid = input(f"Grid API URL [{grid_default}]: ").strip() or grid_default
@@ -321,46 +317,16 @@ def _cmd_init(args) -> int:
         if not api_key:
             print("ERROR Validator grid API key is required.")
             return 1
-        if existing_pk:
-            pk = existing_pk
-            try:
-                derived_wallet = wallet_from_private_key(pk)
-                if existing_wallet and normalize_wallet(existing_wallet) != derived_wallet:
-                    raise RuntimeError("VALIDATOR_WALLET does not match VALIDATOR_PRIVATE_KEY.")
-            except RuntimeError as exc:
-                print(f"ERROR Existing validator identity is invalid: {exc}")
-                return 1
-            wallet = derived_wallet
-            print(f"Using prepared validator wallet: {wallet}")
-        else:
-            wallet = input(
-                "Validator wallet address 0x... (must be linked to your Grid account): "
-            ).strip()
-            if wallet:
-                try:
-                    wallet = normalize_wallet(wallet)
-                except RuntimeError as exc:
-                    print(f"ERROR {exc}")
-                    return 1
-            with warnings.catch_warnings():
-                warnings.simplefilter("error", getpass.GetPassWarning)
-                pk = getpass.getpass("Dedicated validator private key (kept local): ").strip()
-            if not pk:
-                print("ERROR Validator private key is required for registration and evidence signing.")
-                return 1
-            try:
-                derived_wallet = wallet_from_private_key(pk)
-            except RuntimeError as exc:
-                print(f"ERROR {exc}")
-                return 1
-            if wallet and wallet.lower() != derived_wallet:
-                print("ERROR Validator wallet does not match the private key.")
-                print(f"   Configured wallet: {wallet}")
-                print(f"   Key wallet:        {derived_wallet}")
-                return 1
-            if not wallet:
-                wallet = derived_wallet
-                print(f"Derived validator wallet: {wallet}")
+        pk = existing_pk
+        try:
+            derived_wallet = wallet_from_private_key(pk)
+            if existing_wallet and normalize_wallet(existing_wallet) != derived_wallet:
+                raise RuntimeError("VALIDATOR_WALLET does not match VALIDATOR_PRIVATE_KEY.")
+        except RuntimeError as exc:
+            print(f"ERROR Existing validator identity is invalid: {exc}")
+            return 1
+        wallet = derived_wallet
+        print(f"Using prepared validator wallet: {wallet}")
         staked_default = str(existing.get("VALIDATOR_REQUIRE_STAKE") or "false").lower() in {
             "1", "true", "yes", "y", "on"
         }
@@ -392,6 +358,32 @@ def _cmd_init(args) -> int:
         fresh_lines=lines,
     )
     print(f"\nOK Wrote {env_path} (owner-only permissions). Next: `aipg-validator check --no-probe`")
+    return 0
+
+
+def _cmd_enroll(args) -> int:
+    from .enrollment import EnrollmentError, enroll
+
+    path = _env_path(args)
+    print("Dedicated validator account setup")
+    print("This creates an empty local signer and authenticates it with the Grid.")
+    print("It does not link your Google account, move funds, or enable staking.")
+    print("The private key stays on this computer. Keep the identity file backed up.")
+    try:
+        if not args.yes and input("Create/use this dedicated node account? [y/N] ").strip().lower() not in {"y", "yes"}:
+            print("Cancelled. Existing configuration was kept.")
+            return 0
+    except EOFError:
+        print("Setup needs confirmation in a terminal, or explicit --yes for automated enrollment.")
+        return 1
+    try:
+        created = enroll(path)
+    except EnrollmentError as exc:
+        print(f"ERROR {exc}")
+        print("Keep your identity file. Retrying setup will not replace its signer.")
+        return 1
+    print("OK Credentials saved securely." if created else "OK Existing API key kept; no new account or key created.")
+    print("Next: choose Check registration, then Run validator. Enrollment alone is not validation.")
     return 0
 
 
@@ -613,6 +605,9 @@ def main(argv=None) -> int:
     )
     prepare.add_argument("--env", default=None, help="identity/config file (default: .env)")
     sub.add_parser("init", help="interactive setup -> .env")
+    enroll = sub.add_parser("enroll", help="create a dedicated node account and scoped key using local wallet authentication")
+    enroll.add_argument("--env", default=None, help="identity/config file (default: .env)")
+    enroll.add_argument("--yes", action="store_true", help="explicitly consent to dedicated-account enrollment without an interactive prompt")
     check = sub.add_parser("check", help="verify config/grid/stake/scorecards + one probe round")
     check.add_argument(
         "--no-probe",
@@ -652,6 +647,7 @@ def main(argv=None) -> int:
 
         return run_menu()
     handler = {
+        "enroll": _cmd_enroll,
         "init": _cmd_init,
         "prepare-wallet": _cmd_prepare_wallet,
         "check": _cmd_check,

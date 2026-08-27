@@ -26,6 +26,14 @@ the same unpaid, evidence-only assignment flow described here.
 
 ## What You Need
 
+**New source setup:** `aipg-validator enroll` creates a dedicated node account
+after confirmation. It saves an empty local signer, signs Core's short-lived
+login challenge, and obtains a validator-only API key. No Google/GitHub login,
+wallet extension, or pasted private key is needed. This command is not in
+binaries through `preview.10`; those retain the manual account path below.
+Existing-account pairing is separate and not yet available. Keep existing
+configured nodes on their current identities.
+
 - A machine that can stay online.
 - Python 3.10+ for the source preview.
 - A Grid account you can sign into at the Console.
@@ -63,17 +71,16 @@ git clone https://github.com/AIPowerGrid/grid-validator
 cd grid-validator
 
 ./install.sh
-./.venv/bin/aipg-validator prepare-wallet
-# Link the printed address and create a validator key in the Console.
-./.venv/bin/aipg-validator init
+./.venv/bin/aipg-validator enroll
 ./.venv/bin/aipg-validator check --no-probe
 ./.venv/bin/aipg-validator dashboard
 ```
 
 `./install.sh` creates `.venv` and installs the package. It does not generate an
-identity automatically. `prepare-wallet` writes the private identity locally
-with mode `0600` and prints only the address needed by the Console. `init`
-completes that same file after the wallet is linked and the scoped key exists.
+identity automatically. `enroll` requires confirmation, writes a private local
+identity (POSIX `0600` / Windows owner-only DACL), authenticates it with Core,
+and saves its scoped API key. An interrupted attempt reuses the same signer;
+an already configured node is not changed. It never enables stake or moves funds.
 
 Open `http://127.0.0.1:8790/`.
 
@@ -94,6 +101,7 @@ Command safety:
 | Command | Sends canary jobs? | Notes |
 |---|---:|---|
 | `prepare-wallet` | no | creates the local signing identity and prints only its address |
+| `enroll` | no | confirmed wallet authentication and scoped-key issuance; source only until released |
 | `init` | no | writes local `.env`; no network call |
 | `check --no-probe` | no | validates config and Grid reachability |
 | `dashboard` | no | read-only localhost view |

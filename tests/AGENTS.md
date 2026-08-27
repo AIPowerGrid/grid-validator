@@ -14,6 +14,11 @@ installer generation.
   promotion, delivery, dead-letter recovery, restart behavior, and deterministic
   connection closure after both commit and rollback.
 - `test_grid_client.py` - endpoint/capability and lifecycle transport contracts.
+- `test_enrollment.py` - real local signature recovery with mock Core transport,
+  exact-purpose SIWE checks, consent/cancellation, private-key-free setup,
+  signer preservation on retry, concurrent setup exclusion, scoped-key checks,
+  response bounds, and refusal to replace existing identities/configuration.
+  These tests run on every native binary build, including Windows file locks.
 - `test_cli.py`, `test_launcher.py`, `test_dashboard.py`, `test_config.py` - operator surfaces,
   including POSIX mode-`0600` / Windows protected owner-only signing-wallet preparation without secret
   output, prepared-identity init, safe qualification progress without private
