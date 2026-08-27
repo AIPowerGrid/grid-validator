@@ -23,6 +23,64 @@ class _RegisteredFakeGrid:
 
 
 class CliCapabilityTests(unittest.TestCase):
+    def test_qualification_lines_are_safe_and_explicit(self):
+        candidate = cli._qualification_lines(
+            {
+                "operator_qualification": {
+                    "status": "candidate",
+                    "elapsed_seconds": 259200,
+                    "minimum_seconds": 259200,
+                    "heartbeat_samples": 700,
+                    "expected_samples": 865,
+                    "sample_coverage": 700 / 865,
+                    "minimum_sample_coverage": 0.8,
+                    "time_ready": True,
+                    "coverage_ready": True,
+                }
+            }
+        )
+        self.assertIn("72.0h/72.0h", candidate[0])
+        self.assertIn("81%/80%", candidate[0])
+        self.assertIn("maintainer independence review", candidate[1])
+
+        verified = cli._qualification_lines(
+            {
+                "operator_qualification": {
+                    "status": "verified",
+                    "review_current": True,
+                    "independent_vote_eligible": True,
+                    "expires_at": "2026-09-26T00:00:00+00:00",
+                }
+            }
+        )
+        self.assertEqual(
+            verified,
+            ["OK Operator independence: verified through 2026-09-26T00:00:00+00:00."],
+        )
+        self.assertEqual(cli._qualification_lines({}), [])
+
+    def test_qualification_lines_distinguish_review_and_heartbeat_failures(self):
+        expired = cli._qualification_lines(
+            {
+                "operator_qualification": {
+                    "status": "verified",
+                    "review_current": False,
+                    "independent_vote_eligible": False,
+                }
+            }
+        )
+        stale = cli._qualification_lines(
+            {
+                "operator_qualification": {
+                    "status": "verified",
+                    "review_current": True,
+                    "independent_vote_eligible": False,
+                }
+            }
+        )
+        self.assertIn("review expired", expired[0])
+        self.assertIn("heartbeat is not fresh", stale[0])
+
     def test_command_help_is_safe_for_default_windows_codepage(self):
         env = os.environ.copy()
         env["PYTHONIOENCODING"] = "cp1252"

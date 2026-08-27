@@ -101,7 +101,8 @@ independent-reference and rollout gates pass.
   identity atomically at mode `0600`, prints only the public address, and is
   idempotent. `init` reuses that prepared identity while adding the scoped API
   key. The remaining commands provide the capability/scorecard-aware health check with
-  `--no-probe`; check reports the locally usable scorer set before registration;
+  `--no-probe`; check reports the locally usable scorer set before registration
+  and the authenticated operator's safe qualification progress afterward;
   stake-disabled preview check reports an explicit skip, while
   stake-required check fails closed on missing stake deps/config; startup
   config errors print one operator-facing line instead of tracebacks; the loop;
@@ -116,8 +117,10 @@ independent-reference and rollout gates pass.
   update; operators upgrade through the verified installer.
 - **`dashboard.py`** — read-only localhost operator status page and
   `/status.json`. Uses the Python standard library only; shows Grid validator
-  capability flags and aggregate evidence scorecards; never render secrets or
-  bind beyond localhost by default. Invalid bind options must fail with a clean
+  capability flags, the authenticated operator's safe qualification progress,
+  and aggregate evidence scorecards; never render secrets, operator control
+  groups, or private review references, and never bind beyond localhost by
+  default. Invalid bind options must fail with a clean
   CLI error, not a Python traceback.
 
 ## Local Contracts

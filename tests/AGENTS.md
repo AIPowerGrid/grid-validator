@@ -15,8 +15,9 @@ installer generation.
 - `test_grid_client.py` - endpoint/capability and lifecycle transport contracts.
 - `test_cli.py`, `test_dashboard.py`, `test_config.py` - operator surfaces,
   including private mode-`0600` signing-wallet preparation without secret
-  output, prepared-identity init, signed suspension, and account-bound
-  signing-wallet rotation.
+  output, prepared-identity init, safe qualification progress without private
+  control metadata, signed suspension, and account-bound signing-wallet
+  rotation.
 - `test_update_check.py` - bounded release selection and nonfatal update checks.
 - `test_systemd_installer.py` - generated service security and behavior.
 - `test_release_tag.py` - binary/Docker release-tag and `latest` publication

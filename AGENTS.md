@@ -81,7 +81,9 @@ Grid endpoints and contracts exist. Python package: `validator/`. Entry: `valida
   5-10 independent preview operators, including safe reporting and the
   distinction between node count and independently controlled quorum weight.
   Qualification is 72 hours with bounded heartbeat sampling and an expiring
-  external review; the node cannot self-certify operator independence.
+  external review; the node cannot self-certify operator independence. The
+  authenticated CLI/dashboard may show that operator's progress and review
+  expiry, but must never expose the opaque control group or private review ref.
 - **`PRODUCTION_BASELINE.md`** — dated public capability, assignment, quorum,
   independence, and network-capacity snapshots. It is historical evidence, not
   a substitute for the live public status endpoints.

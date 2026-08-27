@@ -24,6 +24,14 @@ class DashboardTests(unittest.TestCase):
         self.assertIn("scorecard-table", html)
         self.assertIn("function esc", html)
 
+    def test_render_html_includes_private_operator_qualification_panel(self):
+        html = _render_html()
+        self.assertIn("Operator Qualification", html)
+        self.assertIn('id="qualification"', html)
+        self.assertIn("operator_qualification", html)
+        self.assertNotIn("operator_group_id", html)
+        self.assertNotIn("independence_review_ref", html)
+
     def test_collect_status_does_not_call_grid_when_config_invalid(self):
         with (
             patch.object(Settings, "VALIDATOR_API_KEY", ""),
@@ -45,7 +53,12 @@ class DashboardGridSnapshotTests(unittest.IsolatedAsyncioTestCase):
                 return {"available": True, "items": [{"subject_id": "worker-1"}]}
 
             async def validator_registration(self):
-                return {"available": True, "validator_id": "val_test", "status": "active"}
+                return {
+                    "available": True,
+                    "validator_id": "val_test",
+                    "status": "active",
+                    "operator_qualification": {"status": "candidate"},
+                }
 
             async def list_workers(self):
                 raise RuntimeError("workers down")
@@ -59,6 +72,10 @@ class DashboardGridSnapshotTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(data["ok"])
         self.assertEqual(data["capabilities"]["mode"], "evidence_only")
         self.assertTrue(data["scorecards"]["available"])
+        self.assertEqual(
+            data["registration"]["operator_qualification"]["status"],
+            "candidate",
+        )
         self.assertIn("workers down", data["error"])
 
     async def test_grid_snapshot_collects_scorecards(self):
