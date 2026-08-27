@@ -34,12 +34,14 @@ class ReleasePackagingTests(unittest.TestCase):
         )
         (root / "install-validator.sh").write_text(
             "#!/usr/bin/env bash\nset -euo pipefail\n"
+            f'RELEASE_TAG="{tag or "__AIPG_VALIDATOR_RELEASE_TAG__"}"\n'
             "echo prepare-wallet\necho ' init'\n",
             encoding="utf-8",
         )
         (root / "install-validator.ps1").write_text(
             "# SPDX-License-Identifier: AGPL-3.0-or-later\n"
             "param([switch]$AcceptUnsignedPreview)\n"
+            f'$releaseTag = "{tag or "__AIPG_VALIDATOR_RELEASE_TAG__"}"\n'
             "Write-Host prepare-wallet\nWrite-Host ' init'\n",
             encoding="utf-8",
         )
@@ -161,6 +163,7 @@ class ReleasePackagingTests(unittest.TestCase):
         self.assertIn("name: Assemble verified release payload", binaries)
         self.assertIn("name: Clean install ${{ matrix.asset }}", binaries)
         self.assertIn("install-validator.ps1", binaries)
+        self.assertIn("scripts/stamp-release-installers.py", binaries)
         self.assertIn("-AcceptUnsignedPreview", binaries)
         self.assertIn("PYTHONIOENCODING=cp1252", binaries)
         self.assertIn("subject-checksums: dist-artifacts/SHA256SUMS", binaries)
@@ -237,6 +240,57 @@ class ReleasePackagingTests(unittest.TestCase):
             )
             self.assertNotEqual(failed.returncode, 0)
             self.assertIn("workflow source commit", failed.stderr)
+
+    def test_release_asset_verifier_rejects_stale_installer_tag(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self._write_release_payload(root, tag="v0.1.0-preview.7")
+            installer = root / "install-validator.sh"
+            installer.write_text(
+                installer.read_text(encoding="utf-8").replace(
+                    "v0.1.0-preview.7", "v0.1.0-preview.6"
+                ),
+                encoding="utf-8",
+            )
+            manifest_path = root / "validator-release.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            for item in manifest["assets"]:
+                if item["name"] == installer.name:
+                    item["bytes"] = installer.stat().st_size
+                    item["sha256"] = hashlib.sha256(installer.read_bytes()).hexdigest()
+            self._rewrite_manifest_and_checksums(root, manifest)
+
+            failed = self._run_release_verifier(root)
+
+            self.assertNotEqual(failed.returncode, 0)
+            self.assertIn("shell installer is not stamped", failed.stderr)
+
+    def test_release_installer_stamper_replaces_exact_placeholder(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for name in ("install-validator.sh", "install-validator.ps1"):
+                (root / name).write_text(
+                    "version=__AIPG_VALIDATOR_RELEASE_TAG__\n", encoding="utf-8"
+                )
+
+            result = subprocess.run(
+                [
+                    "python3",
+                    str(ROOT / "scripts" / "stamp-release-installers.py"),
+                    "--root",
+                    str(root),
+                    "v0.1.0-preview.7",
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            for name in ("install-validator.sh", "install-validator.ps1"):
+                body = (root / name).read_text(encoding="utf-8")
+                self.assertEqual(body.count("v0.1.0-preview.7"), 1)
+                self.assertNotIn("__AIPG_VALIDATOR_RELEASE_TAG__", body)
 
     def test_preview_release_accepts_explicit_unsigned_platforms(self):
         with tempfile.TemporaryDirectory() as tmp:

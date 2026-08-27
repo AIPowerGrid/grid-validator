@@ -12,6 +12,9 @@ verification, binary installation, systemd installation, and release smoke tests
 - `stamp-release-tag.py` converts a validated workflow tag into the immutable
   identity embedded in a binary or container. Empty input stamps the package's
   `vX.Y.Z-dev` identity.
+- `stamp-release-installers.py` replaces the one release-tag placeholder in
+  each packaged installer. Source installers require an explicit version;
+  published installers must default to their own immutable tag.
 - `verify-release-assets.sh` verifies the complete binary release payload.
 - `install-binary.sh`, `install-validator.ps1`, and `install-systemd.sh` own
   operator installation paths.
@@ -26,6 +29,9 @@ verification, binary installation, systemd installation, and release smoke tests
   allowed stable or bounded prerelease form.
 - Release workflows must run the packaged CLI with `--version` and require the
   exact stamped identity before publication.
+- The release verifier must reject published installers that are unstamped or
+  point at any tag other than the manifest tag. Build-only payloads retain the
+  placeholder and may install only from explicit local asset/checksum paths.
 - Keep scripts deterministic and non-interactive unless their installer purpose
   explicitly requires operator input. Never print secrets.
 

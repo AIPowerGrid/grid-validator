@@ -25,7 +25,8 @@ installer generation.
 - `test_release_packaging.py` - frozen container/release dependencies, action
   pinning, SBOM/provenance contracts, reviewed-source binding, hostile archive
   rejection, native Windows installation, four-platform clean-install CI,
-  explicit unsigned-preview disclosure, and strict stable signing gates.
+  exact installer-tag stamping, explicit unsigned-preview disclosure, and
+  strict stable signing gates.
 
 ## Local Contracts
 

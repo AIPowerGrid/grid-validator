@@ -2,14 +2,15 @@
 # Install the pinned AIPG validator preview binary from GitHub Releases.
 #
 # Released installer form:
-#   AIPG_VALIDATOR_VERSION=v0.1.0-preview.5 bash install-validator.sh
+#   bash install-validator.sh
 #
 # Checkout/dev form:
-#   ./scripts/install-binary.sh
+#   AIPG_VALIDATOR_VERSION=<release-tag> ./scripts/install-binary.sh
 set -euo pipefail
 
+RELEASE_TAG_PLACEHOLDER="__AIPG_VALIDATOR_RELEASE_TAG__"
 REPO="${AIPG_VALIDATOR_REPO:-AIPowerGrid/grid-validator}"
-VERSION="${AIPG_VALIDATOR_VERSION:-v0.1.0-preview.5}"
+VERSION="${AIPG_VALIDATOR_VERSION:-$RELEASE_TAG_PLACEHOLDER}"
 INSTALL_DIR="${AIPG_VALIDATOR_INSTALL_DIR:-$HOME/.local/bin}"
 BINARY_NAME="${AIPG_VALIDATOR_BINARY_NAME:-aipg-validator}"
 ASSET_URL="${AIPG_VALIDATOR_URL:-}"
@@ -20,6 +21,14 @@ die() {
   echo "error: $*" >&2
   exit 1
 }
+
+if [ "$VERSION" = "$RELEASE_TAG_PLACEHOLDER" ]; then
+  if [ -n "$ASSET_URL" ] && [ -n "$CHECKSUMS_URL" ]; then
+    VERSION="local-build"
+  else
+    die "AIPG_VALIDATOR_VERSION is required when using the checkout installer"
+  fi
+fi
 
 need() {
   command -v "$1" >/dev/null 2>&1 || die "$1 is required"

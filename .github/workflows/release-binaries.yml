@@ -178,9 +178,14 @@ jobs:
 
       - name: Package verified installer
         shell: bash
+        env:
+          RELEASE_TAG: ${{ needs.validate.outputs.tag }}
         run: |
           install -m 0755 scripts/install-binary.sh dist-artifacts/install-validator.sh
           install -m 0644 scripts/install-validator.ps1 dist-artifacts/install-validator.ps1
+          if [ -n "$RELEASE_TAG" ]; then
+            python scripts/stamp-release-installers.py --root dist-artifacts "$RELEASE_TAG"
+          fi
 
       - name: Generate release identity and SHA-256 manifest
         shell: bash

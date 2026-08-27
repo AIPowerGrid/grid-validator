@@ -36,10 +36,20 @@ if ($env:PROCESSOR_ARCHITECTURE -notin @("AMD64", "x86_64")) {
 }
 
 $repo = Get-Setting "AIPG_VALIDATOR_REPO" "AIPowerGrid/grid-validator"
-$version = Get-Setting "AIPG_VALIDATOR_VERSION" "v0.1.0-preview.5"
+$releaseTagPlaceholder = "__AIPG_VALIDATOR_RELEASE_TAG__"
+$version = Get-Setting "AIPG_VALIDATOR_VERSION" $releaseTagPlaceholder
 $installDir = Get-Setting "AIPG_VALIDATOR_INSTALL_DIR" (Join-Path $HOME ".local\bin")
 $configDir = Get-Setting "AIPG_VALIDATOR_CONFIG_DIR" (Join-Path $HOME ".aipg-validator")
 $asset = "aipg-validator-windows-x64.zip"
+$assetOverride = Get-Setting "AIPG_VALIDATOR_URL" ""
+$checksumsOverride = Get-Setting "AIPG_VALIDATOR_CHECKSUMS_URL" ""
+if ($version -eq $releaseTagPlaceholder) {
+    if ($assetOverride -and $checksumsOverride) {
+        $version = "local-build"
+    } else {
+        throw "AIPG_VALIDATOR_VERSION is required when using the checkout installer."
+    }
+}
 $assetUrl = Get-Setting "AIPG_VALIDATOR_URL" "https://github.com/$repo/releases/download/$version/$asset"
 $checksumsUrl = Get-Setting "AIPG_VALIDATOR_CHECKSUMS_URL" "https://github.com/$repo/releases/download/$version/SHA256SUMS"
 
