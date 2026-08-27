@@ -119,6 +119,8 @@ generator here or imply that passing public templates proves model quality.
 - **`PRODUCTION_BASELINE.md`** — dated public capability, assignment, quorum,
   independence, and network-capacity snapshots. It is historical evidence, not
   a substitute for the live public status endpoints.
+  Do not infer an operator's identity from a new registration's time or version;
+  registration, accepted evidence and independent qualification are separate facts.
   It distinguishes published Linux ARM64 and hosted Windows x64 live
   enrollment/assignment/recovery proof from uncompleted human Windows UI and
   independent-operator qualification.

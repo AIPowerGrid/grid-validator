@@ -5,6 +5,37 @@ This is a dated rollout snapshot, not a live status page. Query
 `GET https://api.aipowergrid.io/v1/validator/capabilities` for current public
 state.
 
+## 2026-08-27 20:49 UTC - Cohort And Pairing Qualification Status
+
+Read-only public health and production queries still report Core
+`407f29841988fd253afe867a1f5a07e23349219e`. The expiring pairing-pilot change
+in Core `f51875ce8fe550640008f1824625e2f5a071f88b` is merged, but the live
+service has not switched to it. Pairing, media, rewards and staking remain
+disabled; generated probes remain ineligible for quality authority.
+
+Five active registrations now have fresh heartbeats: four on preview.9 and
+one on preview.13. Three of the preview.9 nodes are the known first-party
+pilots. The previously reported external registration has thirty verified
+signed reports. The new preview.13 registration has no verified reports at
+this snapshot, and its operator identity is not confirmed. Do not label it
+as Donli based on its arrival time or version. All five registrations remain
+unreviewed, with no qualification start or sampled qualification heartbeats;
+verified independent operator count remains zero.
+
+Validator PR [#63](https://github.com/AIPowerGrid/grid-validator/pull/63)
+adds the manual [native pairing harness](NATIVE_PAIRING_CANARY.md). Its local
+suite passed 307 tests with six explicitly skipped opt-in cross-repo fixtures.
+This is test tooling, not a completed native live pairing run or a published
+client. Public immutable downloads remain preview.13. The recruitment issue
+and cohort guide point new users to explicit automatic enrollment and the
+local app, without manual private-key entry.
+
+The next operator evidence needed is a confirmed public validator ID, actual
+accepted reports, a practical control-separation review and the 72-hour
+qualification window. No independent review or association was created by this
+read-only check, and no release, service configuration or production version
+was changed.
+
 ## 2026-08-27 19:54 UTC - Published Windows Binary Live Proof
 
 The protected manual
