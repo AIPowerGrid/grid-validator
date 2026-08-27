@@ -23,8 +23,8 @@ package and frozen binary; no CDN, remote font, or third-party script is loaded.
   Exit app additionally closes the local server after stopping its child.
 - Keep unavailable/error states actionable. Disable controls when the app
   session is unavailable; keep status and controls usable at mobile widths.
-- Preserve the separate read-only dashboard. This UI is an unreleased source
-  candidate until the next native-tested immutable binary release.
+- Preserve the separate read-only dashboard. This UI ships in preview.12;
+  native offline package checks do not replace live end-to-end qualification.
 
 ## Verification
 

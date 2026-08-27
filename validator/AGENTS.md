@@ -145,8 +145,8 @@ change is deployed; Core still issues no media work by default.
   account-linked signing wallet; the menu cannot bypass that Core check.
   Option 1 performs explicit dedicated-account enrollment; option 7 prepares
   an identity only for advanced/manual use. Enrollment ships in preview.11.
-  Source option 8 opens the operator app; it remains unreleased until a new
-  immutable payload passes native package checks.
+  Option 8 opens the operator app, published in preview.12 after native package
+  and clean-install checks. Live Windows end-to-end qualification is separate.
 - **`update_check.py`** — bounded, notification-only GitHub release check. It
   validates tag syntax, ignores drafts, bypasses environment proxies, and
   constructs its own canonical release URL. It never downloads or executes an

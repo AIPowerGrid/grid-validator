@@ -70,15 +70,15 @@ generator here or imply that passing public templates proves model quality.
 
 - **`validator/`** — the whole node (config, stake gate, grid client, canary probing +
   scoring, attestation signing, probe loop, CLI, read-only dashboard, and opt-in
-  local operator app). Owned in its own AGENTS.md. Browser controls are a source
-  candidate, not included in the published preview.11 release.
+  local operator app). Owned in its own AGENTS.md. Browser controls ship in
+  the native-tested preview.12 release; live Windows qualification is separate.
 - **`README.md`** — V0 scope, quick start, and current public distribution shape.
 - **`QUICKSTART.md`** — one-page operator path that mirrors the worker quickstart:
   source preview, verified binary install, versioned public Docker, systemd,
   health checks, and V0
   safety boundaries.
-  Current downloads target preview.11 with confirmed local dedicated-account
-  enrollment and the Windows menu; preserve earlier deployed-fleet snapshots
+  Current downloads target preview.12 with confirmed local dedicated-account
+  enrollment, the Windows menu, and opt-in operator app; preserve deployed-fleet snapshots
   separately. Do not direct first-time operators to paste private keys or claim
   existing-account pairing is shipped.
 - **`OPERATORS.md`** — plain-language run guide (install, systemd, troubleshooting, FAQ).
