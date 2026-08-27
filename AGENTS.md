@@ -128,6 +128,11 @@ generator here or imply that passing public templates proves model quality.
   suspension plus key revocation. Preview.13 passed run `33110290699` with two
   verified signed reports and confirmed retirement. It is not human double-click
   or independent operator proof. Only its bounded public report may become an artifact.
+- **`NATIVE_PAIRING_CANARY.md`** - manual Windows/Linux candidate pairing
+  qualification with separate Console approval and local code consent. This is
+  maintainer test tooling, not onboarding for ordinary operators. It has offline
+  safety coverage but no completed native live pairing run; it neither deploys
+  Core nor activates the pilot. Public downloads remain preview.13.
 - **`SECURITY.md`** — private vulnerability disclosure process and the
   validator-specific evidence, identity, and release-supply-chain scope.
 - **`pyproject.toml`** — package metadata and `aipg-validator` console script.

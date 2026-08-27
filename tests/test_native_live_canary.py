@@ -7,7 +7,9 @@ import hashlib
 import importlib.util
 import json
 import os
+import sys
 import tempfile
+import time
 import unittest
 import zipfile
 from datetime import datetime, timedelta, timezone
@@ -26,6 +28,19 @@ spec.loader.exec_module(canary)
 
 
 class NativeCanaryTests(unittest.TestCase):
+    @unittest.skipIf(os.name == "nt", "POSIX owned-process-group cleanup")
+    def test_timeout_stops_descendants_after_parent_has_exited(self):
+        script = (
+            "import subprocess,sys; "
+            "subprocess.Popen([sys.executable,'-c','import time; time.sleep(60)']); "
+            "print('private child output',flush=True)"
+        )
+        started = time.monotonic()
+        with self.assertRaisesRegex(canary.Failed, "command_timeout") as failure:
+            canary.command([sys.executable, "-c", script], timeout=0.3)
+        self.assertLess(time.monotonic() - started, 5)
+        self.assertNotIn("private child output", str(failure.exception))
+
     def test_child_environment_excludes_tokens_keys_and_python_injection(self):
         with patch.dict(
             os.environ,

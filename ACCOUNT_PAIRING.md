@@ -155,6 +155,12 @@ outage recovery and expiry. No horizontal overflow was observed.
 
 ### Scoped Qualification
 
+The maintainer-only [native pairing canary](NATIVE_PAIRING_CANARY.md) exercises
+the actual Windows/Linux candidate through its loopback app and official HTTPS
+Core. It requires explicit Console approval and local comparison-code entry,
+not synthetic approval. Its offline safety tests are implemented; no native live
+pairing run has passed yet. It does not deploy Core or configure the pilot.
+
 After deploying the reviewed pilot-capable Core dark, the maintainer may keep
 global pairing off and designate only unfunded test node and human accounts in
 `VALIDATOR_PAIRING_CANARY_ACCOUNTS`, with an explicit timezone-aware

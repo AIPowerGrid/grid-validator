@@ -32,6 +32,17 @@ verification, binary installation, systemd installation, and release smoke tests
   evidence and recovery, then suspends/revokes the disposable node credentials.
   Never print captured child output or upload private state. This is a manual
   protected workflow, not ordinary CI or independent/operator-UI proof.
+- `native-pairing-canary.py` is a separate, manual Windows/Linux candidate
+  qualification harness. It binds a successful reviewed-master binary workflow
+  to its exact source and archive hash, explicitly labels build-only artifacts
+  as lacking release provenance, and requires an exact dark Core revision.
+  It creates only a fresh disposable node; a maintainer separately admits that
+  node and an unfunded test human through the expiring pilot. Console approval
+  and hidden code entry are separate from polling. Private review files never
+  enter the bounded public report. Cancellation, two removals, app restart,
+  discarded-response recovery, fresh evidence before/after and retirement must
+  all pass. This harness has not yet passed a native live pairing run; its
+  offline fixtures are not that proof. See `../NATIVE_PAIRING_CANARY.md`.
 
 ## Local Contracts
 
@@ -47,6 +58,11 @@ verification, binary installation, systemd installation, and release smoke tests
   placeholder and may install only from explicit local asset/checksum paths.
 - Keep scripts deterministic and non-interactive unless their installer purpose
   explicitly requires operator input. Never print secrets.
+- The manual pairing harness's `review` command deliberately requires a TTY for
+  hidden comparison-code input. No code, approval URL, local session token or
+  private state may be passed through public CI logs/artifacts. Shared native
+  subprocess helpers own POSIX process groups and kill descendants on timeout,
+  even when the parent exited first; Windows cleanup remains tree-scoped.
 - Collect `validator` package data in PyInstaller. Every native release build
   runs the app smoke; importing source tests alone does not prove UI packaging.
 - Windows installer output points to the interactive menu with an explicit
