@@ -44,8 +44,8 @@ install.
 
 ### Binary Install
 
-Once downloadable binaries are published, use the exact preview release and
-verify the installer provenance before running it:
+Use the exact published preview release and verify the installer provenance
+before running it:
 
 > **Unsigned preview:** macOS is not Developer ID signed or notarized, and
 > Windows is not Authenticode signed. Verify `SHA256SUMS` and GitHub provenance
