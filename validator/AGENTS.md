@@ -92,8 +92,12 @@ change is deployed; Core still issues no media work by default.
   Tool-chain assignments verify and commit both hard-targeted stages before
   signing. A target worker's accepted-but-empty completion is failed evidence,
   not a transport error; coordinator dispatch failures remain inconclusive.
-  `probe_round` returns the number of canaries actually
-  attempted; one-shot checks use this to reject green-looking no-op probes.
+  `probe_round` returns the number of attestations accepted by Core, including
+  recovered outbox deliveries; one-shot checks reject a zero-delivery result.
+  Optional structured observer events report actual registration/heartbeat
+  acknowledgements and accepted counts, never scraped log text. Runtime loops
+  hold an OS-released lock beside the state journal to exclude a second loop
+  sharing that path. Registration cancellation must close the Grid client.
   If `VALIDATOR_REQUIRE_STAKE=true`, missing stake config/deployment must raise
   a startup error before the Grid client starts; do not silently return success.
   The direct `python -m validator.main` module path must also print clean
@@ -108,7 +112,7 @@ change is deployed; Core still issues no media work by default.
   credentials are never replaced; interrupted dedicated enrollment reuses its
   signer. `VALIDATOR_IDENTITY_ORIGIN` is a local recovery marker, not proof of
   independent control. Does not pair, merge, fund, or alter an existing account.
-- **`cli.py`** — `aipg-validator menu | enroll | prepare-wallet | init | self-test | check | dashboard | run | queue | suspend | rotate`.
+- **`cli.py`** — `aipg-validator menu | enroll | prepare-wallet | init | self-test | check | dashboard | app | run | queue | suspend | rotate`.
   `prepare-wallet` uses the operating-system CSPRNG, writes a local signing
   identity atomically at mode `0600` on POSIX or with a protected owner-only
   DACL on Windows, prints only the public address, and is
@@ -140,8 +144,9 @@ change is deployed; Core still issues no media work by default.
   by opening the menu. Enrollment still requires proof of control of the
   account-linked signing wallet; the menu cannot bypass that Core check.
   Option 1 performs explicit dedicated-account enrollment; option 7 prepares
-  an identity only for advanced/manual use. Source enrollment is not available
-  in binaries through preview.10; do not advertise it until a tested release.
+  an identity only for advanced/manual use. Enrollment ships in preview.11.
+  Source option 8 opens the operator app; it remains unreleased until a new
+  immutable payload passes native package checks.
 - **`update_check.py`** — bounded, notification-only GitHub release check. It
   validates tag syntax, ignores drafts, bypasses environment proxies, and
   constructs its own canonical release URL. It never downloads or executes an
@@ -153,6 +158,22 @@ change is deployed; Core still issues no media work by default.
   groups, or private review references, and never bind beyond localhost by
   default. Invalid bind options must fail with a clean
   CLI error, not a Python traceback.
+- **`operator_app.py`** - opt-in, loopback-only browser controls. An ephemeral
+  fragment token authenticates status, diagnostics, and fixed run/stop/enroll
+  commands plus explicit app exit. Require exact Host and same-origin writes; do not enable CORS,
+  expose logs/config/paths, accept arbitrary commands, or adopt external PIDs.
+  Own only the process tree started here. Stop closes its control pipe, waits up to
+  25 seconds, then kills that child if needed (its owned bootloader tree on
+  Windows). Closing a browser tab does not
+  stop the app; Exit app stops owned work before closing the server. Local stop
+  is neither signed suspension nor key revocation.
+- **`operator_worker.py`** - private child protocol: allowlisted structured
+  events, fresh Settings per start, EOF/cancellation cleanup, and sanitized error
+  codes. Enrollment is an explicitly confirmed action and uses the existing
+  secure enrollment path; stopping it preserves any already-written identity.
+- **`file_lock.py`** - nonblocking POSIX/Windows process locks, released by OS
+  close/crash. Locks are path-local, not proof of cross-host identity uniqueness.
+- **`ui/`** - packaged local HTML/CSS/JS and official logo. See child DOX.
 
 ## Local Contracts
 
@@ -276,4 +297,4 @@ change is deployed; Core still issues no media work by default.
 
 ## Child DOX Index
 
-—
+- [ui/AGENTS.md](ui/AGENTS.md) - authenticated operator controls and display contracts.

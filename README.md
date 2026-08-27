@@ -32,6 +32,9 @@ What is implemented and testable against production Core:
 - Editable package install with the `aipg-validator` console command.
 - Module entrypoint for `python -m validator`.
 - Read-only local dashboard on `127.0.0.1:8790`.
+- Current source also has opt-in `aipg-validator app` browser controls for
+  explicit setup, start/stop, participation status, and redacted diagnostics.
+  This is not in preview.11; see the [source app runbook](OPERATORS.md#local-operator-app-source-candidate).
 - Assignment-bound text canaries through validator-only Core endpoints.
 - Randomized text scoring: exact nonce echo, generated arithmetic, strict JSON,
   calibrated 4K, 16K, and 32K context retrieval, generated multistep logic, exact

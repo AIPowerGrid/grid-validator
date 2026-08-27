@@ -496,6 +496,23 @@ def _cmd_dashboard(args) -> int:
     return 0
 
 
+def _cmd_app(args) -> int:
+    from .operator_app import run_app
+
+    try:
+        run_app(port=args.port, open_browser=not args.no_browser)
+    except (OSError, RuntimeError) as exc:
+        print(f"ERROR App: {exc}")
+        return 1
+    return 0
+
+
+def _cmd_operator_worker(args) -> int:
+    from .operator_worker import execute
+
+    return execute(args.action)
+
+
 def _cmd_lifecycle(args) -> int:
     from . import attest
     from .config import Settings
@@ -595,6 +612,12 @@ def _cmd_queue(args) -> int:
 def main(argv=None) -> int:
     from . import __release_tag__
 
+    argv = sys.argv[1:] if argv is None else argv
+    if argv and argv[0] == "_operator-worker":
+        internal = argparse.ArgumentParser(prog="aipg-validator _operator-worker")
+        internal.add_argument("action", choices=["run", "enroll"])
+        return _cmd_operator_worker(internal.parse_args(argv[1:]))
+
     p = argparse.ArgumentParser(prog="aipg-validator", description="AIPG validator node")
     p.add_argument("--version", action="version", version=f"%(prog)s {__release_tag__}")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -619,6 +642,9 @@ def main(argv=None) -> int:
         help="exercise packaged image/video decoders locally without Grid traffic",
     )
     sub.add_parser("run", help="start the validator loop")
+    app = sub.add_parser("app", help="open local operator controls in your browser")
+    app.add_argument("--port", type=int, default=0, help="loopback port (0 selects an available port)")
+    app.add_argument("--no-browser", action="store_true", help="print the private local URL without opening a browser")
     sub.add_parser("suspend", help="stop new assignments with a signed request")
     sub.add_parser("rotate", help="rotate to the configured, newly linked signing wallet")
     dashboard = sub.add_parser("dashboard", help="serve local read-only dashboard")
@@ -634,7 +660,6 @@ def main(argv=None) -> int:
         default="all",
         help="dead-letter class to retry (default: all)",
     )
-    argv = sys.argv[1:] if argv is None else argv
     if not argv:
         if sys.stdin is not None and sys.stdin.isatty():
             argv = ["menu"]
@@ -647,6 +672,7 @@ def main(argv=None) -> int:
 
         return run_menu()
     handler = {
+        "app": _cmd_app,
         "enroll": _cmd_enroll,
         "init": _cmd_init,
         "prepare-wallet": _cmd_prepare_wallet,

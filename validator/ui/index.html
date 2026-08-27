@@ -1,0 +1,28 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AIPG Validator</title>
+  <link rel="icon" href="/logo.png">
+  <link rel="stylesheet" href="/app.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header><div class="brand"><img src="/logo.png" alt="" width="36" height="36"><strong>AI Power Grid</strong><span>Validator</span></div><span id="version">Local app</span></header>
+  <main>
+    <section class="heading"><div><p class="eyebrow">YOUR NODE</p><h1 id="phase">Connecting to local app</h1><p id="message" role="status" aria-live="polite"></p></div><div class="controls"><button id="setup" hidden>Set up node</button><button id="start" disabled>Start validator</button><button id="stop" disabled>Stop</button></div></section>
+    <p class="error" id="error" role="alert" hidden></p>
+    <section class="metrics" aria-label="Participation">
+      <div><h2>Registration</h2><strong id="registration">Not checked</strong><code id="validator-id"></code></div>
+      <div><h2>Heartbeat</h2><strong id="heartbeat">Not received</strong><span id="connection">Not connected</span></div>
+      <div><h2>Accepted evidence</h2><strong id="accepted">0</strong><span>This app session</span></div>
+      <div><h2>Recovery queue</h2><strong id="pending">Not checked</strong><span id="dead"></span></div>
+    </section>
+    <section class="activity"><div class="section-title"><h2>Activity</h2><button id="diagnostics" title="Download redacted diagnostics" disabled>Download diagnostics</button></div><ul id="events"><li class="empty">No activity yet.</li></ul></section>
+    <footer><span>Evidence-only preview<br>No validator rewards, stake, or worker penalties</span><button id="quit" disabled>Exit app</button></footer>
+  </main>
+  <dialog id="consent"><form method="dialog"><h2>Set up a dedicated validator account?</h2><p>A new signing identity will be saved on this computer and registered with the Grid to obtain a validator-only API key. No personal private key or funds are required.</p><p>This does not link or merge an existing account. Keep your existing node configuration when upgrading.</p><div class="controls"><button value="cancel">Cancel</button><button value="confirm" id="confirm">Create node account</button></div></form></dialog>
+</body>
+</html>

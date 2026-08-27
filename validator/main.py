@@ -13,11 +13,14 @@ import json
 import logging
 import sys
 import time
+from pathlib import Path
+from typing import Callable
 
 from . import attest, media_prober, prober, staking, update_check
 from .config import Settings
 from .grid_client import GridClient
 from .outbox import AttestationOutbox
+from .file_lock import exclusive_lock
 
 logging.basicConfig(
     level=logging.INFO,
@@ -644,6 +647,7 @@ async def probe_round(
     grid: GridClient,
     round_index: int,
     outbox: AttestationOutbox | None = None,
+    observer: Callable[..., None] | None = None,
 ) -> int:
     """Run one probe round and return the number of attestations accepted by Core."""
     del round_index
@@ -665,6 +669,8 @@ async def probe_round(
             logger.error("refusing invalid assignment journal entry: %s", exc)
 
     pending_assignments = outbox.pending_assignments()
+    if observer:
+        observer("probing" if pending_assignments else "waiting", assignments=len(pending_assignments))
     if not pending_assignments:
         logger.info("no Grid-issued assignments available; fail-closed round performed no probe")
         return accepted
@@ -698,7 +704,7 @@ async def probe_round(
     return accepted + completed
 
 
-async def run() -> None:
+async def run(observer: Callable[..., None] | None = None) -> None:
     Settings.validate()
     # Stake gate — refuse to run unstaked (unless REQUIRE_STAKE=false for dev).
     try:
@@ -710,27 +716,45 @@ async def run() -> None:
                 "Set VALIDATOR_REQUIRE_STAKE=false to run pre-launch."
             )
 
+    with exclusive_lock(Path(Settings.STATE_DB_PATH + ".run.lock")):
+        await _run_registered(observer)
+
+
+async def _run_registered(observer: Callable[..., None] | None = None) -> None:
+    def report(phase: str, **values):
+        if observer:
+            observer(phase, **values)
+
     grid = GridClient()
-    registration = attest.sign(attest.build_registration(int(time.time())))
     try:
-        registered = await grid.register_validator(registration)
-    except Exception as exc:
-        await grid.aclose()
-        raise RuntimeError(f"validator registration failed: {exc}") from exc
-    logger.info(
-        f"Validator {registered.get('validator_id', 'unknown')} online -> {Settings.GRID_API_URL} "
-        f"(probe every {Settings.PROBE_INTERVAL_S}s)"
-    )
-    outbox = AttestationOutbox(Settings.STATE_DB_PATH)
-    round_index = 0
-    next_update_check = 0.0
-    try:
+        report("registering")
+        registration = attest.sign(attest.build_registration(int(time.time())))
+        try:
+            registered = await grid.register_validator(registration)
+        except Exception as exc:
+            raise RuntimeError(f"validator registration failed: {exc}") from exc
+        logger.info(
+            f"Validator {registered.get('validator_id', 'unknown')} online -> {Settings.GRID_API_URL} "
+            f"(probe every {Settings.PROBE_INTERVAL_S}s)"
+        )
+        report("registered", validator_id=registered.get("validator_id", ""))
+        outbox = AttestationOutbox(Settings.STATE_DB_PATH)
+        round_index = 0
+        next_update_check = 0.0
         while True:
             try:
                 await grid.heartbeat()
-                await probe_round(grid, round_index, outbox)
+                report("heartbeat")
+                accepted = await probe_round(grid, round_index, outbox, observer=observer)
+                counts = outbox.counts()
+                assignments = outbox.assignment_counts()
+                report("waiting", accepted=accepted, pending=counts["pending"] + assignments["pending"],
+                       dead=counts["dead"] + assignments["dead"])
             except Exception as e:
                 logger.error(f"probe round failed: {e}", exc_info=True)
+                from .operator_worker import error_code
+
+                report("retrying", error=error_code(e))
             if Settings.UPDATE_CHECK_ENABLED and time.monotonic() >= next_update_check:
                 notice = await update_check.check_for_update()
                 if notice is not None:

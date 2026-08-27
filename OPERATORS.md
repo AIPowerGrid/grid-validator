@@ -73,6 +73,35 @@ Upgrade to preview.11, preserving existing configuration. New operators can
 extract the Windows ZIP, double-click `aipg-validator.exe`, choose 1 and confirm,
 then use 4 to check registration and 5 to run. PowerShell is optional.
 
+### Local Operator App (Source Candidate)
+
+The current source adds `aipg-validator app` (menu option 8). **This command is
+not included in the published preview.11 binaries.** Keep using the documented
+preview.11 menu until a new native-tested release is published.
+
+The app opens a private localhost page. On an empty configuration, choose
+**Set up node** and confirm dedicated-account creation. Existing operators
+retain their configuration and choose **Start validator**. Registration and
+heartbeats reflect Core acknowledgements; accepted evidence counts successful
+submissions during this app session, not completed quality audits or rewards.
+Waiting without an assignment is normal during cooldown or limited capacity.
+
+**Stop** stops only the process this app started and preserves the signing
+identity and recovery journal. It does not revoke credentials or suspend the
+registration. An interrupted enrollment may have already persisted a signer
+or issued a key; retry the same configuration, never create another identity
+to work around it. Closing the browser tab leaves the app/node running; choose
+**Exit app** to stop its child and close the app. A separate systemd/CLI instance is not
+controlled by this page; it must be stopped through its original launcher.
+
+The app binds only `127.0.0.1`, chooses an available port, and uses a random
+local session. Do not share the private URL or forward its port. Reopen through
+the menu if the local session expires. **Download diagnostics** includes only
+version, public validator ID, status, timestamps, counts, and bounded activity.
+It omits credentials, config paths, raw logs, and challenge content. Missing or
+invalid credentials and connection failures are shown without leaking server
+responses. Existing-account pairing remains separate, unfinished work.
+
 ### Binary Install
 
 Use the exact published preview release and verify the installer provenance
