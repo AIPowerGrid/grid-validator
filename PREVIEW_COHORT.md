@@ -12,7 +12,7 @@ no validator staking, slashing, or compensation in this cohort.
 Enrollment is open for the evidence-only cohort. Production Core runs commit
 `df34ffd4` with migrations through `0029`, and the immutable public operator
 preview is
-[`v0.1.0-preview.8`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.8).
+[`v0.1.0-preview.9`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.9).
 The three first-party nodes share one operator and hypervisor, so they do not
 count toward the five independent-operator exit gate.
 
@@ -64,12 +64,12 @@ hostname, or review notes.
 
 Linux x64 and ARM64 binaries target glibc 2.35 or newer. macOS and Windows
 preview binaries are explicitly unsigned; Linux is the lowest-friction public
-pilot path. The exact `ghcr.io/aipowergrid/validator:v0.1.0-preview.8`
+pilot path. The exact `ghcr.io/aipowergrid/validator:v0.1.0-preview.9`
 container is anonymously pullable on Linux x64 and ARM64; the prerelease does
 not publish `latest`.
 
 ```bash
-curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.8/install-validator.sh
+curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.9/install-validator.sh
 gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator
 bash install-validator.sh
 cd ~/.aipg-validator

@@ -306,7 +306,7 @@ Remaining activation gates:
 - publish an explicit-timing LTX recipe through RecipeVault and run a real-workload canary
 - populate and qualify independently operated bonded video references
 - tolerances are calibrated against real LTX and other allowed workflows
-- media-enabled binaries pass the release matrix
+- [x] media-enabled binaries pass the four-platform build and clean-install matrix
 - multi-operator canaries remain evidence-only before routing influence
 
 Definition of done:

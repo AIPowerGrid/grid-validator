@@ -321,8 +321,8 @@ video scorers. Production Core contains a separately gated, default-off
 `video.fidelity.v1` assignment path that hard-targets one candidate plus two
 independently controlled bonded references under one governed deterministic
 recipe and model digest. Video issuance is not enabled; the public V0 binary
-`preview.8` does not bundle PyAV. Current release-candidate binaries and the
-container bundle the locked media dependencies and run a real offline decoder
+`preview.8` did not bundle PyAV. `preview.9` binaries and the container bundle
+the locked media dependencies and run a real offline decoder
 self-test across the four-platform release matrix. Production Core advertises
 the fidelity capability with `enabled=false`. The scorer fetches only
 hash-bound witnesses from explicit public HTTPS origins and decodes each

@@ -61,13 +61,14 @@ before running it:
 > before accepting the OS warning. Prefer Linux or Docker for pilot nodes.
 
 ```bash
-curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.8/install-validator.sh
+curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.9/install-validator.sh
 gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator
 bash install-validator.sh
 cd ~/.aipg-validator
 aipg-validator prepare-wallet
 # Link the printed address and create a validator key in the Console.
 aipg-validator init
+aipg-validator self-test
 aipg-validator check --no-probe
 aipg-validator dashboard
 ```
@@ -78,14 +79,14 @@ The installer places the binary in `$HOME/.local/bin` and creates
 ```bash
 AIPG_VALIDATOR_INSTALL_DIR=/usr/local/bin \
   AIPG_VALIDATOR_CONFIG_DIR=/var/lib/aipg-validator \
-  AIPG_VALIDATOR_VERSION=v0.1.0-preview.8 \
+  AIPG_VALIDATOR_VERSION=v0.1.0-preview.9 \
   ./scripts/install-binary.sh
 ```
 
 On Windows x64, use the native PowerShell installer:
 
 ```powershell
-Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.8/install-validator.ps1 -OutFile install-validator.ps1
+Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.9/install-validator.ps1 -OutFile install-validator.ps1
 gh attestation verify install-validator.ps1 --repo AIPowerGrid/grid-validator
 .\install-validator.ps1 -AcceptUnsignedPreview
 ```
@@ -253,13 +254,14 @@ Override the bind address only when you know the machine/network boundary:
 Docker is the easiest server path once `.env` exists.
 
 ```bash
-docker pull ghcr.io/aipowergrid/validator:v0.1.0-preview.8
+docker pull ghcr.io/aipowergrid/validator:v0.1.0-preview.9
+docker run --rm ghcr.io/aipowergrid/validator:v0.1.0-preview.9 self-test
 docker run --rm \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.8 check --no-probe
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.9 check --no-probe
 docker run -d --name aipg-validator --restart unless-stopped \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.8
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.9
 ```
 
 Run the dashboard container when you want a local browser view:
@@ -267,7 +269,7 @@ Run the dashboard container when you want a local browser view:
 ```bash
 docker run --rm -p 8790:8790 \
   --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.8 \
+  ghcr.io/aipowergrid/validator:v0.1.0-preview.9 \
   dashboard --host 0.0.0.0
 ```
 
