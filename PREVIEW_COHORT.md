@@ -56,9 +56,9 @@ hostname, or review notes.
    menu option **8: Open local operator app**. No PowerShell is needed for the
    menu/app flow. Follow the unsigned-preview and verification guidance before
    running the download.
-2. In the local app, choose **Enroll** on a new installation and confirm the
-   dedicated-node setup, then choose **Start**. Existing operators should keep
-   their protected configuration and use Start; do not delete keys or enroll a
+2. In the local app, choose **Set up node** on a new installation and confirm
+   with **Create node account**, then choose **Start validator**. Existing operators should keep
+   their protected configuration and use Start validator; do not delete keys or enroll a
    replacement identity just to upgrade. Wait for acknowledged registration
    and heartbeat, then copy the public `val_*` validator ID from the app.
 3. Join the [AI Power Grid Discord](https://discord.gg/W9D8j6HCtC) and ask
@@ -92,7 +92,7 @@ aipg-validator app
 
 ## Qualification Run
 
-Use Start in the local app and keep it running. A heartbeat alone is not a
+Use Start validator in the local app and keep it running. A heartbeat alone is not a
 passing end-to-end test: the node must receive an assignment, finish its probe,
 and have its signed evidence accepted. Assignment availability is not guaranteed
 immediately. Do not run a second copy while the app's worker is running.
@@ -138,7 +138,7 @@ above. Report suspected security issues privately using the process in
 
 Stop in the local app stops its managed process; it does not revoke keys or
 unlink an account. For a signed self-suspension, stop the local loop first and
-run `aipg-validator suspend`. A later Start or `aipg-validator check --no-probe`
+run `aipg-validator suspend`. A later Start validator or `aipg-validator check --no-probe`
 submits a fresh signed registration and resumes the same wallet.
 
 Planned key rotation is an advanced, account-bound procedure documented in
