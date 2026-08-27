@@ -31,8 +31,9 @@ longer architecture, not permission to activate paid audits or economics.
 6. Prove clean first-run through accepted signed evidence on Windows and Linux,
    including cancellation, offline recovery, restarts, and upgrades.
    The Linux ARM64 binary passed those lifecycle paths on 2026-08-27. A misleading
-   network-error label found live is fixed in source but still needs release;
-   Windows remains open. See [PRODUCTION_BASELINE.md](PRODUCTION_BASELINE.md).
+   network-error label found live was corrected in preview.13 and its published
+   Linux binary passed the real outage/recovery check. Windows remains open.
+   See [PRODUCTION_BASELINE.md](PRODUCTION_BASELINE.md).
 7. Qualify at least five independently controlled operators for 72 hours;
    registration, wallets, and first-party canaries do not prove independence.
 8. Maintain hostile-worker tests for template solvers, replay, fabricated

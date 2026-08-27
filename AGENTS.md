@@ -77,10 +77,12 @@ generator here or imply that passing public templates proves model quality.
   source preview, verified binary install, versioned public Docker, systemd,
   health checks, and V0
   safety boundaries.
-  Current downloads target preview.12 with confirmed local dedicated-account
+  Current downloads target preview.13 with confirmed local dedicated-account
   enrollment, the Windows menu, and opt-in operator app; preserve deployed-fleet snapshots
   separately. Do not direct first-time operators to paste private keys or claim
   existing-account pairing is shipped.
+  Preview.13 preserves the network-error category through HTTPX's exception
+  chain; its published Linux binary passed controlled live outage/recovery.
 - **`OPERATORS.md`** — plain-language run guide (install, systemd, troubleshooting, FAQ).
   It owns the signed suspend/resume and account-bound signing-wallet/API-key
   rotation runbooks; do not describe local file deletion as credential revocation.
@@ -97,7 +99,7 @@ generator here or imply that passing public templates proves model quality.
 - **`PREVIEW_COHORT.md`** — public recruitment and qualification contract for
   5-10 independent preview operators, including safe reporting and the
   distinction between node count and independently controlled quorum weight.
-  Its new-operator path is preview.12 automatic dedicated-node enrollment and
+  Its new-operator path is preview.13 automatic dedicated-node enrollment and
   the local app, not manual wallet/key preparation. Keep independent-control
   review and advanced credential rotation separate from first-run setup.
   Qualification is 72 hours with bounded heartbeat sampling and an expiring

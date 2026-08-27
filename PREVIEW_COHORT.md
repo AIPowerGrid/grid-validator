@@ -12,7 +12,7 @@ no validator staking, slashing, or compensation in this cohort.
 Enrollment is open for the evidence-only cohort. As checked on 2026-08-27,
 production Core runs commit `6015eca3` with migrations through `0029`. New
 operators should use the immutable public
-[`v0.1.0-preview.12`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.12),
+[`v0.1.0-preview.13`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.13),
 which provides explicit automatic enrollment and a local operator app. The
 first-party fleet still runs preview.9; that is a deployment snapshot, not the
 download recommendation.
@@ -36,7 +36,7 @@ New enrollment creates a dedicated local signer and obtains a scoped validator
 key for its own node account, only after confirmation. No pre-existing wallet,
 funds, Google/GitHub login, or exported private key is required. Do not paste a
 funded wallet's key into the validator. Optional association with an existing
-human account is separate, unreleased work; preview.12 does not include it.
+human account is separate, unreleased work; preview.13 does not include it.
 
 One organization or person counts as one independent operator, regardless of
 how many nodes they run. Multiple nodes controlled by the same operator do not
@@ -51,7 +51,7 @@ hostname, or review notes.
 
 ## Join
 
-1. Install the verified preview.12 release using [QUICKSTART.md](QUICKSTART.md).
+1. Install the verified preview.13 release using [QUICKSTART.md](QUICKSTART.md).
    On Windows, extract the ZIP and double-click `aipg-validator.exe`; choose
    menu option **8: Open local operator app**. No PowerShell is needed for the
    menu/app flow. Follow the unsigned-preview and verification guidance before
@@ -76,12 +76,12 @@ hostname, or review notes.
 
 Linux x64 and ARM64 binaries target glibc 2.35 or newer. macOS and Windows
 preview binaries are explicitly unsigned; Linux is the lowest-friction public
-pilot path. The exact `ghcr.io/aipowergrid/validator:v0.1.0-preview.12`
+pilot path. The exact `ghcr.io/aipowergrid/validator:v0.1.0-preview.13`
 container is anonymously pullable on Linux x64 and ARM64; the prerelease does
 not publish `latest`.
 
 ```bash
-curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.12/install-validator.sh
+curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.13/install-validator.sh
 gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator
 bash install-validator.sh
 cd ~/.aipg-validator
