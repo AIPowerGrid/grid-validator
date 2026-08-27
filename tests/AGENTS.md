@@ -11,7 +11,8 @@ installer generation.
 - `test_prober.py`, `test_media_prober.py`, `test_attest.py`, `test_main.py` - challenge, evidence, and
   assignment loop.
 - `test_outbox.py` - durable assignment journaling, atomic signed-evidence
-  promotion, delivery, dead-letter recovery, and restart behavior.
+  promotion, delivery, dead-letter recovery, restart behavior, and deterministic
+  connection closure after both commit and rollback.
 - `test_grid_client.py` - endpoint/capability and lifecycle transport contracts.
 - `test_cli.py`, `test_launcher.py`, `test_dashboard.py`, `test_config.py` - operator surfaces,
   including POSIX mode-`0600` / Windows protected owner-only signing-wallet preparation without secret

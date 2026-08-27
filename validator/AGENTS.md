@@ -148,7 +148,9 @@ change is deployed; Core still issues no media work by default.
   Never sign raw prompts, expected answers, or raw responses in V0; sign compact
   hashes so scorecards can stay private while evidence is still committed.
 - **`outbox.py`** — private local SQLite state journal for Grid assignments and
-  signed public envelopes. It records an assignment before the probe, atomically
+  signed public envelopes. Every connection commits/rolls back and closes at
+  the context boundary; never leave Windows file locks to garbage collection.
+  It records an assignment before the probe, atomically
   promotes it to a signed envelope, deduplicates by assignment, survives
   restarts, retries before new probes, and dead-letters after separate configured
   attempt/age bounds. `queue retry-dead` is the only automatic-state revival;

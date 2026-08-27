@@ -153,7 +153,7 @@ binary is installed or executed.
 
 `preview.9` and earlier are command-line executables: double-clicking without
 a command closes the window after printing a usage error. Open PowerShell in
-the extracted folder and run ` .\aipg-validator.exe --version` to identify the
+the extracted folder and run `.\aipg-validator.exe --version` to identify the
 build and keep errors visible. These releases also have a Windows-specific
 identity-file permission bug. Do not create extra API keys to fix either issue.
 
