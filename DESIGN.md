@@ -321,8 +321,10 @@ video scorers. Production Core contains a separately gated, default-off
 `video.fidelity.v1` assignment path that hard-targets one candidate plus two
 independently controlled bonded references under one governed deterministic
 recipe and model digest. Video issuance is not enabled; the public V0 binary
-also does not bundle PyAV. Production Core advertises the fidelity capability
-with `enabled=false`. The scorer fetches only
+`preview.8` does not bundle PyAV. Current release-candidate binaries and the
+container bundle the locked media dependencies and run a real offline decoder
+self-test across the four-platform release matrix. Production Core advertises
+the fidelity capability with `enabled=false`. The scorer fetches only
 hash-bound witnesses from explicit public HTTPS origins and decodes each
 untrusted MP4/WebM object in a killable child process with time, frame,
 dimension, and Linux resource bounds.
@@ -353,8 +355,8 @@ signals and must not be claimed from this scorer.
 
 Core assignment generation, hard-targeted three-worker execution, and immutable
 witness retention are implemented dark. Governed RecipeVault publication,
-independently operated bonded references, real-workload calibration, and
-cross-platform media-enabled binary qualification remain rollout gates. Video
+independently operated bonded references and real-workload calibration remain
+rollout gates. Video
 evidence should start as routing evidence, not a slashing surface.
 
 ## Attestations

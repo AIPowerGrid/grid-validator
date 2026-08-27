@@ -19,6 +19,8 @@ installer generation.
   control metadata, signed suspension, and account-bound signing-wallet
   rotation.
 - `test_update_check.py` - bounded release selection and nonfatal update checks.
+- `test_self_test.py` - offline, real-process image/video decoder qualification
+  for source and packaged runtimes.
 - `test_systemd_installer.py` - generated service security and behavior.
 - `test_release_tag.py` - binary/Docker release-tag and `latest` publication
   policy plus deterministic source/build identity stamping.
@@ -42,6 +44,8 @@ installer generation.
   release tag before publication.
 - CLI checks must expose the local scorer set so release smokes can distinguish
   a usable frozen scorer from a silently withheld capability.
+- Every official binary and container must run the same bounded image/video
+  decoder self-test, including after a clean installer extraction.
 - Preserve the no-economic-effect boundary: assignment success/failure must not
   imply payout, routing, strike, or slash authority.
 - Prove missing registration, assignments, and probe support do not fall back

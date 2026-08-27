@@ -15,7 +15,7 @@ COPY validator/ validator/
 COPY scripts/stamp-release-tag.py scripts/stamp-release-tag.py
 
 RUN python scripts/stamp-release-tag.py "$AIPG_VALIDATOR_RELEASE_TAG" \
-    && uv sync --frozen --no-dev --no-editable \
+    && uv sync --frozen --no-dev --no-editable --extra media \
     && rm -rf /root/.cache/uv
 
 FROM python:3.11-slim@sha256:9c900dea9e8fb7e16277c179b555cc72d29a352dbc33cff48ad5a0412fd5bfc7 AS runtime

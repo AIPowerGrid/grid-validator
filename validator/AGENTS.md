@@ -98,7 +98,7 @@ change is deployed; Core still issues no media work by default.
   a startup error before the Grid client starts; do not silently return success.
   The direct `python -m validator.main` module path must also print clean
   startup errors and exit nonzero, not traceback.
-- **`cli.py`** — `aipg-validator prepare-wallet | init | check | dashboard | run | queue | suspend | rotate`.
+- **`cli.py`** — `aipg-validator prepare-wallet | init | self-test | check | dashboard | run | queue | suspend | rotate`.
   `prepare-wallet` uses the operating-system CSPRNG, writes a local signing
   identity atomically at mode `0600`, prints only the public address, and is
   idempotent. `init` reuses that prepared identity while adding the scoped API
@@ -111,6 +111,10 @@ change is deployed; Core still issues no media work by default.
   local dashboard command; and explicit queue status/dead-letter recovery).
   `suspend` signs with the current registered wallet; `rotate` signs with the
   configured replacement wallet after Core reports the previous registration.
+- **`self_test.py`** — network-free package qualification. It generates local
+  image/video fixtures and executes the real bounded decoder subprocesses used
+  by assignments. Official binary, container, and clean-install workflows must
+  run it on every supported platform.
 - **`__main__.py`** — module entrypoint for `python -m validator` and
   PyInstaller release binaries.
 - **`update_check.py`** — bounded, notification-only GitHub release check. It
@@ -197,8 +201,8 @@ change is deployed; Core still issues no media work by default.
   decoder timeout are inconclusive. Candidate malformed decode, contract,
   blank/static, or reference-outlier failures may produce failed evidence only
   after all commitments verify. A real-workload canary and the remaining rollout
-  gates are still required before operators enable it. Public preview binaries
-  do not bundle the media extra.
+  gates are still required before operators enable it. Official artifacts built
+  after `preview.8` bundle the media extra but remain assignment-gated.
 - **Independent evidence verification:** before signing, the node must match
   assignment ID, Grid nonce, worker, model, modality, capability, and canary
   kind plus shared probe group; recompute prompt/response hashes and the

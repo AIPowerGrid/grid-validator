@@ -109,8 +109,9 @@ generator here or imply that passing public templates proves model quality.
   pinned workflow uv version when package requirements change.
 - **`Dockerfile` / `docker-compose.yml` / `.dockerignore`** — container packaging and
   local Compose run paths. The image uses a digest-pinned Python base and the
-  same frozen `uv.lock` as release binaries; the final non-root stage does not
-  carry the UV build tool.
+  same frozen `uv.lock` as release binaries; official artifacts bundle the
+  optional media extra and must pass the offline bounded-decoder self-test. The
+  final non-root stage does not carry the UV build tool.
 - **`.github/workflows/`**, `.gitleaks.toml`, and `.gitleaksignore` — CI,
   checksum-verified complete reachable-history scanning,
   image-release, and binary-release workflows. Historical scan exceptions are
@@ -261,8 +262,10 @@ generator here or imply that passing public templates proves model quality.
 - New env vars: add to `validator/config.py` `Settings` (typed, with a
   default), not ad-hoc `getenv`.
 - Keep heavy deps (web3, Pillow, imagehash, PyAV) lazily imported and in optional
-  extras so default V0 text validators stay small. `eth-account` remains a
-  default dependency because signed V0 attestations are part of the preview.
+  extras so the default source install stays small. Official binary/container
+  builds intentionally install the `media` extra; runtime advertisement still
+  requires the explicit media-origin gate. `eth-account` remains a default
+  dependency because signed V0 attestations are part of the preview.
 - New grid-side endpoint dependencies fail closed when they are required for
   attributable evidence. Read-only dashboard metadata may degrade gracefully.
 
