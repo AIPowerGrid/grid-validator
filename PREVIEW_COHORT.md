@@ -12,7 +12,7 @@ no validator staking, slashing, or compensation in this cohort.
 Enrollment is open for the evidence-only cohort. Production Core runs commit
 `e18b38f9` with migrations through `0026`, and the immutable public operator
 preview is
-[`v0.1.0-preview.2`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.2).
+[`v0.1.0-preview.3`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.3).
 The three first-party nodes share one operator and hypervisor, so they do not
 count toward the five independent-operator exit gate.
 
@@ -60,9 +60,9 @@ preview binaries are explicitly unsigned; Linux is the lowest-friction public
 pilot path, while Docker currently requires a local build.
 
 ```bash
-curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.2/install-validator.sh
+curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.3/install-validator.sh
 gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator
-AIPG_VALIDATOR_VERSION=v0.1.0-preview.2 bash install-validator.sh
+AIPG_VALIDATOR_VERSION=v0.1.0-preview.3 bash install-validator.sh
 cd ~/.aipg-validator
 aipg-validator init
 aipg-validator check --no-probe
