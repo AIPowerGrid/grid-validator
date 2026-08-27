@@ -5,6 +5,54 @@ This is a dated rollout snapshot, not a live status page. Query
 `GET https://api.aipowergrid.io/v1/validator/capabilities` for current public
 state.
 
+## 2026-08-27 19:06 UTC - Pairing Dependencies Deployed Dark
+
+Core `407f29841988fd253afe867a1f5a07e23349219e` is deployed with Alembic
+`0030`. A 71,594,030-byte checksummed production backup passed restoration,
+`0029` to `0030` upgrade and schema-drift checks in an isolated scratch database
+before the production migration. A fresh Python 3.12 environment installed the
+reviewed hash-locked wheels and passed dependency checks. Cutover completed at
+19:00:27 UTC; environment contents and payout/backup timer configuration were
+unchanged. No manual payout, validator economic activation or media activation
+was performed.
+
+Console `db3010132770385e454a0def9d96164808ce896f` is deployed as
+`grid-frontend-mtg0r8qzx-ai-power-grids-projects.vercel.app` and aliased to the
+public Console. Anonymous node-list access returns 401; the approval page
+redirects to sign-in with its callback preserved and sends no-referrer/framing
+protections. No authenticated human association was performed.
+
+Public health reports the exact Core commit. Network status reports eight
+connected workers, eleven model entries, and four fresh active validators on
+preview.9. Three are first-party pilots; the external registration's control
+review remains pending. Verified independent operator count is zero. Two
+suspended canaries also contributed within the reporting window; they are not
+active independent operators. All models remain below three-worker redundancy.
+
+`account_pairing` remains false and its API returns 503. Both pairing tables
+and both compensated-audit tables contain zero rows. The suspended Linux test
+identity can still read registration; active-only scorecard/health requests
+correctly return 403. Charging remains allowlisted, media issuance remains off,
+and validator economic effect is `none`.
+
+Merged node source `5de518b0a4bd67b6bcb0a05957c343433ec6cc66` passed all four
+native builds and clean installs in
+[33105488747](https://github.com/AIPowerGrid/grid-validator/actions/runs/33105488747).
+The downloaded build-only payload passed manifest/checksum verification. It
+includes pairing and decoder-fairness fixes, but is **not** a release and has
+no release-provenance attestation. Public downloads remain immutable preview.13;
+the active fleet was not upgraded. Core and Console exact-commit CI also passed.
+
+Rollback targets are Core `6015eca3a5177c066048c3b6dc515ba86b257ee7` and Console
+`grid-frontend-edh2yzth5-ai-power-grids-projects.vercel.app`. Keep pairing off,
+retain the additive tables and node configurations, and revert application
+versions if necessary; no database downgrade or identity replacement is needed.
+
+Remaining gates: clean Windows double-click through accepted evidence,
+Windows/Linux live account pairing, a qualified immutable client release,
+supervised association/removal, and five independently controlled operators'
+72-hour qualification. Native CI and dark deployment do not satisfy those gates.
+
 ## 2026-08-27 18:29 UTC - Preview.13 Network Recovery Release
 
 Immutable unsigned `v0.1.0-preview.13` was published at 18:24:58 UTC from

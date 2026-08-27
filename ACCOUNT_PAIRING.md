@@ -1,8 +1,10 @@
 # Optional Account Pairing
 
-Status: unreleased source implementation. **Not part of preview.13 and not
-enabled in production.** Depends on [Core PR #58](https://github.com/AIPowerGrid/grid-core/pull/58)
-and [Console PR #21](https://github.com/AIPowerGrid/grid-frontend/pull/21).
+Status: merged, native-build tested, unreleased client. **Not part of preview.13
+and not enabled in production.** [Core PR #58](https://github.com/AIPowerGrid/grid-core/pull/58)
+(`407f2984` / Alembic `0030`) and
+[Console PR #21](https://github.com/AIPowerGrid/grid-frontend/pull/21) (`db301013`)
+were deployed dark on 2026-08-27. Both pairing tables are empty.
 Keep `VALIDATOR_PAIRING_ENABLED=0` until the cross-repo rollout is verified.
 
 ## What It Means
@@ -163,6 +165,17 @@ Before release/activation:
 5. Roll back by disabling the pairing flag. Preserve tables and node config;
    revert application versions if needed. Do not delete keys or association
    tables as a routine rollback.
+
+Deployment progress at 19:06 UTC on 2026-08-27: cross-repo review/merge,
+four-platform build/clean-install checks, Core backup/restore/migration and dark
+Console deployment have passed. Build-only source `5de518b0` passed run
+[33105488747](https://github.com/AIPowerGrid/grid-validator/actions/runs/33105488747)
+and downloaded payload verification; it is not a new public release. The
+deployed API advertises pairing disabled and returns 503. Console rejects
+anonymous node-list access and sends login, framing and referrer protections.
+These checks do not replace the live platform pairing and supervised canary
+requirements above. See [PRODUCTION_BASELINE.md](PRODUCTION_BASELINE.md) for
+exact deployment and rollback references.
 
 Five independently controlled operators and 72-hour qualification remain
 separate required work. Account linking does not certify either condition.
