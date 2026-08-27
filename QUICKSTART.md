@@ -9,7 +9,7 @@ V0 is evidence-only. It does not pay validator rewards, slash workers, change
 routing, or prove exact model weights.
 
 Rollout status: sealed shared-quorum text validation is live on production Core
-commit `43156ffd` with migrations through `0028`. Three first-party pilot nodes
+commit `d8a48f2a` with migrations through `0029`. Three first-party pilot nodes
 run the exact published `v0.1.0-preview.8` payload from commit `122f5565`.
 On the earlier preview.5 payload they completed a healthy 3-of-5 16K-context
 group and correctly disputed a token-limit group, all without credit,
@@ -19,6 +19,10 @@ Target, model, nonce, and challenge are disclosed only after worker execution
 and are verified against the assignment seal before signing. Begin with
 `check --no-probe` before
 running an assignment probe.
+
+Core `0029` includes dark accounting primitives for future compensated audits,
+but no audit scheduler or quality workload is enabled. Preview nodes still run
+the same unpaid, evidence-only assignment flow described here.
 
 ## What You Need
 

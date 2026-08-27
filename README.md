@@ -77,7 +77,12 @@ What is implemented and testable against production Core:
 Production preview status:
 
 - Production Core runs the sealed shared-quorum validator API at immutable
-  commit `43156ffd` with migrations through `0028`.
+  commit `d8a48f2a` with migrations through `0029`.
+- Core `0029` also contains a dark, atomic accounting terminal for future
+  compensated quality audits. No scheduler, audit corpus, scoring policy, or
+  operator configuration is enabled, and both production audit tables were
+  empty after deployment. Existing assignment probes remain unpaid and
+  economically inert.
 - All three pilot nodes run the published `v0.1.0-preview.8` payload from
   validator commit `122f5565`; the checksummed Linux x64 artifact passed a
   one-node-at-a-time production rollout and Core reports the immutable release
@@ -103,9 +108,10 @@ What is not production-live yet:
   source node has dark image/video scoring paths, but Core withholds the work.
 - Routing impact.
 - On-chain epoch roots or dispute flow.
-- Blind production-shaped quality audits and an ordinary paid audit-job rail;
-  the current post-job zero-den acknowledgment remains a retrospective probe
-  fingerprint.
+- Scheduling and scoring for blind production-shaped quality audits. Their
+  atomic accounting terminal is deployed dark, but it cannot originate work.
+  The current assignment probes still use a post-job zero-den acknowledgment,
+  which remains a retrospective probe fingerprint.
 
 Runtime Core capability flags are the source of truth. Operators should run
 `check --no-probe` before their first assignment probe. The public preview is

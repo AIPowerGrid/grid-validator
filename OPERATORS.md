@@ -13,7 +13,7 @@ For the shortest install path, start with [QUICKSTART.md](QUICKSTART.md). This
 file is the longer operator runbook.
 
 Current rollout: sealed assignment-bound shared quorum is live on production
-Core commit `43156ffd` with migrations through `0028`. Three first-party pilot nodes
+Core commit `d8a48f2a` with migrations through `0029`. Three first-party pilot nodes
 proved the signed 3-of-5 text flow without economic side effects and now run the
 exact published `v0.1.0-preview.8` payload from commit `122f5565`. Core reports
 that immutable release identity for all three nodes. Each node passed a staged
@@ -23,6 +23,11 @@ group and correctly disputed a token-limit group with no economic side effects.
 Public enrollment remains a no-reward qualification cohort because those nodes
 share one operator and hypervisor. Always run `check --no-probe` before operating
 the loop.
+
+Migration `0029` added a dark atomic accounting terminal for future compensated
+audits. It did not enable a scheduler, private corpus, scoring policy, validator
+rewards, or any new operator action. Current preview assignments remain unpaid
+and have no routing, payout, strike, bond, or slashing effect.
 
 ## System Requirements
 
