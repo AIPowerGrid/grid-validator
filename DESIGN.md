@@ -316,18 +316,19 @@ This is where the network can get close to proof-of-fidelity.
 
 ## Video Validation
 
-The source validator now has a dark, assignment-loop-wired video scorer.
-Production Core contains the matching separately gated, default-off
-`video.contract.v1` assignment and hard-targeted witness path, but video
-issuance is not enabled; the public V0 binary also does not bundle PyAV. The
-scorer fetches only hash-bound witnesses
+The source validator now has dark, assignment-loop-wired structural and fidelity
+video scorers. Core contains a separately gated, default-off
+`video.fidelity.v1` assignment path that hard-targets one candidate plus two
+independently controlled bonded references under one governed deterministic
+recipe and model digest. Video issuance is not enabled; the public V0 binary
+also does not bundle PyAV. The scorer fetches only hash-bound witnesses
 from explicit public HTTPS origins and decodes each untrusted MP4/WebM object in a
 killable child process with time, frame, dimension, and Linux resource bounds.
 Witnesses are decoded sequentially to bound peak native memory. A local decode
 timeout is inconclusive; malformed candidate bytes are a worker failure only
 after the authenticated witness commitment verifies.
 
-Implemented `video.contract.v1` checks:
+The retained `video.contract.v1` structural scorer checks:
 
 - output decodes
 - duration/fps/resolution match
@@ -336,7 +337,8 @@ Implemented `video.contract.v1` checks:
 - blank frames fail
 - latency is classified
 
-Implemented `video.fidelity.v1` checks add two distinct reference workers:
+Core does not issue that weaker single-candidate lane. Its current dark
+`video.fidelity.v1` contract adds two distinct reference workers:
 
 - both references must satisfy the same contract and agree first
 - every decoded frame's pHash is compared within a configured tolerance
@@ -347,10 +349,11 @@ The current motion profile is deliberately CPU-light; it is not optical flow.
 Prompt relevance, direction, and key-event matching remain future supporting
 signals and must not be claimed from this scorer.
 
-Core assignment generation, targeted media execution, immutable witness
-retention, real-workload calibration, and cross-platform media-enabled binary
-qualification remain rollout gates. Video evidence should start as routing
-evidence, not a slashing surface.
+Core assignment generation, hard-targeted three-worker execution, and immutable
+witness retention are implemented dark. Governed RecipeVault publication,
+independently operated bonded references, real-workload calibration, and
+cross-platform media-enabled binary qualification remain rollout gates. Video
+evidence should start as routing evidence, not a slashing surface.
 
 ## Attestations
 

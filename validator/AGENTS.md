@@ -6,10 +6,11 @@ The validator implementation: load config, register a linked signing identity,
 optionally gate on on-chain stake, consume Grid-issued assignments, fire
 unpredictable targeted canaries, score replies, sign attestations, and POST them
 in a loop. V0 is CPU-only and assignment-bound for text. The assignment loop
-can consume deterministic image-fidelity and video contract/fidelity work only
-when the optional media dependencies and an explicit HTTPS witness-origin
-allowlist are present. Core still issues no media work until its
-independent-reference and rollout gates pass.
+can consume deterministic image/video-fidelity work only when the optional media
+dependencies and an explicit HTTPS witness-origin allowlist are present. The
+node retains a structural video-contract scorer, but Core issues only the
+stronger three-worker video-fidelity contract when every media rollout gate is
+enabled. Core still issues no media work by default.
 
 ## Ownership
 
@@ -184,16 +185,17 @@ independent-reference and rollout gates pass.
   pHash-outlier failures are worker failures only after all commitments verify.
   The scorer is not a live network capability until Core issuance and every
   media rollout gate are complete.
-- **Video scoring is dark and fail-closed:** `video.contract.v1` accepts one
-  committed candidate witness; `video.fidelity.v1` additionally requires two
-  distinct reference workers and three committed witnesses. Unsafe transport,
-  malformed or inconsistent timing contracts, missing PyAV, reference decode
-  failure/disagreement, and local decoder timeout are inconclusive. Candidate
-  malformed decode, contract, blank/static, or reference-outlier failures may
-  produce failed evidence only after all commitments verify. Core has a
-  separately gated, default-off `video.contract.v1` assignment/witness path;
-  governed timing metadata and a real-workload canary are still required before
-  operators enable it. Public preview binaries do not bundle the media extra.
+- **Video scoring is dark and fail-closed:** `video.contract.v1` remains a local
+  structural scorer, but Core does not issue that weaker single-candidate lane.
+  Core's default-off `video.fidelity.v1` path requires a governed deterministic
+  recipe and model digest, two independently controlled bonded references, and
+  three committed witnesses. Unsafe transport, malformed or inconsistent timing
+  contracts, missing PyAV, reference decode failure/disagreement, and local
+  decoder timeout are inconclusive. Candidate malformed decode, contract,
+  blank/static, or reference-outlier failures may produce failed evidence only
+  after all commitments verify. A real-workload canary and the remaining rollout
+  gates are still required before operators enable it. Public preview binaries
+  do not bundle the media extra.
 - **Independent evidence verification:** before signing, the node must match
   assignment ID, Grid nonce, worker, model, modality, capability, and canary
   kind plus shared probe group; recompute prompt/response hashes and the
