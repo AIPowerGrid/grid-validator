@@ -19,12 +19,12 @@ wallets, node count, or first-party validators do not satisfy independence.
 
 ## Current Gate Snapshot
 
-Snapshot time: 2026-08-31 17:08 UTC.
+Snapshot time: 2026-08-31 17:38 UTC.
 
 | Gate | Current evidence | State |
 | --- | --- | --- |
 | Three independent verified operators | Zero verified independent groups | Open |
-| Operator A qualification | Preview.13, online, candidate, 97.0% sampled heartbeat coverage; 161 completed / 149 authoritative attestations lifetime, including 25 completed / 23 authoritative after the qualification clock began; about 66.4 hours remain | Running |
+| Operator A qualification | Preview.13, online, candidate, 97.3% sampled heartbeat coverage; 164 completed / 152 authoritative attestations lifetime, including 28 completed / 26 authoritative after the qualification clock began; about 66.0 hours remain | Running |
 | Operator B qualification | Preview.13, previously completed real work, currently offline and unreviewed | Open |
 | Operator C qualification | Online with substantial real-work history, but still on preview.9 and unreviewed | Open |
 | Public self-diagnosis | Public `val_*` lookup reports version, online state, activity, and redacted qualification progress | Passed |
@@ -44,8 +44,8 @@ operator-to-control-group mapping.
 At the snapshot, the public 24-hour network status reported:
 
 - 10 active registrations, 7 fresh heartbeats, and 7 participating nodes;
-- 733 completed assignments and 658 authoritative votes;
-- 98.33 percent objective agreement and a 5.93 percent disputed-group rate;
+- 738 completed assignments and 663 authoritative votes;
+- 98.34 percent objective agreement and a 5.88 percent disputed-group rate;
 - coverage across 10 workers and 9 models; and
 - zero verified or participating independent operators.
 
@@ -76,9 +76,38 @@ Core release `97efb358041ee00351e62e65b9b90f24fcf0d7e8` records a bounded privat
 `score_reason` in completed text-probe envelopes without changing verdicts or
 exposing expected answers. The current text-worker main branch also has release-
 gated tests proving that structured requests preserve Grid-issued `stop` and
-`max_tokens`. Keep both lanes out of routing, rewards, strikes, and model-quality
-claims until post-deploy reason distributions and backend-native comparisons
-separate unsupported behavior from actual nonconformance.
+`max_tokens`.
+
+A read-only production snapshot on 2026-08-31 established the first concrete
+calibration baseline without exporting any prompt, answer, nonce, identity, or
+evidence material:
+
+- `stop.sequence` was not random noise. The `gpt-oss-120b` path completed 128
+  probes but returned no visible answer in all 128; 95 reported a stop terminal
+  and 33 did not report a finish reason. The
+  `deepseek-v4-flash-nvfp4` path showed the same shape across 51 probes.
+- Two observed `qwen38-flash-next-125b-nvfp4` aliases completed 40 stop probes:
+  26 returned the exact committed prefix, while 14 returned a doubled prefix.
+  This demonstrates that the lane distinguishes concrete adapter/backend
+  behavior rather than merely rejecting every model family.
+- `token.limit` remained strongly backend-sensitive. The `gpt-oss-120b` path
+  had no healthy result in the observed window; most length terminals consumed
+  hidden reasoning while returning no visible repeated marker. The
+  `deepseek-v4-flash-nvfp4` path produced 15 healthy and 76 failed results,
+  confirming that a blanket pass or blanket skip would both discard useful
+  protocol evidence.
+- The first 55 result envelopes carrying the new bounded reason code produced
+  35 accepted results and 20 classified failures: malformed stop output,
+  reasoning-only token-limit output, or malformed two-step tool calls. None of
+  those codes contains expected-answer material.
+
+The calibration decision is therefore to keep the lanes and keep their strict
+API-level verdicts, while preserving `protocol_conformance`,
+`quality_eligible: false`, and no economic or routing effect. Do not translate
+these failures into claims that a model lacks intelligence or fidelity. Core
+main commit `8f87bdf9472f4108d067dc8ec6de12bd5c9b21c2` adds a privacy-safe,
+read-only aggregate calibration report so future snapshots are reproducible.
+Backend-native comparisons remain open before any authority discussion.
 
 ## Onboarding Findings
 
