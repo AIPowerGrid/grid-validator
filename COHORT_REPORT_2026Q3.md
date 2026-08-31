@@ -19,18 +19,19 @@ wallets, node count, or first-party validators do not satisfy independence.
 
 ## Current Gate Snapshot
 
-Snapshot time: 2026-08-31 16:01 UTC.
+Snapshot time: 2026-08-31 17:08 UTC.
 
 | Gate | Current evidence | State |
 | --- | --- | --- |
 | Three independent verified operators | Zero verified independent groups | Open |
-| Operator A qualification | Preview.13, online, candidate, 96.3% sampled heartbeat coverage; 158 assigned / 156 completed / 144 authoritative attestations | Running |
+| Operator A qualification | Preview.13, online, candidate, 97.0% sampled heartbeat coverage; 161 completed / 149 authoritative attestations lifetime, including 25 completed / 23 authoritative after the qualification clock began; about 66.4 hours remain | Running |
 | Operator B qualification | Preview.13, previously completed real work, currently offline and unreviewed | Open |
 | Operator C qualification | Online with substantial real-work history, but still on preview.9 and unreviewed | Open |
 | Public self-diagnosis | Public `val_*` lookup reports version, online state, activity, and redacted qualification progress | Passed |
 | Windows self-service onboarding | One external operator enrolled, but required support after mixing the validator ID, API key, wallet, and private-key prompts | Not proven |
 | Linux self-service onboarding | One external Ubuntu operator enrolled quickly without Google/GitHub login; upgrade-in-place to the cohort baseline remains required | Partial |
 | Randomized workload coverage | Exact output, arithmetic, JSON, 4K/16K/32K retrieval, multistep logic, restricted code, tool calls, tool chains, stop sequences, and token limits observed | Passed with calibration work |
+| Cohort operations monitor | One Redis-leased aggregate monitor is live across four Core processes; assignment, evidence, error, disagreement, freshness, version, candidate, and common-control warnings have no authority side effect | Passed |
 | Independent quorum | Distinct-registration preview quorum operates; reviewed independent quorum remains zero | Open |
 | Economic isolation | Public status reports `economic_effect: none`; no routing or reward authority enabled | Passed |
 
@@ -43,8 +44,8 @@ operator-to-control-group mapping.
 At the snapshot, the public 24-hour network status reported:
 
 - 10 active registrations, 7 fresh heartbeats, and 7 participating nodes;
-- 733 completed assignments and 655 authoritative votes;
-- 98.17 percent objective agreement and a 6.67 percent disputed-group rate;
+- 733 completed assignments and 658 authoritative votes;
+- 98.33 percent objective agreement and a 5.93 percent disputed-group rate;
 - coverage across 10 workers and 9 models; and
 - zero verified or participating independent operators.
 
@@ -54,6 +55,14 @@ two-stage tool calling. This is materially stronger than a static echo canary.
 Each current generated assignment has a validator-specific randomized prompt
 and answer commitment, Grid nonce, target worker, expiry, evidence commitment,
 and authoritative signature path.
+
+Production Core release `be6a976fc76443e3c927ff929cd88fb9fe876e5b`
+also runs the aggregate cohort watchdog under a renewable Redis leader lease,
+so four Uvicorn processes produce one database scan per interval. Its first
+live pass reported the two expected operational warnings: three stale active
+registrations and four fresh registrations outside preview.13. It reported no
+stale candidate and no duplicate reviewed control group. The monitor is
+read-only and public status continues to report `economic_effect: none`.
 
 ## Calibration Findings
 
@@ -115,4 +124,3 @@ and the observed operator support burden.
 - Maintainer qualification preview: `scripts/review_validator_operator.py`
 - Public recruitment contract: [`PREVIEW_COHORT.md`](PREVIEW_COHORT.md)
 - Private maintainer procedure: Core `deploy/VALIDATOR_COHORT_RUNBOOK.md`
-
