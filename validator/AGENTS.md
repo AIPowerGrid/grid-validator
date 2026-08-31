@@ -193,7 +193,11 @@ change is deployed; Core still issues no media work by default.
 - **`operator_worker.py`** - private child protocol: allowlisted structured
   events, fresh Settings per start, EOF/cancellation cleanup, and sanitized error
   codes. Enrollment is an explicitly confirmed action and uses the existing
-  secure enrollment path; stopping it preserves any already-written identity.
+  secure enrollment path, then continues directly into the normal validator
+  loop so setup can prove registration, heartbeat, assignment delivery, and
+  accepted evidence without a second operator action. Stopping it preserves
+  any already-written identity. A bounded public-health Date check reports
+  gross local clock drift before signed runtime traffic.
   Classify both the outer exception and its startup-wrapper cause: HTTPX's own
   transport cause is an httpcore exception and must not erase a network error.
 - **`file_lock.py`** - nonblocking POSIX/Windows process locks, released by OS

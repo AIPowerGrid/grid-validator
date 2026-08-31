@@ -48,6 +48,7 @@ ERRORS = {
     "runtime_error",
     "process_exited",
     "local_access",
+    "clock_drift",
 }
 ASSETS = {
     "/": ("index.html", "text/html; charset=utf-8"),
@@ -78,11 +79,13 @@ class Supervisor:
             "error": "",
             "validator_id": "",
             "heartbeat_at": None,
+            "assignment_at": None,
             "evidence_at": None,
             "accepted": 0,
             "assignments": 0,
             "pending": None,
             "dead": None,
+            "latest_version": "",
         }
 
     def event(self, raw: dict[str, Any]) -> None:
@@ -99,16 +102,30 @@ class Supervisor:
         identity = raw.get("validator_id")
         if isinstance(identity, str) and re.fullmatch(r"val_[a-f0-9]{32}", identity):
             event["validator_id"] = identity
+        latest_version = raw.get("latest_version")
+        if isinstance(latest_version, str) and re.fullmatch(
+            r"v[0-9]+\.[0-9]+\.[0-9]+(?:-(?:preview|alpha|beta|rc)(?:\.[0-9]+)?)?",
+            latest_version,
+        ):
+            event["latest_version"] = latest_version
         with self.lock:
             self.events.append(event)
             if self.state["phase"] != "stopping":
                 self.state["phase"] = phase
             self.state["error"] = event.get("error", "")
-            for key in ("assignments", "pending", "dead", "validator_id"):
+            for key in (
+                "assignments",
+                "pending",
+                "dead",
+                "validator_id",
+                "latest_version",
+            ):
                 if key in event:
                     self.state[key] = event[key]
             if phase == "heartbeat":
                 self.state["heartbeat_at"] = event["at"]
+            if event.get("assignments", 0):
+                self.state["assignment_at"] = event["at"]
             if event.get("accepted", 0):
                 self.state["accepted"] += event["accepted"]
                 self.state["evidence_at"] = event["at"]
@@ -127,6 +144,13 @@ class Supervisor:
                 )
             except (OSError, UnicodeError):
                 configured = False
+            checks = {
+                "configured": configured,
+                "registered": bool(self.state["validator_id"]),
+                "heartbeat": self.state["heartbeat_at"] is not None,
+                "assignment": self.state["assignment_at"] is not None,
+                "evidence": self.state["evidence_at"] is not None,
+            }
             return {
                 "schema": "aipg.validator.operator.v1",
                 "version": __release_tag__,
@@ -134,6 +158,7 @@ class Supervisor:
                 "configured": configured,
                 "running": self.process is not None and self.process.poll() is None,
                 "action": self.action,
+                "checks": checks,
                 **self.state,
                 "events": list(self.events),
             }
@@ -174,6 +199,9 @@ class Supervisor:
                 error="",
                 validator_id="",
                 heartbeat_at=None,
+                assignment_at=None,
+                evidence_at=None,
+                accepted=0,
                 assignments=0,
             )
             self.reader = threading.Thread(

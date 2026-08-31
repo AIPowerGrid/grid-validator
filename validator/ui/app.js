@@ -15,7 +15,8 @@ const errors = {
   enrollment_failed:"Setup could not finish. Existing configuration was kept. Retry with the same identity; do not paste a personal wallet key.",
   runtime_error:"The validator encountered a local error. Download diagnostics and retry after checking your configuration.",
   process_exited:"The validator exited unexpectedly. Its identity and recovery queue were kept. You can start it again.",
-  local_access:"The app could not start the validator. Check access to the executable and configuration folder."
+  local_access:"The app could not start the validator. Check access to the executable and configuration folder.",
+  clock_drift:"This computer's clock differs from the Grid by more than five minutes. Enable automatic date and time, sync the clock, then start the validator again."
 };
 let busy = false;
 let closed = false;
@@ -28,6 +29,14 @@ async function request(path, options={}) {
 }
 function showError(message) { el("error").hidden = !message; el("error").textContent = message || ""; }
 function age(value) { return value ? Math.max(0,Math.floor((Date.now()-Date.parse(value))/1000)) : null; }
+function renderChecks(checks={}) {
+  for (const name of ["configured","registered","heartbeat","assignment","evidence"]) {
+    const item = el(`check-${name}`);
+    const ready = checks[name] === true;
+    item.classList.toggle("ready", ready);
+    item.querySelector("small").textContent = ready ? "Confirmed" : "Waiting";
+  }
+}
 function render(data) {
   localAvailable = true;
   configured = data.configured;
@@ -50,8 +59,11 @@ function render(data) {
   el("accepted").textContent = data.accepted;
   el("pending").textContent = data.pending === null ? "Not checked" : `${data.pending} pending`;
   el("dead").textContent = data.dead === null ? "" : `${data.dead} need review`;
+  renderChecks(data.checks);
+  el("update").hidden = !data.latest_version;
+  el("update").textContent = data.latest_version ? `Update available: ${data.latest_version}. Stop the node and install the verified release from aipowergrid.io/validate.` : "";
   el("message").textContent = data.phase === "probing" ? `${data.assignments} assigned checks in progress.` : data.phase === "stopping" ? "Stopping local work. Journaled assignments and evidence remain available for recovery." : data.phase === "waiting" ? "Connected. No new assignment is not a failure. Accepted evidence is counted only after Grid acknowledgement." : data.phase === "enrolling" ? "Creating a dedicated local signer and obtaining a validator-only key." : data.configured ? "Your signing identity stays on this computer." : "No node credentials have been configured.";
-  showError(errors[data.error]);
+  showError(errors[data.error] || (data.dead > 0 ? "Some evidence exhausted its retry policy and needs review. Download diagnostics; do not delete the recovery queue." : ""));
   const items = data.events.slice().reverse().map(event => {
     const li = document.createElement("li");
     const time = document.createElement("time");

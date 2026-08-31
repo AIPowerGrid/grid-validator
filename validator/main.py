@@ -765,6 +765,7 @@ async def _run_registered(observer: Callable[..., None] | None = None) -> None:
                         notice.latest_tag,
                         notice.url,
                     )
+                    report("waiting", latest_version=notice.latest_tag)
                 next_update_check = time.monotonic() + Settings.UPDATE_CHECK_INTERVAL_S
             round_index += 1
             await asyncio.sleep(Settings.PROBE_INTERVAL_S)

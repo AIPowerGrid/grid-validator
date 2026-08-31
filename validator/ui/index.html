@@ -12,13 +12,24 @@
 <body>
   <header><div class="brand"><img src="/logo.png" alt="" width="36" height="36"><strong>AI Power Grid</strong><span>Validator</span></div><span id="version">Local app</span></header>
   <main>
-    <section class="heading"><div><p class="eyebrow">YOUR NODE</p><h1 id="phase">Connecting to local app</h1><p id="message" role="status" aria-live="polite"></p></div><div class="controls"><button id="setup" hidden>Set up node</button><button id="start" disabled>Start validator</button><button id="stop" disabled>Stop</button></div></section>
+    <section class="heading"><div><p class="eyebrow">YOUR NODE</p><h1 id="phase">Connecting to local app</h1><p id="message" role="status" aria-live="polite"></p></div><div class="controls"><button id="setup" hidden>Set up and start</button><button id="start" disabled>Start validator</button><button id="stop" disabled>Stop</button></div></section>
     <p class="error" id="error" role="alert" hidden></p>
+    <p class="notice" id="update" role="status" hidden></p>
     <section class="metrics" aria-label="Participation">
       <div><h2>Registration</h2><strong id="registration">Not checked</strong><code id="validator-id"></code></div>
       <div><h2>Heartbeat</h2><strong id="heartbeat">Not received</strong><span id="connection">Not connected</span></div>
       <div><h2>Accepted evidence</h2><strong id="accepted">0</strong><span>This app session</span></div>
       <div><h2>Recovery queue</h2><strong id="pending">Not checked</strong><span id="dead"></span></div>
+    </section>
+    <section class="readiness" aria-labelledby="readiness-title">
+      <div class="section-title"><h2 id="readiness-title">Automatic setup check</h2><span>Assignments can take a few minutes</span></div>
+      <ol>
+        <li id="check-configured"><span>1</span><strong>Configured</strong><small>Waiting</small></li>
+        <li id="check-registered"><span>2</span><strong>Registered</strong><small>Waiting</small></li>
+        <li id="check-heartbeat"><span>3</span><strong>Heartbeat</strong><small>Waiting</small></li>
+        <li id="check-assignment"><span>4</span><strong>Assignment</strong><small>Waiting</small></li>
+        <li id="check-evidence"><span>5</span><strong>Evidence</strong><small>Waiting</small></li>
+      </ol>
     </section>
     <section class="account" aria-labelledby="account-title">
       <div class="section-title"><h2 id="account-title">Account link <span class="optional">Optional</span></h2><div class="controls"><button id="pair-start" disabled>Link account</button><button id="pair-refresh" disabled>Check link</button></div></div>
@@ -30,7 +41,7 @@
     <section class="activity"><div class="section-title"><h2>Activity</h2><button id="diagnostics" title="Download redacted diagnostics" disabled>Download diagnostics</button></div><ul id="events"><li class="empty">No activity yet.</li></ul></section>
     <footer><span>Evidence-only preview<br>No validator rewards, stake, or worker penalties</span><button id="quit" disabled>Exit app</button></footer>
   </main>
-  <dialog id="consent"><form method="dialog"><h2>Set up a dedicated validator account?</h2><p>A new signing identity will be saved on this computer and registered with the Grid to obtain a validator-only API key. No personal private key or funds are required.</p><p>This does not link or merge an existing account. Keep your existing node configuration when upgrading.</p><div class="controls"><button value="cancel">Cancel</button><button value="confirm" id="confirm">Create node account</button></div></form></dialog>
+  <dialog id="consent"><form method="dialog"><h2>Set up and start a dedicated validator?</h2><p>A new signing identity will be saved on this computer, registered with the Grid, and started so the app can verify its heartbeat and evidence flow. No personal private key or funds are required.</p><p>This does not link or merge an existing account. Keep your existing node configuration when upgrading.</p><div class="controls"><button value="cancel">Cancel</button><button value="confirm" id="confirm">Create and start node</button></div></form></dialog>
   <dialog id="pair-consent" aria-labelledby="pair-consent-title"><form method="dialog"><h2 id="pair-consent-title"></h2><p id="pair-consent-text"></p><strong id="pair-consent-code" hidden></strong><p id="pair-consent-boundary">Your node keeps its own identity and keys. No account merging, wallet changes, payments, or validator rewards.</p><div class="controls"><button value="cancel">Cancel</button><button value="confirm" id="pair-consent-confirm">Continue</button></div></form></dialog>
 </body>
 </html>
