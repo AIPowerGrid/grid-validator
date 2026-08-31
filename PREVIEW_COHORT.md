@@ -59,12 +59,12 @@ hostname, or review notes.
    menu/app flow. Follow the unsigned-preview and verification guidance before
    running the download.
 2. In the local app, choose **Set up node** on a new installation and confirm
-   with **Set up and start**. The app continues into the validator loop after
-   enrollment; a second Start click is not required. Existing operators should
-   keep their protected configuration and use **Start validator**; do not delete
-   keys or enroll a replacement identity just to upgrade. Wait for the setup
-   checklist to confirm registration, heartbeat, assignment, and accepted
-   evidence, then copy the public `val_*` validator ID from the app.
+   with **Create node account**, then choose **Start validator**. Published
+   preview.13 keeps setup and start as separate actions. Existing operators
+   should keep their protected configuration and use **Start validator**; do not
+   delete keys or enroll a replacement identity just to upgrade. Wait for
+   acknowledged registration and heartbeat, then copy the public `val_*`
+   validator ID from the app.
 3. Join the [AI Power Grid Discord](https://discord.gg/W9D8j6HCtC) and ask
    privately to join the **validator preview cohort**. Send only the `val_*`
    validator ID plus:
