@@ -5,6 +5,39 @@ This is a dated rollout snapshot, not a live status page. Query
 `GET https://api.aipowergrid.io/v1/validator/capabilities` for current public
 state.
 
+## 2026-08-31 18:22 UTC - Frozen-Version Gate And Public Setup Verification
+
+Production Core now runs reviewed commit
+`4e0eb3f6b883218502b01d550c7cdeed7f9a0dd2` with Alembic `0031`. The
+immutable-release cutover followed a fresh checksum-verified PostgreSQL backup,
+a successful scratch restore, and a candidate `alembic check` with no upgrade
+operations. Local and public health reported the exact commit, protected
+assignments still returned 401, the retired Horde heartbeat remained 410, and
+the payout and PostgreSQL-backup timers remained enabled and active. No
+charging, validator-authority, reward, strike, routing, staking, or slashing
+setting changed.
+
+Core now treats `v0.1.0-preview.13` as the typed cohort baseline. Candidate and
+verify transitions fail closed for other versions, independent quorum excludes
+them, and an operator review becomes stale if a node re-registers or changes
+version. Rejection remains available for incident response. Public and private
+status responses report the current and required versions plus a normalized
+support verdict; an online preview.9 node now receives `upgrade_required` with
+upgrade-in-place guidance instead of appearing cohort-ready.
+
+Website commit `8d3a56622ee758e6a404d041144d25fee5b9dfe2` is live at
+`https://aipowergrid.io/validate`. One public-ID lookup checks registration,
+the frozen release, fresh heartbeat, assignment receipt, and accepted evidence,
+then refreshes every 15 seconds until all five pass. It remains compatible with
+older Core responses and never infers node health from browser-local state.
+
+The post-cutover read-only snapshot remained honest: one preview.13 candidate
+was online and qualifying with 164 completed assignments and 152 accepted
+attestations; one preview.13 registration was offline and unreviewed; and one
+online preview.9 registration was unreviewed and explicitly required an
+in-place upgrade. No operator was independently verified, so the three-operator
+72-hour exit gate remains open.
+
 ## 2026-08-27 - Linux ARM64 Live Account-Pairing Proof
 
 The actual frozen, unpublished Linux ARM64 binary from reviewed commit

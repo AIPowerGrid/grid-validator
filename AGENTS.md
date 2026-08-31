@@ -39,17 +39,23 @@ concrete detail in children. Delete stale notes instead of explaining history.
 The Grid's validator node. In V0 it is a CPU-only distributed audit runner: it sends
 small canary jobs through the normal Grid path, scores replies (`healthy` / `slow` /
 `failed`), and submits signed attestations. Shared-quorum text validation is
-production-live on Core commit `f51875ce` as checked on 2026-08-27, with migrations through `0030`.
-Three first-party pilot nodes run the verified `v0.1.0-preview.9` payload from
-validator commit `9d7b68f`; checksum-gated staging, offline media self-tests,
-no-probe registration, rolling symlink rollout, immutable release reporting,
-and clean service recovery were proven against production on 2026-08-27. After the one-hour preview
+production-live on Core commit `4e0eb3f6` as checked on 2026-08-31, with
+migrations through `0031`. The immutable public cohort baseline is
+`v0.1.0-preview.13`; Core requires that version for candidate/verified
+qualification and independent quorum while reporting older online nodes as
+`upgrade_required`. One external preview.13 candidate is qualifying, but no
+independent operator has completed the 72-hour gate. The public validator status
+page verifies registration, release, heartbeat, assignment delivery, and accepted
+evidence from a `val_*` ID without asking for credentials. Checksum-gated staging,
+offline media self-tests, no-probe registration, rolling symlink rollout,
+immutable release reporting, and clean service recovery have been proven against
+production. After the one-hour preview
 cooldown elapsed, the `preview.5` fleet completed a healthy 3-of-5 16K-context
 group and a correctly disputed token-limit group. Both groups carried three
 distinct nonces, evidence commitments, and verified signatures, with no credit,
 reservation, den, or worker-ledger side effects. This proves the protocol and
 deployment path, not independent operator control. Media assignments remain
-disabled. Core `0029` also contains a dark atomic accounting terminal for future
+disabled. The Core schema also contains a dark atomic accounting terminal for future
 compensated audits, but no scheduler, private corpus, or scoring integration is
 enabled and existing preview probes remain unpaid. The live
 `GET /v1/validator/assignments`, `POST /v1/validator/probe/{assignment_id}`, and
