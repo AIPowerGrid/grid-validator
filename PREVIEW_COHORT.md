@@ -59,10 +59,12 @@ hostname, or review notes.
    menu/app flow. Follow the unsigned-preview and verification guidance before
    running the download.
 2. In the local app, choose **Set up node** on a new installation and confirm
-   with **Create node account**, then choose **Start validator**. Existing operators should keep
-   their protected configuration and use Start validator; do not delete keys or enroll a
-   replacement identity just to upgrade. Wait for acknowledged registration
-   and heartbeat, then copy the public `val_*` validator ID from the app.
+   with **Set up and start**. The app continues into the validator loop after
+   enrollment; a second Start click is not required. Existing operators should
+   keep their protected configuration and use **Start validator**; do not delete
+   keys or enroll a replacement identity just to upgrade. Wait for the setup
+   checklist to confirm registration, heartbeat, assignment, and accepted
+   evidence, then copy the public `val_*` validator ID from the app.
 3. Join the [AI Power Grid Discord](https://discord.gg/W9D8j6HCtC) and ask
    privately to join the **validator preview cohort**. Send only the `val_*`
    validator ID plus:
@@ -75,6 +77,9 @@ hostname, or review notes.
 5. Ask the maintainer to begin independent-operator qualification. Running the
    preview and receiving assignments does not automatically start or complete
    that review. Never send a private key to the maintainer.
+6. Check the public validator ID at <https://aipowergrid.io/validate>. This page
+   requires no API key or private key and should agree with the local app's
+   version, online state, aggregate activity, and qualification progress.
 
 Linux x64 and ARM64 binaries target glibc 2.35 or newer. macOS and Windows
 preview binaries are explicitly unsigned; Linux is the lowest-friction public
@@ -116,9 +121,12 @@ heartbeat, and a project-maintainer review. A verified review expires after 30
 days by default and must be renewed; operators cannot self-certify through the
 node or API.
 
-The cohort is proven only when Core reports at least five recently active,
+Three recently active, verified independent operator groups is the initial
+production-cohort milestone for assessing onboarding and shared evidence. The
+broader pilot is proven only when Core reports at least five recently active,
 verified independent operator groups and real shared groups receive at least
-three reviewed independent votes. The public
+three reviewed independent votes. Neither milestone enables validator rewards,
+slashing, or routing authority. The public
 [network status](https://console.aipowergrid.io/network) exposes aggregate
 verified and participating counts but no group identifiers. A successful install,
 registration, wallet, heartbeat, or ordinary 3-of-5 registration quorum alone
