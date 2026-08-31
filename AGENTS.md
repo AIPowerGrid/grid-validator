@@ -124,6 +124,10 @@ generator here or imply that passing public templates proves model quality.
 - **`PRODUCTION_BASELINE.md`** — dated public capability, assignment, quorum,
   independence, and network-capacity snapshots. It is historical evidence, not
   a substitute for the live public status endpoints.
+- **`COHORT_REPORT_2026Q3.md`** — privacy-safe working and final report for the
+  independent preview cohort. Keep incomplete gates explicit, refresh dated
+  metrics from authoritative status contracts, and never publish the private
+  operator/control-group mapping.
   Do not infer an operator's identity from a new registration's time or version;
   registration, accepted evidence and independent qualification are separate facts.
   It distinguishes published Linux ARM64 and hosted Windows x64 live
