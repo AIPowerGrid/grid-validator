@@ -12,6 +12,8 @@ import sys
 import tempfile
 import threading
 import unittest
+from datetime import datetime, timedelta, timezone
+from email.utils import format_datetime
 from pathlib import Path
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -19,6 +21,7 @@ import httpx
 
 from validator.file_lock import AlreadyRunning, exclusive_lock
 from validator.operator_app import OperatorServer, Supervisor
+from validator import operator_worker
 from validator.operator_worker import error_code
 from validator.account_pairing import PairingController
 from tests.test_account_pairing import FakeCore
@@ -64,7 +67,8 @@ class OperatorHTTPTests(unittest.TestCase):
         self.assertIn("frame-ancestors 'none'", headers["Content-Security-Policy"])
         self.assertNotIn("Access-Control-Allow-Origin", headers)
         self.assertEqual(headers["Referrer-Policy"], "no-referrer")
-        self.assertIn(b"Set up node", body)
+        self.assertIn(b"Set up and start", body)
+        self.assertIn(b"Automatic setup check", body)
         for path in ("/app.js", "/app.css", "/logo.png"):
             self.assertEqual(self.request("GET", path)[0], 200)
         self.assertFalse(self.supervisor.path.exists())
@@ -331,7 +335,14 @@ class SupervisorTests(unittest.TestCase):
         )
         self.supervisor.event({"phase": "heartbeat"})
         self.supervisor.event(
-            {"phase": "waiting", "accepted": 2, "pending": 1, "dead": 0}
+            {
+                "phase": "waiting",
+                "accepted": 2,
+                "assignments": 1,
+                "pending": 1,
+                "dead": 0,
+                "latest_version": "v0.1.0-preview.14",
+            }
         )
         self.supervisor.event({"phase": [], "error": []})
         self.supervisor.event(
@@ -342,6 +353,18 @@ class SupervisorTests(unittest.TestCase):
         self.assertEqual(data["validator_id"], node_id)
         self.assertTrue(data["heartbeat_at"])
         self.assertTrue(data["evidence_at"])
+        self.assertTrue(data["assignment_at"])
+        self.assertEqual(data["latest_version"], "v0.1.0-preview.14")
+        self.assertEqual(
+            data["checks"],
+            {
+                "configured": False,
+                "registered": True,
+                "heartbeat": True,
+                "assignment": True,
+                "evidence": True,
+            },
+        )
         self.assertNotIn("secret", json.dumps(data))
         self.assertNotIn("raw response", json.dumps(data))
         self.assertNotIn("private_key", json.dumps(data))
@@ -437,6 +460,66 @@ class SupervisorTests(unittest.TestCase):
 
 
 class RuntimeStatusTests(unittest.IsolatedAsyncioTestCase):
+    async def test_clock_drift_uses_bounded_grid_date(self):
+        class Client:
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *_args):
+                return None
+
+            async def get(self, path):
+                self.path = path
+                return httpx.Response(
+                    200,
+                    headers={
+                        "Date": format_datetime(
+                            datetime.now(timezone.utc) - timedelta(minutes=10),
+                            usegmt=True,
+                        )
+                    },
+                    request=httpx.Request("GET", "https://grid.example/health"),
+                )
+
+        client = Client()
+        with patch.object(operator_worker.httpx, "AsyncClient", return_value=client):
+            drift = await operator_worker.clock_drift_seconds("https://grid.example")
+        self.assertEqual(client.path, "/health")
+        self.assertGreaterEqual(drift, 599)
+
+    async def test_confirmed_enrollment_continues_into_validator_loop(self):
+        events = []
+        run = AsyncMock(return_value=None)
+        with (
+            patch("validator.enrollment.enroll") as enroll,
+            patch("validator.launcher.config_path", return_value=Path("node.env")),
+            patch.object(operator_worker, "clock_drift_seconds", new=AsyncMock(return_value=0)),
+            patch("validator.config.Settings.validate"),
+            patch("validator.main.run", new=run),
+        ):
+            result = await operator_worker._run_action(
+                "enroll", lambda phase, **values: events.append({"phase": phase, **values})
+            )
+        self.assertEqual(result, 0)
+        enroll.assert_called_once_with(Path("node.env"))
+        self.assertEqual(events[:2], [{"phase": "enrolling"}, {"phase": "enrolled"}])
+        run.assert_awaited_once()
+
+    async def test_clock_drift_blocks_signed_runtime(self):
+        events = []
+        run = AsyncMock(return_value=None)
+        with (
+            patch.object(operator_worker, "clock_drift_seconds", new=AsyncMock(return_value=301)),
+            patch("validator.config.Settings.validate"),
+            patch("validator.main.run", new=run),
+        ):
+            result = await operator_worker._run_action(
+                "run", lambda phase, **values: events.append({"phase": phase, **values})
+            )
+        self.assertEqual(result, 1)
+        self.assertEqual(events, [{"phase": "error", "error": "clock_drift"}])
+        run.assert_not_awaited()
+
     async def test_real_connection_failure_keeps_network_error_category(self):
         import socket
 
