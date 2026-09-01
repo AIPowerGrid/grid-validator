@@ -94,6 +94,9 @@ generator here or imply that passing public templates proves model quality.
   existing-account pairing is shipped.
   Preview.13 preserves the network-error category through HTTPX's exception
   chain; its published Linux binary passed controlled live outage/recovery.
+  The public Linux cohort path pins the systemd helper to a reviewed immutable
+  source commit and verifies its SHA-256 separately from the frozen preview.13
+  binary. Never replace that with a mutable branch download or pipe-to-shell.
 - **`OPERATORS.md`** — plain-language run guide (install, systemd, troubleshooting, FAQ).
   It owns the signed suspend/resume and account-bound signing-wallet/API-key
   rotation runbooks; do not describe local file deletion as credential revocation.

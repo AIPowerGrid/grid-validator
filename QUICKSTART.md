@@ -203,20 +203,26 @@ intend to test source changes instead of the immutable cohort release.
 
 ## Systemd
 
-After `.env` is configured and `check --no-probe` passes, run the helper from a
-reviewed checkout. For a binary install in `~/.local/bin`, the lowest-friction
-cohort path is:
+After `.env` is configured and `check --no-probe` passes, download the reviewed
+service helper by its immutable source commit and verify its SHA-256 before
+running it. The helper is separate from the frozen preview.13 binary release;
+pinning both prevents a moving `master` branch from changing a qualifying node
+mid-run.
 
 ```bash
-git clone --depth 1 https://github.com/AIPowerGrid/grid-validator.git \
-  /tmp/grid-validator-service-helper
-cd /tmp/grid-validator-service-helper
+cd ~/.aipg-validator
+curl -fsSLo install-systemd.sh \
+  https://raw.githubusercontent.com/AIPowerGrid/grid-validator/778e9a1f2263094918998954c62678dba6b90334/scripts/install-systemd.sh
+printf '%s  %s\n' \
+  32adb391ab0591a55b3cbefce851fb0b9965685dabfc26706d6458e488b5defd \
+  install-systemd.sh | sha256sum -c -
+chmod 700 install-systemd.sh
 sudo AIPG_VALIDATOR_EXEC="$HOME/.local/bin/aipg-validator" \
   AIPG_VALIDATOR_WORKDIR="$HOME/.aipg-validator" \
-  ./scripts/install-systemd.sh --dry-run
+  ./install-systemd.sh --dry-run
 sudo AIPG_VALIDATOR_EXEC="$HOME/.local/bin/aipg-validator" \
   AIPG_VALIDATOR_WORKDIR="$HOME/.aipg-validator" \
-  ./scripts/install-systemd.sh
+  ./install-systemd.sh
 sudo systemctl status aipg-validator --no-pager
 sudo journalctl -u aipg-validator -f
 ```
@@ -224,8 +230,8 @@ sudo journalctl -u aipg-validator -f
 The helper keeps secrets in `.env`, keeps the durable journal writable only in
 the private work directory, and refuses to start the service when `.env` is
 missing. Do not run the local app's validator child at the same time as the
-systemd service. The helper comes from reviewed `master`; the service still
-runs the immutable preview.13 binary installed above.
+systemd service. The service runs the immutable preview.13 binary installed
+above; updating either the binary or helper is a separate, explicit operation.
 
 ## Healthy Output
 

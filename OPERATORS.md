@@ -345,20 +345,25 @@ directory, and grants that directory the only explicit write exception under
 the read-only home/system sandbox. It refuses to start the service until `.env`
 exists.
 
-For released binaries, use the reviewed helper from `master` and point it at
-the installed immutable preview.13 binary and existing private working
-directory:
+For released binaries, download the reviewed helper from its immutable source
+commit and verify its SHA-256. This pins the service definition independently
+from the installed preview.13 binary and avoids executing a moving `master`
+branch:
 
 ```bash
-git clone --depth 1 https://github.com/AIPowerGrid/grid-validator.git \
-  /tmp/grid-validator-service-helper
-cd /tmp/grid-validator-service-helper
+cd ~/.aipg-validator
+curl -fsSLo install-systemd.sh \
+  https://raw.githubusercontent.com/AIPowerGrid/grid-validator/778e9a1f2263094918998954c62678dba6b90334/scripts/install-systemd.sh
+printf '%s  %s\n' \
+  32adb391ab0591a55b3cbefce851fb0b9965685dabfc26706d6458e488b5defd \
+  install-systemd.sh | sha256sum -c -
+chmod 700 install-systemd.sh
 sudo AIPG_VALIDATOR_EXEC="$HOME/.local/bin/aipg-validator" \
   AIPG_VALIDATOR_WORKDIR="$HOME/.aipg-validator" \
-  ./scripts/install-systemd.sh --dry-run
+  ./install-systemd.sh --dry-run
 sudo AIPG_VALIDATOR_EXEC="$HOME/.local/bin/aipg-validator" \
   AIPG_VALIDATOR_WORKDIR="$HOME/.aipg-validator" \
-  ./scripts/install-systemd.sh
+  ./install-systemd.sh
 ```
 
 Stop any validator child started by the local app before enabling systemd. The
