@@ -138,10 +138,13 @@ generator here or imply that passing public templates proves model quality.
   Its new-operator path is preview.13 automatic dedicated-node enrollment and
   the local app, not manual wallet/key preparation. Keep independent-control
   review and advanced credential rotation separate from first-run setup.
-  Qualification is 72 hours with bounded heartbeat sampling and an expiring
-  external review; the node cannot self-certify operator independence. The
-  authenticated CLI/dashboard may show that operator's progress and review
-  expiry, but must never expose the opaque control group or private review ref.
+  Before candidate status, the exact preview.13 node completes a live signed
+  suspend/resume check so a copied public validator ID cannot impersonate its
+  operator. Qualification is 72 hours with bounded heartbeat sampling and an
+  expiring external review; signing-key control does not self-certify operator
+  independence. The authenticated CLI/dashboard may show that operator's
+  progress and review expiry, but must never expose the opaque control group or
+  private review ref.
   Three recently participating qualified groups unlock only a seven-day Core
   shadow observation, not routing or economic authority. The qualifying client
   stays on the frozen preview.13 release; shadow collection does not require a

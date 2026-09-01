@@ -95,10 +95,21 @@ hostname, or review notes.
    - whether the network is residential, datacenter, or cloud hosted.
 4. Do not post API keys, private keys, signatures, account IDs, full wallet
    addresses, assignment payloads, prompts, or worker responses.
-5. Ask the maintainer to begin independent-operator qualification. Running the
-   preview and receiving assignments does not automatically start or complete
-   that review. Never send a private key to the maintainer.
-6. Check the public validator ID at <https://aipowergrid.io/validate>. This page
+5. Before candidate status starts, complete a short live control check with the
+   maintainer. Stop the local validator loop, run `aipg-validator suspend`, and
+   wait for the maintainer to confirm that this exact `val_*` registration is
+   suspended. Then run `aipg-validator check --no-probe` and confirm that the
+   same validator ID returns active. Both requests are signed locally by the
+   registered node identity; no key, signature, configuration file, or wallet
+   address is shared. Knowing or copying somebody else's public validator ID is
+   therefore not enough to enter qualification.
+6. Ask the maintainer to begin independent-operator qualification. The signed
+   control check proves possession of this node's credentials at review time;
+   it does not prove separate ownership, hosting, funding, or operating
+   decisions. Those facts remain part of the private common-control review.
+   Running the preview and receiving assignments does not automatically start
+   or complete that review. Never send a private key to the maintainer.
+7. Check the public validator ID at <https://aipowergrid.io/validate>. This page
    requires no API key or private key and should agree with the local app's
    version, online state, aggregate activity, and qualification progress.
 
@@ -136,10 +147,12 @@ sudo journalctl -u aipg-validator -f
 ```
 
 After enrollment, the project maintainer places the registration into candidate
-status. `aipg-validator check --no-probe` and the localhost dashboard show only
-the authenticated operator's safe qualification status and progress; they never
-show the internal common-control group or private review reference. Core samples
-at most one qualifying heartbeat every five minutes.
+status only after the signed control check and common-control review above.
+Perform the suspend/resume check before the 72-hour window so it cannot create a
+qualification heartbeat gap. `aipg-validator check --no-probe` and the localhost
+dashboard show only the authenticated operator's safe qualification status and
+progress; they never show the internal common-control group or private review
+reference. Core samples at most one qualifying heartbeat every five minutes.
 Verification requires at least 72 hours, at least 80% sample coverage, a fresh
 heartbeat, and a project-maintainer review. A verified review expires after 30
 days by default and must be renewed; operators cannot self-certify through the
