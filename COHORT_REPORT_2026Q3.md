@@ -19,17 +19,17 @@ wallets, node count, or first-party validators do not satisfy independence.
 
 ## Current Gate Snapshot
 
-Snapshot time: 2026-08-31 17:38 UTC.
+Snapshot time: 2026-09-01 23:19 UTC.
 
 | Gate | Current evidence | State |
 | --- | --- | --- |
 | Three independent verified operators | Zero verified independent groups | Open |
-| Operator A qualification | Preview.13, online, candidate, 97.3% sampled heartbeat coverage; 164 completed / 152 authoritative attestations lifetime, including 28 completed / 26 authoritative after the qualification clock began; about 66.0 hours remain | Running |
-| Operator B qualification | Preview.13, previously completed real work, currently offline and unreviewed | Open |
-| Operator C qualification | Online with substantial real-work history, but still on preview.9 and unreviewed | Open |
+| Operator A qualification | Preview.13, online, candidate, 97.44% sampled heartbeat coverage; 286 completed / 272 attestations lifetime, including 150 completed / 146 authoritative after the qualification clock began; 35.7 of 72 hours elapsed | Running |
+| Operator B qualification | Two healthy preview.13 registrations are completing real work, but their operators have not self-identified or completed independence review; either may qualify if unrelated control is established | Open |
+| Operator C qualification | No third independently reviewed operator is active; recruit a new persistent Linux/systemd or Docker operator rather than depending on an offline node or unsupported preview.9 node | Open |
 | Public self-diagnosis | Public `val_*` lookup reports version, online state, activity, redacted qualification progress, and five automatic post-setup checks | Passed |
 | Windows self-service onboarding | One external operator enrolled, but required support after mixing the validator ID, API key, wallet, and private-key prompts | Not proven |
-| Linux self-service onboarding | One external Ubuntu operator enrolled quickly without Google/GitHub login; upgrade-in-place to the cohort baseline remains required | Partial |
+| Linux self-service onboarding | One external operator self-enrolled without Google/GitHub login and is sustaining a preview.13 candidate run; repeated independent onboarding is not yet proven | Partial |
 | Randomized workload coverage | Exact output, arithmetic, JSON, 4K/16K/32K retrieval, multistep logic, restricted code, tool calls, tool chains, stop sequences, and token limits observed | Passed with calibration work |
 | Cohort operations monitor | One Redis-leased aggregate monitor is live across four Core processes; assignment, evidence, error, disagreement, freshness, version, candidate, and common-control warnings have no authority side effect | Passed |
 | Independent quorum | Distinct-registration preview quorum operates; reviewed independent quorum remains zero | Open |
@@ -44,9 +44,9 @@ operator-to-control-group mapping.
 At the snapshot, the public 24-hour network status reported:
 
 - 10 active registrations, 7 fresh heartbeats, and 7 participating nodes;
-- 738 completed assignments and 663 authoritative votes;
-- 98.34 percent objective agreement and a 5.88 percent disputed-group rate;
-- coverage across 10 workers and 9 models; and
+- 588 completed assignments and 563 authoritative votes;
+- 96.09 percent objective agreement and a 15.38 percent disputed-group rate;
+- coverage across 8 workers and 7 models; and
 - zero verified or participating independent operators.
 
 The active candidate produced healthy post-enrollment evidence across JSON,
@@ -56,16 +56,18 @@ Each current generated assignment has a validator-specific randomized prompt
 and answer commitment, Grid nonce, target worker, expiry, evidence commitment,
 and authoritative signature path.
 
-Production Core release `4e0eb3f6b883218502b01d550c7cdeed7f9a0dd2`
-runs the aggregate cohort watchdog under a renewable Redis leader lease,
-so four Uvicorn processes produce one database scan per interval. Its first
-live pass reported the two expected operational warnings: three stale active
-registrations and four fresh registrations outside preview.13. It reported no
-stale candidate and no duplicate reviewed control group. The monitor is
-read-only and public status continues to report `economic_effect: none`. The
-same release now excludes unsupported versions from candidate/verify transitions
-and independent quorum; an online preview.9 node is visibly
-`upgrade_required`, not silently cohort-eligible.
+Production Core release `e1e4ad4c9eeb277f385a2359f3bc418917a7f0e1`
+runs the aggregate cohort watchdog under a renewable Redis leader lease and has
+the future shadow-observation schema deployed dark. A protected read-only
+monitor run at the snapshot observed 600 matured assignments, 96.33 percent
+completion, 95.67 percent authoritative-evidence coverage, a 3.67 percent
+terminal probe-error rate, and no stale candidate. Its only warnings were the
+known fleet hygiene: three stale active registrations and four fresh
+registrations outside preview.13. The monitor is read-only, shadow collection
+is disabled, and public status continues to report `economic_effect: none`.
+Unsupported versions remain excluded from candidate/verify transitions and
+independent quorum; an online preview.9 node is visibly `upgrade_required`, not
+silently cohort-eligible.
 
 ## Calibration Findings
 
@@ -130,16 +132,20 @@ Backend-native comparisons remain open before any authority discussion.
 
 1. Keep Operator A online through the complete 72-hour gate, then preview the
    verify transition and inspect workload evidence before applying it.
-2. Restore Operator B's existing preview.13 process and start candidate review
-   only after a fresh heartbeat and control disclosure are confirmed.
-3. Upgrade Operator C in place to preview.13, preserving its identity, then
-   start the same reviewed candidate process.
+2. Ask the operators behind the two healthy unreviewed preview.13 registrations
+   to self-identify with only their public `val_*` ID and non-sensitive host
+   details. Start a candidate window only after signed control and practical
+   control separation are reviewed.
+3. Recruit additional persistent Linux/systemd or Docker operators until two
+   unrelated candidates beyond Operator A are active. The offline registration
+   and external preview.9 node are upgrade opportunities, not the critical path.
 4. Observe the deployed score-reason distribution and run bounded native-versus-
    Grid comparisons for stop-sequence and token-limit capable backends.
 5. Record onboarding interventions, outages, disagreement, and final evidence
    totals for each operator without publishing identities or control groups.
-6. Update this report only after all three verify previews are eligible and the
-   private common-control review still supports three distinct groups.
+6. Finalize each eligible candidate through Core's preview-first,
+   digest-bound review procedure. Do not prepare or start shadow collection
+   until Core reports three recently participating verified groups.
 
 ## V1 Recommendation
 
@@ -155,4 +161,5 @@ and the observed operator support burden.
 - Operator-local status: `aipg-validator check --no-probe`
 - Maintainer qualification preview: `scripts/review_validator_operator.py`
 - Public recruitment contract: [`PREVIEW_COHORT.md`](PREVIEW_COHORT.md)
-- Private maintainer procedure: Core `deploy/VALIDATOR_COHORT_RUNBOOK.md`
+- Private maintainer procedure: Core
+  [`docs/VALIDATOR_SHADOW_RUNBOOK.md`](https://github.com/AIPowerGrid/grid-core/blob/main/docs/VALIDATOR_SHADOW_RUNBOOK.md#0-finalize-and-recheck-the-independent-cohort)
