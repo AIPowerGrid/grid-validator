@@ -166,9 +166,15 @@ dashboard show only the authenticated operator's safe qualification status and
 progress; they never show the internal common-control group or private review
 reference. Core samples at most one qualifying heartbeat every five minutes.
 Verification requires at least 72 hours, at least 80% sample coverage, a fresh
-heartbeat, and a project-maintainer review. A verified review expires after 30
-days by default and must be renewed; operators cannot self-certify through the
-node or API.
+heartbeat, a project-maintainer review, at least one completed probe created
+after the candidate window began, and at least one accepted authoritative
+attestation created after that same boundary. Pre-window evidence cannot satisfy
+the work gate. The maintainer follows Core's
+[preview-first, digest-bound finalization runbook](https://github.com/AIPowerGrid/grid-core/blob/main/docs/VALIDATOR_SHADOW_RUNBOOK.md#0-finalize-and-recheck-the-independent-cohort);
+the apply step remains fail-closed and grants no routing or economic effect. A
+verified review expires after 30 days by default. A later review cycle starts a
+fresh candidate window rather than extending trust in place. Operators cannot
+self-certify through the node or API.
 
 Three recently active, verified independent operator groups is the initial
 production-cohort milestone for assessing onboarding and shared evidence. The
