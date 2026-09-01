@@ -355,6 +355,11 @@ and ARM64; prereleases never publish or replace `latest`:
 docker pull ghcr.io/aipowergrid/validator:v0.1.0-preview.13
 ```
 
+First-time Docker operators must enroll into a private host directory and mount
+both the resulting `.env` and durable SQLite journal on every subsequent run.
+The complete copy/paste flow is in [QUICKSTART.md](QUICKSTART.md#docker); do not
+create an ephemeral container identity or discard its state between restarts.
+
 The preview bundles the dark image/video decoders. Qualify the exact image
 without contacting the Grid:
 
@@ -362,35 +367,16 @@ without contacting the Grid:
 docker run --rm ghcr.io/aipowergrid/validator:v0.1.0-preview.13 self-test
 ```
 
-Run a one-shot config/Grid check:
-
-```bash
-docker run --rm \
-  --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.13 check --no-probe
-```
-
-Run the validator loop:
-
-```bash
-docker run -d --name aipg-validator --restart unless-stopped \
-  --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.13
-```
-
-Run the dashboard:
-
-```bash
-docker run --rm -p 8790:8790 \
-  --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.13 \
-  dashboard --host 0.0.0.0
-```
+Use the [Docker quickstart](QUICKSTART.md#docker) for enrollment, a no-probe
+check, the persistent validator loop, logs, and the optional dashboard. That
+single flow pins preview.13, runs as the host user, mounts credentials read-only
+after setup, and preserves the evidence journal across container recreation.
 
 Build `aipowergrid/validator:local` from this checkout only when testing source
 changes rather than the immutable cohort release.
 
-Or use Compose:
+Compose builds the current checkout and is for local development, not the
+72-hour public cohort:
 
 ```bash
 docker compose run --rm validator check --no-probe

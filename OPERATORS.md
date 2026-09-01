@@ -294,25 +294,57 @@ Override the bind address only when you know the machine/network boundary:
 
 ### Docker Install
 
-Docker is the easiest server path once `.env` exists.
+Docker is the easiest server path and can perform first-run enrollment without
+a source checkout. Keep the exact preview tag and a private host directory:
 
 ```bash
-docker pull ghcr.io/aipowergrid/validator:v0.1.0-preview.13
-docker run --rm ghcr.io/aipowergrid/validator:v0.1.0-preview.13 self-test
+IMAGE=ghcr.io/aipowergrid/validator:v0.1.0-preview.13
+CONFIG_DIR="$HOME/.aipg-validator"
+mkdir -p "$CONFIG_DIR/state"
+chmod 700 "$CONFIG_DIR" "$CONFIG_DIR/state"
+docker pull "$IMAGE"
+docker run --rm "$IMAGE" self-test
+docker run --rm -it \
+  --user "$(id -u):$(id -g)" \
+  -e HOME=/tmp \
+  -e VALIDATOR_ENV=/config/.env \
+  --mount type=bind,source="$CONFIG_DIR",target=/config \
+  "$IMAGE" enroll
+chmod 600 "$CONFIG_DIR/.env"
 docker run --rm \
-  --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.13 check --no-probe
+  --user "$(id -u):$(id -g)" \
+  -e HOME=/tmp \
+  -e VALIDATOR_ENV=/config/.env \
+  -e VALIDATOR_STATE_DB=/state/state.sqlite3 \
+  --mount type=bind,source="$CONFIG_DIR/.env",target=/config/.env,readonly \
+  --mount type=bind,source="$CONFIG_DIR/state",target=/state \
+  "$IMAGE" check --no-probe
 docker run -d --name aipg-validator --restart unless-stopped \
-  --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.13
+  --user "$(id -u):$(id -g)" \
+  -e HOME=/tmp \
+  -e VALIDATOR_ENV=/config/.env \
+  -e VALIDATOR_STATE_DB=/state/state.sqlite3 \
+  --mount type=bind,source="$CONFIG_DIR/.env",target=/config/.env,readonly \
+  --mount type=bind,source="$CONFIG_DIR/state",target=/state \
+  "$IMAGE"
+docker logs -f aipg-validator
 ```
+
+The config mount is read-only after enrollment. The separate writable state
+mount preserves pending evidence and deduplication across container restarts.
+Keep both directories and the existing `val_*` identity across upgrades.
 
 Run the dashboard container when you want a local browser view:
 
 ```bash
 docker run --rm -p 8790:8790 \
-  --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.13 \
+  --user "$(id -u):$(id -g)" \
+  -e HOME=/tmp \
+  -e VALIDATOR_ENV=/config/.env \
+  -e VALIDATOR_STATE_DB=/state/state.sqlite3 \
+  --mount type=bind,source="$CONFIG_DIR/.env",target=/config/.env,readonly \
+  --mount type=bind,source="$CONFIG_DIR/state",target=/state \
+  "$IMAGE" \
   dashboard --host 0.0.0.0
 ```
 

@@ -94,6 +94,10 @@ generator here or imply that passing public templates proves model quality.
   existing-account pairing is shipped.
   Preview.13 preserves the network-error category through HTTPX's exception
   chain; its published Linux binary passed controlled live outage/recovery.
+  The Docker path must include first-run enrollment and persist both the private
+  config and durable assignment/evidence journal across container recreation;
+  normal runs mount the credential file read-only and only the journal directory
+  writable.
   The public Linux cohort path pins the systemd helper to a reviewed immutable
   source commit and verifies its SHA-256 separately from the frozen preview.13
   binary. Never replace that with a mutable branch download or pipe-to-shell.

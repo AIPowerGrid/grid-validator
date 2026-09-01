@@ -173,30 +173,73 @@ version explicit: prereleases never publish or replace `latest`.
 
 ## Docker
 
+For a new node, create a private host directory and enroll from the exact
+preview image. Mapping the container to your host user lets enrollment create
+the private configuration without running the validator as root:
+
 ```bash
-docker pull ghcr.io/aipowergrid/validator:v0.1.0-preview.13
-docker run --rm ghcr.io/aipowergrid/validator:v0.1.0-preview.13 self-test
+IMAGE=ghcr.io/aipowergrid/validator:v0.1.0-preview.13
+CONFIG_DIR="$HOME/.aipg-validator"
+mkdir -p "$CONFIG_DIR/state"
+chmod 700 "$CONFIG_DIR" "$CONFIG_DIR/state"
+
+docker pull "$IMAGE"
+docker run --rm "$IMAGE" self-test
+docker run --rm -it \
+  --user "$(id -u):$(id -g)" \
+  -e HOME=/tmp \
+  -e VALIDATOR_ENV=/config/.env \
+  --mount type=bind,source="$CONFIG_DIR",target=/config \
+  "$IMAGE" enroll
+chmod 600 "$CONFIG_DIR/.env"
+```
+
+Check the enrolled node without sending a probe. Normal operation mounts the
+credential file read-only and gives only the durable assignment/evidence
+journal its own writable directory:
+
+```bash
 docker run --rm \
-  --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.13 check --no-probe
+  --user "$(id -u):$(id -g)" \
+  -e HOME=/tmp \
+  -e VALIDATOR_ENV=/config/.env \
+  -e VALIDATOR_STATE_DB=/state/state.sqlite3 \
+  --mount type=bind,source="$CONFIG_DIR/.env",target=/config/.env,readonly \
+  --mount type=bind,source="$CONFIG_DIR/state",target=/state \
+  "$IMAGE" check --no-probe
 ```
 
 Run the loop:
 
 ```bash
 docker run -d --name aipg-validator --restart unless-stopped \
-  --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.13
+  --user "$(id -u):$(id -g)" \
+  -e HOME=/tmp \
+  -e VALIDATOR_ENV=/config/.env \
+  -e VALIDATOR_STATE_DB=/state/state.sqlite3 \
+  --mount type=bind,source="$CONFIG_DIR/.env",target=/config/.env,readonly \
+  --mount type=bind,source="$CONFIG_DIR/state",target=/state \
+  "$IMAGE"
+docker logs -f aipg-validator
 ```
 
 Run the dashboard:
 
 ```bash
 docker run --rm -p 8790:8790 \
-  --mount type=bind,source="$PWD/.env",target=/app/.env,readonly \
-  ghcr.io/aipowergrid/validator:v0.1.0-preview.13 \
+  --user "$(id -u):$(id -g)" \
+  -e HOME=/tmp \
+  -e VALIDATOR_ENV=/config/.env \
+  -e VALIDATOR_STATE_DB=/state/state.sqlite3 \
+  --mount type=bind,source="$CONFIG_DIR/.env",target=/config/.env,readonly \
+  --mount type=bind,source="$CONFIG_DIR/state",target=/state \
+  "$IMAGE" \
   dashboard --host 0.0.0.0
 ```
+
+Keep `$CONFIG_DIR` when replacing or recreating the container. Deleting it
+deletes the node identity and durable evidence journal; do not re-enroll to
+troubleshoot an existing node.
 
 Build `aipowergrid/validator:local` from the reviewed checkout only when you
 intend to test source changes instead of the immutable cohort release.
