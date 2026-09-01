@@ -12,11 +12,20 @@ For the evidence-only rollout sequence, use [RELEASE_V0.md](RELEASE_V0.md).
 This is the current execution order. The numbered phases below describe the
 longer architecture, not permission to activate paid audits or economics.
 
+Operating decision: ship the existing evidence-only validator lane as useful
+production observability now, and run independent qualification in parallel.
+The Grid product and worker network do not wait for three volunteer operators.
+Only validator authority over routing, rewards, strikes, staking, or slashing
+waits for the independent-operator gate and a separate reviewed activation.
+
 1. Reconcile reviewed source, published artifacts, deployed versions, and local
    work. Preserve the unfinished video-decoder fairness patch separately.
    The reviewed harness/docs are merged as `35b4e04`; public binaries remain
-   preview.13. Live Core is `f51875ce` with migration `0030`, deployed dark after
-   a fresh backup/restore proof. Pairing and its pilot allowlist remain off.
+   preview.13. Live Core is
+   `4e0eb3f6b883218502b01d550c7cdeed7f9a0dd2` with migration `0031`, deployed
+   after a fresh backup/restore proof. Pairing and its pilot allowlist remain
+   off. Core requires preview.13 for qualification and excludes unsupported
+   versions from independent quorum.
 2. PR #48's Windows launcher/identity fix shipped in preview.11; preview.12
    introduced the local app, retained in current preview.13. Native build/install
    and published Windows Server runtime tests pass; ordinary-user double-click
@@ -53,16 +62,16 @@ longer architecture, not permission to activate paid audits or economics.
    restarts, upgrades, real firewall outage/recovery and credential retirement
    in run `33110290699`. Hosted HTTP-driven controls do not prove human UI use.
    See [PRODUCTION_BASELINE.md](PRODUCTION_BASELINE.md).
-7. Qualify at least five independently controlled operators for 72 hours;
-   registration, wallets, and first-party canaries do not prove independence.
-   At 20:57 UTC on 2026-08-27, Peteq's node was healthy with 33 verified reports;
-   Donli subsequently confirmed the preview.13 node's ID, and the 21:05 UTC
-   live check found three verified reports and a fresh heartbeat. His basic
-   operation is confirmed; the independent-control declaration, human desktop
-   recovery checks and qualification window remain separate and uncompleted.
-   A later 21:57 UTC check found Peteq fresh but Donli's last heartbeat at
-   21:21 UTC. Donli still has one valid key and four verified reports; the cause
-   of the interruption is unknown and requires his local app status.
+7. Qualify three independently controlled operators for the initial 72-hour
+   authority gate, then grow to five for the broader pilot; registration,
+   wallets, and first-party canaries do not prove independence. At 13:45 UTC on
+   2026-09-01, one confirmed preview.13 candidate was online at 26.1 of 72
+   hours with 97.45% sampled-heartbeat coverage, 251 completed assignments, and
+   237 attestations. A second preview.13 registration was offline and
+   unreviewed. A third external registration was online but still reported
+   preview.9, so Core correctly marked it upgrade-required and ineligible for
+   independent quorum. Continue recruitment and qualification without making
+   the rest of the Grid roadmap depend on volunteer availability.
 8. Maintain hostile-worker tests for template solvers, replay, fabricated
    evidence, substitution, and probe-aware switching. Generated challenges are
    protocol/capability evidence, never automatically quality evidence.
@@ -77,9 +86,11 @@ longer architecture, not permission to activate paid audits or economics.
 
 Standing boundaries: validator routing influence, rewards, staking, and
 slashing stay off. Paid/blind audit activation and contract changes require
-separate review and explicit approval. The current near-term finish line is
-ordinary users running and recovering nodes without handling private keys,
-plus five independently qualified operators, not validator economics.
+separate review and explicit approval. The near-term product finish line is a
+stable evidence and observability lane with ordinary users able to run and
+recover nodes without handling private keys. Three independently qualified
+operators unlock an authority-readiness review; five remain the broader pilot
+target. Neither count automatically activates economics.
 
 ## Product Story
 

@@ -64,6 +64,10 @@ routing, strike, or slashing logic may read it as authority. Future phases harde
 independent-operator proof, deterministic media workflow certification, rewards, staking, and
 objective-fraud slashing. Do not describe future economic authority as live until the
 Grid endpoints and contracts exist. Python package: `validator/`. Entry: `validator.main`.
+The evidence-only lane is production observability and does not block unrelated
+Grid launch work. Independent routing, reward, strike, staking, or slashing
+authority remains gated on reviewed independent operators and a separate
+activation decision; first-party nodes never fill those seats.
 
 Core's required anti-gaming CI owns the executable hostile-worker baseline:
 regex/template solving, exact replay, public-probe classification, and
