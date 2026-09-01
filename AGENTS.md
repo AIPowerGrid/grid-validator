@@ -116,9 +116,12 @@ generator here or imply that passing public templates proves model quality.
   probe-fingerprinting gaps, red-team acceptance tests, and economic gates.
 - **`ROADMAP.md`** — dev-manager build order from V0 preview through targeted
   validation, text/image/video policy work, and Base-anchored economics.
-  Its active ten-item milestone distinguishes published native runtime proof
+  Its active eleven-item milestone distinguishes published native runtime proof
   from human desktop use, staged restore proof from cutover, and registration
-  from independently reviewed qualification. Keep those gates separate.
+  from independently reviewed qualification. It also owns the transition from
+  three qualified operators into Core's seven-day shadow-authority observation;
+  the real router and every economic path remain unchanged. Keep those gates
+  separate.
 - **`RELEASE_V0.md`** — cross-repo evidence-only release runbook: core migration/API,
   console scorecards, validator packaging, canary operation, and rollback notes.
 - **`PREVIEW_COHORT.md`** — public recruitment and qualification contract for
@@ -131,6 +134,10 @@ generator here or imply that passing public templates proves model quality.
   external review; the node cannot self-certify operator independence. The
   authenticated CLI/dashboard may show that operator's progress and review
   expiry, but must never expose the opaque control group or private review ref.
+  Three recently participating qualified groups unlock only a seven-day Core
+  shadow observation, not routing or economic authority. The qualifying client
+  stays on the frozen preview.13 release; shadow collection does not require a
+  validator release.
 - **`PRODUCTION_BASELINE.md`** — dated public capability, assignment, quorum,
   independence, and network-capacity snapshots. It is historical evidence, not
   a substitute for the live public status endpoints.

@@ -72,16 +72,26 @@ waits for the independent-operator gate and a separate reviewed activation.
    preview.9, so Core correctly marked it upgrade-required and ineligible for
    independent quorum. Continue recruitment and qualification without making
    the rest of the Grid roadmap depend on volunteer availability.
-8. Maintain hostile-worker tests for template solvers, replay, fabricated
+8. After three recently participating independent groups qualify, run Core's
+   frozen advisory policy in shadow-authority mode for seven days. The observer
+   records actual versus hypothetical routes asynchronously and cannot affect
+   requests, worker health, den, payouts, rewards, bonds, strikes, or slashing.
+   Require at least 80% three-group coverage, no continuous quorum gap over one
+   hour, replayable policy/evidence commitments, and an explicit no-side-effect
+   audit. Completion opens a routing design review only. Use Core's canonical
+   [`VALIDATOR_SHADOW_AUTHORITY.md`](https://github.com/AIPowerGrid/grid-core/blob/main/docs/architecture/VALIDATOR_SHADOW_AUTHORITY.md)
+   contract; do not release preview.14 for this Core-side observer while the
+   current preview.13 candidate is qualifying.
+9. Maintain hostile-worker tests for template solvers, replay, fabricated
    evidence, substitution, and probe-aware switching. Generated challenges are
    protocol/capability evidence, never automatically quality evidence.
-9. Finish decoder fairness, then independent-reference deterministic image and
+10. Finish decoder fairness, then independent-reference deterministic image and
    video pilots. Local failures and reference disagreement are inconclusive.
    Fairness fixes are reviewed and merged in `5de518b0` with native test coverage,
    but are not in preview.13. Original local work is preserved separately.
    Independent reference operators and supervised image/video pilots remain open;
    media issuance and bond synchronization remain disabled.
-10. Keep DOX, public claims, release links, and rollback records synchronized;
+11. Keep DOX, public claims, release links, and rollback records synchronized;
     distinguish merged, released, deployed, and verified at every milestone.
 
 Standing boundaries: validator routing influence, rewards, staking, and
