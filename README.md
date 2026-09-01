@@ -22,6 +22,13 @@ service, [RELEASE_V0.md](RELEASE_V0.md) for the cross-repo rollout order, and
 [DESIGN.md](DESIGN.md) for the full validator story across text, image, video,
 reference workers, and Base anchoring.
 
+> **Cohort call: two independent Linux operators are needed.** The initial gate
+> requires three unrelated operators; one preview.13 candidate is qualifying
+> now. A CPU-only Linux host with systemd and 72 hours of availability is the
+> recommended path. There are no validator rewards or routing powers in this
+> preview. Use the [guided install](https://aipowergrid.io/validate) and volunteer
+> through [cohort issue #5](https://github.com/AIPowerGrid/grid-validator/issues/5).
+
 ## V0 Scope
 
 What is implemented and testable against production Core:
@@ -91,13 +98,14 @@ Production preview status:
   operator configuration is enabled, and both production audit tables were
   empty after deployment. Existing assignment probes remain unpaid and
   economically inert.
-- The 2026-09-01 public snapshot reported ten active registrations, seven fresh
-  and participating nodes, 674 completed assignments, 641 authoritative
-  evidence votes, eight covered workers, and seven covered models. Four nodes
-  still reported preview.9 and three reported the required preview.13.
-- One confirmed preview.13 candidate was online at 26.1 of 72 required hours
-  with 97.45% heartbeat-sample coverage, 251 completed assignments, and 237
-  attestations. No operator had completed independent qualification.
+- Live registration, assignment, evidence, release-cohort, and independence
+  counts change continuously. Read the
+  [public network status](https://api.aipowergrid.io/v1/status/network) instead
+  of treating a README snapshot as current operational truth.
+- One confirmed preview.13 candidate is completing the unchanged 72-hour gate;
+  two more unrelated Linux/systemd operators are still needed. No operator had
+  completed independent qualification as of 2026-09-01. Current cohort intake
+  is tracked in [issue #5](https://github.com/AIPowerGrid/grid-validator/issues/5).
 - On the earlier preview.5 payload, after the one-hour worker/model cooldown
   elapsed on 2026-08-27, the same nodes completed two fresh sealed groups. A
   16K-context group reached
