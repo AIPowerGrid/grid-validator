@@ -113,6 +113,18 @@ hostname, or review notes.
    requires no API key or private key and should agree with the local app's
    version, online state, aggregate activity, and qualification progress.
 
+The maintainer can observe step 5 without handling credentials or private
+metadata by running this from a reviewed `grid-validator` checkout:
+
+```bash
+python scripts/verify-validator-control.py val_0123456789abcdef0123456789abcdef
+```
+
+The helper requires the frozen supported cohort version and
+`economic_effect=none`, then waits for the same public ID to transition from
+active to signed-suspended and back to active. It is a bounded convenience for
+the live review, not an independence oracle and not validator authority.
+
 Linux x64 and ARM64 binaries target glibc 2.35 or newer. macOS and Windows
 preview binaries are explicitly unsigned; Linux is the lowest-friction public
 pilot path. The exact `ghcr.io/aipowergrid/validator:v0.1.0-preview.13`
