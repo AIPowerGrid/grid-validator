@@ -82,17 +82,22 @@ What is implemented and testable against production Core:
 Production preview status:
 
 - Production Core runs the sealed shared-quorum validator API at immutable
-  commit `6015eca3` as checked on 2026-08-27, with migrations through `0029`.
-- Core `0029` also contains a dark, atomic accounting terminal for future
+  commit `4e0eb3f6b883218502b01d550c7cdeed7f9a0dd2` as checked on
+  2026-09-01, with migrations through `0031`. Core requires
+  `v0.1.0-preview.13` for candidate/verified qualification and excludes older
+  releases from independent quorum.
+- Core also contains a dark, atomic accounting terminal for future
   compensated quality audits. No scheduler, audit corpus, scoring policy, or
   operator configuration is enabled, and both production audit tables were
   empty after deployment. Existing assignment probes remain unpaid and
   economically inert.
-- All three participating pilot nodes run the published `v0.1.0-preview.9`
-  payload from validator commit `9d7b68f`; the checksummed Linux x64 artifact
-  and offline image/video decoder self-test passed a
-  one-node-at-a-time production rollout and Core reports the immutable release
-  tag for all three nodes.
+- The 2026-09-01 public snapshot reported ten active registrations, seven fresh
+  and participating nodes, 674 completed assignments, 641 authoritative
+  evidence votes, eight covered workers, and seven covered models. Four nodes
+  still reported preview.9 and three reported the required preview.13.
+- One confirmed preview.13 candidate was online at 26.1 of 72 required hours
+  with 97.45% heartbeat-sample coverage, 251 completed assignments, and 237
+  attestations. No operator had completed independent qualification.
 - On the earlier preview.5 payload, after the one-hour worker/model cooldown
   elapsed on 2026-08-27, the same nodes completed two fresh sealed groups. A
   16K-context group reached
@@ -105,6 +110,12 @@ Production preview status:
   Evidence remains economically inert.
 - The three nodes share one operator and hypervisor. They do not prove an
   independent or decentralized validator cohort.
+
+The evidence lane is useful production observability today, but it has no
+economic or routing authority. The broader Grid roadmap continues while
+independent operators qualify in parallel. Three recently active qualified
+operators trigger an authority-readiness review; they do not automatically
+activate validator control or economics.
 
 What is not production-live yet:
 

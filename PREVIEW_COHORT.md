@@ -9,13 +9,32 @@ This is distributed testing, not decentralized economic validation. Preview
 evidence does not change worker routing, strikes, payouts, or rewards. There is
 no validator staking, slashing, or compensation in this cohort.
 
-Enrollment is open for the evidence-only cohort. As checked on 2026-08-27,
-production Core runs commit `f51875ce` with migrations through `0030`. New
-operators should use the immutable public
+## Operating Decision
+
+The preview is a useful production observability lane before independent
+authority exists. Registered nodes may receive randomized assignments, submit
+signed evidence, and contribute to aggregate reliability and disagreement
+telemetry. That evidence helps maintainers find worker and protocol failures,
+but it is not an independent vote unless the operator has completed the review
+and qualification below.
+
+The rest of AI Power Grid does not wait for this cohort to reach its
+independence milestone. Worker onboarding, public inference, client
+integrations, and demand-side products may continue while qualification runs in
+parallel. Only validator-controlled routing, rewards, strikes, staking, and
+slashing are gated on reviewed independent operators and a separate activation
+decision. First-party nodes may keep the telemetry lane healthy, but they never
+fill independent-operator seats.
+
+Enrollment is open for the evidence-only cohort. As checked on 2026-09-01,
+production Core runs commit
+`4e0eb3f6b883218502b01d550c7cdeed7f9a0dd2` with migrations through `0031`.
+New operators must use the immutable public
 [`v0.1.0-preview.13`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.13),
-which provides explicit automatic enrollment and a local operator app. The
-first-party fleet still runs preview.9; that is a deployment snapshot, not the
-download recommendation.
+which provides explicit automatic enrollment and a local operator app. Core
+marks older versions `upgrade_required` and excludes them from independent
+quorum. Legacy first-party registrations still reporting preview.9 are a
+deployment snapshot, not the download recommendation.
 The three first-party nodes share one operator and hypervisor, so they do not
 count toward the five independent-operator exit gate.
 See [PRODUCTION_BASELINE.md](PRODUCTION_BASELINE.md) for dated runtime evidence;
@@ -132,6 +151,11 @@ verified and participating counts but no group identifiers. A successful install
 registration, wallet, heartbeat, or ordinary 3-of-5 registration quorum alone
 does not prove independence. Until both conditions hold, validator evidence
 remains preview-only and economically inert.
+
+This milestone is an authority gate, not a network-launch gate. Failing to
+recruit or retain three operators means independent validator authority remains
+off; it does not erase the signed telemetry already produced or stop unrelated
+Grid work.
 
 The 72-hour run qualifies basic operation and control separation. It does not
 prove every model claim, authorize rewards, or make subjective evidence

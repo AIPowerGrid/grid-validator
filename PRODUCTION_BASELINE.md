@@ -5,6 +5,34 @@ This is a dated rollout snapshot, not a live status page. Query
 `GET https://api.aipowergrid.io/v1/validator/capabilities` for current public
 state.
 
+## 2026-09-01 13:45 UTC - Evidence Lane Live, Authority Still Gated
+
+The public network snapshot reported ten active registrations, seven fresh
+heartbeats, seven validators participating during the last 24 hours, 674
+completed assignments, and 641 authoritative evidence votes. Coverage reached
+eight workers and seven models. Aggregate agreement was 95.32%; the reported
+disputed rate was 16.42%. Validator economic effect remained `none`.
+
+Core reported zero verified or participating independent operators, so
+independent authority is not proven. Four registrations still reported
+`v0.1.0-preview.9`; three reported the required
+`v0.1.0-preview.13`. Unsupported releases remain excluded from independent
+quorum.
+
+The confirmed preview.13 candidate was online at 26.1 of 72 required hours
+with 97.45% sampled-heartbeat coverage, 255 assignments received, 251
+completed, and 237 attestations. Its coverage gate passed, heartbeat was fresh,
+and only the time and final review gates remained. Another confirmed
+preview.13 registration was offline and unreviewed. A separate external node
+was online on preview.9 and correctly received `upgrade_required`; it remained
+unreviewed and ineligible for independent quorum.
+
+This snapshot establishes the operating split: signed randomized validator
+evidence is already useful as production observability, while routing,
+rewards, strikes, staking, and slashing remain behind the independent-operator
+gate and a separate activation review. The broader Grid roadmap does not wait
+for volunteer qualification.
+
 ## 2026-08-31 18:22 UTC - Frozen-Version Gate And Public Setup Verification
 
 Production Core now runs reviewed commit
