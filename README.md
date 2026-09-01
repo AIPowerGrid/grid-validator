@@ -400,7 +400,10 @@ sudo ./scripts/install-systemd.sh
 journalctl -u aipg-validator -f
 ```
 
-For a released binary installed on `PATH`, use the same helper:
+For a released preview binary, use the commit- and checksum-pinned helper in
+[QUICKSTART.md](QUICKSTART.md#systemd). Do not pipe a mutable remote script to a
+shell. For a reviewed source checkout installed on `PATH`, the equivalent
+command is:
 
 ```bash
 sudo AIPG_VALIDATOR_EXEC="$(command -v aipg-validator)" \

@@ -125,11 +125,14 @@ passing end-to-end test: the node must receive an assignment, finish its probe,
 and have its signed evidence accepted. Assignment availability is not guaranteed
 immediately. Do not run a second copy while the app's worker is running.
 
-For headless operation, stop the app's worker first and run the node
-continuously for at least 72 hours:
+For headless operation, stop the app's worker first and install the pinned
+systemd service from [QUICKSTART.md](QUICKSTART.md#systemd). Confirm it is
+active and following the same preview.13 identity before starting the 72-hour
+window:
 
 ```bash
-aipg-validator run
+sudo systemctl status aipg-validator --no-pager
+sudo journalctl -u aipg-validator -f
 ```
 
 After enrollment, the project maintainer places the registration into candidate
