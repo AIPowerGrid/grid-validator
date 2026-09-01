@@ -12,23 +12,14 @@ dispute tooling exist.
 For the shortest install path, start with [QUICKSTART.md](QUICKSTART.md). This
 file is the longer operator runbook.
 
-Current rollout: sealed assignment-bound shared quorum is live on production
-Core commit `6015eca3` as checked on 2026-08-27, with migrations through `0029`. Three first-party pilot nodes
-proved the signed 3-of-5 text flow without economic side effects and now run the
-exact published `v0.1.0-preview.9` payload from commit `9d7b68f`. Core reports
-that immutable release identity for all three nodes. Each node passed a staged
-offline image/video decoder self-test, `check --no-probe`, atomic symlink
-switch, and clean service restart. After the
-earlier preview.5 cooldown, the fleet completed a healthy 3-of-5 16K-context
-group and correctly disputed a token-limit group with no economic side effects.
-Public enrollment remains a no-reward qualification cohort because those nodes
-share one operator and hypervisor. Always run `check --no-probe` before operating
-the loop.
-
-Migration `0029` added a dark atomic accounting terminal for future compensated
-audits. It did not enable a scheduler, private corpus, scoring policy, validator
-rewards, or any new operator action. Current preview assignments remain unpaid
-and have no routing, payout, strike, bond, or slashing effect.
+Current rollout: sealed assignment-bound shared quorum is live in production
+and the immutable `v0.1.0-preview.13` release is the required qualification
+baseline. Older preview.9 registrations are upgrade-required and do not count
+toward independent quorum. First-party nodes prove the signed workflow, not
+independence. Public enrollment remains an unpaid evidence-only cohort: current
+assignments have no routing, payout, reward, strike, bond, or slashing effect.
+Always run `check --no-probe` before operating the loop and use the public
+[network page](https://console.aipowergrid.io/network) for current status.
 
 ## System Requirements
 
@@ -349,15 +340,30 @@ journalctl -u aipg-validator -f
 ```
 
 The helper writes `/etc/systemd/system/aipg-validator.service`, keeps the private
-config in `.env`, and refuses to start the service until `.env` exists.
+config in `.env`, pins the durable SQLite journal to the private working
+directory, and grants that directory the only explicit write exception under
+the read-only home/system sandbox. It refuses to start the service until `.env`
+exists.
 
-For released binaries, point the helper at the installed binary and a private
-working directory:
+For released binaries, use the reviewed helper from `master` and point it at
+the installed immutable preview.13 binary and existing private working
+directory:
 
 ```bash
-sudo AIPG_VALIDATOR_EXEC="$(command -v aipg-validator)" \
-  ./scripts/install-systemd.sh --workdir /var/lib/aipg-validator --user aipg
+git clone --depth 1 https://github.com/AIPowerGrid/grid-validator.git \
+  /tmp/grid-validator-service-helper
+cd /tmp/grid-validator-service-helper
+sudo AIPG_VALIDATOR_EXEC="$HOME/.local/bin/aipg-validator" \
+  AIPG_VALIDATOR_WORKDIR="$HOME/.aipg-validator" \
+  ./scripts/install-systemd.sh --dry-run
+sudo AIPG_VALIDATOR_EXEC="$HOME/.local/bin/aipg-validator" \
+  AIPG_VALIDATOR_WORKDIR="$HOME/.aipg-validator" \
+  ./scripts/install-systemd.sh
 ```
+
+Stop any validator child started by the local app before enabling systemd. The
+run lock rejects a second process, but operators should not depend on that as a
+normal launch method.
 
 Useful service commands:
 

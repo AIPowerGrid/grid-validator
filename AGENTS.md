@@ -125,7 +125,8 @@ generator here or imply that passing public templates proves model quality.
 - **`RELEASE_V0.md`** — cross-repo evidence-only release runbook: core migration/API,
   console scorecards, validator packaging, canary operation, and rollback notes.
 - **`PREVIEW_COHORT.md`** — public recruitment and qualification contract for
-  5-10 independent preview operators, including safe reporting and the
+  the initial three independent operators, broader five-operator pilot, and
+  ten-operator recruitment target, including safe reporting and the
   distinction between node count and independently controlled quorum weight.
   Its new-operator path is preview.13 automatic dedicated-node enrollment and
   the local app, not manual wallet/key preparation. Keep independent-control
@@ -237,8 +238,10 @@ generator here or imply that passing public templates proves model quality.
   menu invocation. Native clean-install CI must exercise identity creation,
   repeated preparation, and the protected Windows DACL, not just help/decoders.
 - **`scripts/install-systemd.sh`** — Linux systemd service installer for source
-  or released-binary validator nodes. Dry-run safe; generated unit must keep
-  secrets in `.env`, not in the unit file.
+  or released-binary validator nodes. Dry-run safe; generated units keep
+  secrets in `.env`, pin the durable SQLite journal inside the private work
+  directory, and grant write access only to that directory while retaining the
+  read-only home/system sandbox.
 - **`scripts/smoke-release.sh`** — full local release smoke: unit tests, CLI,
   dashboard, Docker, release binary, and binary installer using throwaway
   offline config. The Docker and frozen-binary checks must both prove the

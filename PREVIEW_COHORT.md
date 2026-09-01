@@ -1,9 +1,11 @@
 # Validator Preview Cohort
 
-AI Power Grid is recruiting 5-10 independently operated nodes for the first
-validator preview. The purpose of this cohort is to prove that the software,
-assignment lifecycle, and shared 3-of-5 evidence flow work across unrelated
-operators and networks.
+AI Power Grid is qualifying three independently operated nodes for the initial
+authority-readiness review, then five for the broader pilot; ten remains the
+recruitment target. With one candidate currently running, the immediate need is
+two additional unrelated Linux/systemd operators. The purpose of this cohort is
+to prove that the software, assignment lifecycle, and shared 3-of-5 evidence
+flow work across unrelated operators and networks.
 
 This is distributed testing, not decentralized economic validation. Preview
 evidence does not change worker routing, strikes, payouts, or rewards. There is
