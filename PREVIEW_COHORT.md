@@ -157,6 +157,24 @@ recruit or retain three operators means independent validator authority remains
 off; it does not erase the signed telemetry already produced or stop unrelated
 Grid work.
 
+After three recently participating independent operator groups complete this
+gate, Core may begin one **seven-day shadow-authority run**. Shadow mode records
+what a frozen validator advisory policy would have changed while the production
+router remains authoritative and unchanged. It has no effect on user requests,
+worker health, den, payouts, rewards, bonds, strikes, or slashing. At least 80
+percent of the observation samples must retain three participating independent
+groups, no continuous quorum gap may exceed one hour, and every hypothetical
+change must be replayable from a policy and evidence commitment. A failed run is
+repeated rather than weakening the gate.
+
+The canonical design and review contract lives in Core's
+[`VALIDATOR_SHADOW_AUTHORITY.md`](https://github.com/AIPowerGrid/grid-core/blob/main/docs/architecture/VALIDATOR_SHADOW_AUTHORITY.md).
+Completing the run permits a separate routing review only; it does not activate
+validator influence or rewards. Shadow collection uses the existing signed
+evidence contract and does not require a new validator binary. Keep preview.13
+as the cohort baseline while the current candidate qualifies; do not publish
+preview.14 merely to start the observer.
+
 The 72-hour run qualifies basic operation and control separation. It does not
 prove every model claim, authorize rewards, or make subjective evidence
 slashable.
