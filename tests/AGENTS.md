@@ -87,6 +87,9 @@ installer generation.
   Both harness suites run on every native build. A real POSIX subprocess test
   proves timeout cleanup closes inherited descendant pipes after parent exit;
   that OS-specific test skips explicitly on Windows.
+- `test_validator_control_review.py` covers the credential-free maintainer
+  watcher used before candidate qualification: same-ID active/suspend/resume,
+  frozen-version and non-economic gates, bounded polling, and concise failure.
 
 ## Local Contracts
 

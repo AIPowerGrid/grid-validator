@@ -43,6 +43,10 @@ verification, binary installation, systemd installation, and release smoke tests
   discarded-response recovery, fresh evidence before/after and retirement must
   all pass. This harness has not yet passed a native live pairing run; its
   offline fixtures are not that proof. See `../NATIVE_PAIRING_CANARY.md`.
+- `verify-validator-control.py` is a credential-free maintainer helper for the
+  preview cohort's live ownership check. It observes only the redacted public
+  status transition from active to signed-suspended and back to active. Passing
+  proves current node-key control, never operator independence or authority.
 
 ## Local Contracts
 
@@ -58,6 +62,9 @@ verification, binary installation, systemd installation, and release smoke tests
   placeholder and may install only from explicit local asset/checksum paths.
 - Keep scripts deterministic and non-interactive unless their installer purpose
   explicitly requires operator input. Never print secrets.
+- Validator-control review polling must be bounded, require the frozen supported
+  cohort version and `economic_effect=none`, and reject ID/version changes. It
+  may consume only the public validator status endpoint.
 - The manual pairing harness's `review` command deliberately requires a TTY for
   hidden comparison-code input. No code, approval URL, local session token or
   private state may be passed through public CI logs/artifacts. Shared native

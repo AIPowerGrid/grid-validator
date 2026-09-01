@@ -252,6 +252,10 @@ generator here or imply that passing public templates proves model quality.
   secrets in `.env`, pin the durable SQLite journal inside the private work
   directory, and grant write access only to that directory while retaining the
   read-only home/system sandbox.
+- **`scripts/verify-validator-control.py`** — bounded, credential-free
+  maintainer watcher for the pre-qualification signed suspend/resume check. It
+  proves current node-key control from redacted Core state, not operator
+  independence or authority.
 - **`scripts/smoke-release.sh`** — full local release smoke: unit tests, CLI,
   dashboard, Docker, release binary, and binary installer using throwaway
   offline config. The Docker and frozen-binary checks must both prove the
@@ -284,7 +288,8 @@ generator here or imply that passing public templates proves model quality.
   a dedicated local signer and authenticate a separate node account using
   Core's existing SIWE and validator-purpose key endpoints. This is not
   existing-account pairing and never merges identities or changes payout wallets.
-- **`tests/`** — lightweight unit tests for V0 scoring/operator surfaces.
+- **`tests/`** — lightweight unit tests for V0 scoring/operator surfaces,
+  including the credential-free pre-qualification control watcher.
 
 ## Local Contracts
 
