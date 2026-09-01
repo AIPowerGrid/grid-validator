@@ -8,21 +8,14 @@ submit signed evidence through Core's validator attestation endpoint.
 V0 is evidence-only. It does not pay validator rewards, slash workers, change
 routing, or prove exact model weights.
 
-Rollout status: sealed shared-quorum text validation is live on production Core
-commit `6015eca3` as checked on 2026-08-27, with migrations through `0029`. Three first-party pilot nodes
-run the exact published `v0.1.0-preview.9` payload from commit `9d7b68f`.
-On the earlier preview.5 payload they completed a healthy 3-of-5 16K-context
-group and correctly disputed a token-limit group, all without credit,
-reservation, den, or payout side effects. This proves the live protocol, not
-independent operation: the pilot nodes share one operator and hypervisor.
-Target, model, nonce, and challenge are disclosed only after worker execution
-and are verified against the assignment seal before signing. Begin with
-`check --no-probe` before
-running an assignment probe.
-
-Core `0029` includes dark accounting primitives for future compensated audits,
-but no audit scheduler or quality workload is enabled. Preview nodes still run
-the same unpaid, evidence-only assignment flow described here.
+Rollout status: sealed shared-quorum text validation is live in production and
+the immutable `v0.1.0-preview.13` release is the required cohort baseline.
+Older preview.9 nodes are upgrade-required and cannot fill an independent
+quorum seat. The evidence lane is unpaid and cannot change routing, rewards,
+worker status, strikes, bonds, or slashing. See the public
+[network status](https://console.aipowergrid.io/network) for current activity
+and [PREVIEW_COHORT.md](PREVIEW_COHORT.md) for the 72-hour independent-operator
+gate. Begin with `check --no-probe` before running an assignment probe.
 
 ## What You Need
 
@@ -210,16 +203,29 @@ intend to test source changes instead of the immutable cohort release.
 
 ## Systemd
 
-After `.env` is configured and `check --no-probe` passes:
+After `.env` is configured and `check --no-probe` passes, run the helper from a
+reviewed checkout. For a binary install in `~/.local/bin`, the lowest-friction
+cohort path is:
 
 ```bash
-./scripts/install-systemd.sh --dry-run
-sudo ./scripts/install-systemd.sh
-journalctl -u aipg-validator -f
+git clone --depth 1 https://github.com/AIPowerGrid/grid-validator.git \
+  /tmp/grid-validator-service-helper
+cd /tmp/grid-validator-service-helper
+sudo AIPG_VALIDATOR_EXEC="$HOME/.local/bin/aipg-validator" \
+  AIPG_VALIDATOR_WORKDIR="$HOME/.aipg-validator" \
+  ./scripts/install-systemd.sh --dry-run
+sudo AIPG_VALIDATOR_EXEC="$HOME/.local/bin/aipg-validator" \
+  AIPG_VALIDATOR_WORKDIR="$HOME/.aipg-validator" \
+  ./scripts/install-systemd.sh
+sudo systemctl status aipg-validator --no-pager
+sudo journalctl -u aipg-validator -f
 ```
 
-The helper keeps secrets in `.env` and refuses to start the service when `.env`
-is missing.
+The helper keeps secrets in `.env`, keeps the durable journal writable only in
+the private work directory, and refuses to start the service when `.env` is
+missing. Do not run the local app's validator child at the same time as the
+systemd service. The helper comes from reviewed `master`; the service still
+runs the immutable preview.13 binary installed above.
 
 ## Healthy Output
 

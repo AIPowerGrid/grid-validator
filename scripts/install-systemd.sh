@@ -125,11 +125,13 @@ Restart=always
 RestartSec=10
 Environment=PYTHONUNBUFFERED=1
 Environment=VALIDATOR_ENV=$env_path
+Environment=VALIDATOR_STATE_DB=$WORKDIR/state.sqlite3
 UMask=0077
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=full
 ProtectHome=read-only
+ReadWritePaths=$WORKDIR
 
 [Install]
 WantedBy=multi-user.target
@@ -142,7 +144,7 @@ if [ "$DRY_RUN" -eq 1 ]; then
   if [ ! -f "$env_path" ]; then
     echo
     echo "# Note: $env_path does not exist yet."
-    echo "# Run: cd $(shell_quote "$WORKDIR") && $(shell_quote "$EXEC_PATH") init"
+    echo "# Run: cd $(shell_quote "$WORKDIR") && $(shell_quote "$EXEC_PATH") enroll"
   fi
   exit 0
 fi
@@ -158,7 +160,7 @@ chmod 0700 "$WORKDIR"
 if [ ! -f "$env_path" ]; then
   echo "No $env_path found."
   echo "Run this before starting the service:"
-  echo "  cd $(shell_quote "$WORKDIR") && $(shell_quote "$EXEC_PATH") init"
+  echo "  cd $(shell_quote "$WORKDIR") && $(shell_quote "$EXEC_PATH") enroll"
   NO_START=1
 else
   chown "$RUN_USER:" "$env_path"

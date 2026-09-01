@@ -32,7 +32,7 @@ What is implemented and testable against production Core:
 - Editable package install with the `aipg-validator` console command.
 - Module entrypoint for `python -m validator`.
 - Read-only local dashboard on `127.0.0.1:8790`.
-- Preview.12 includes opt-in `aipg-validator app` browser controls for
+- Preview.13 includes opt-in `aipg-validator app` browser controls for
   explicit setup, start/stop, participation status, and redacted diagnostics.
   See the [local app runbook](OPERATORS.md#local-operator-app).
 - Assignment-bound text canaries through validator-only Core endpoints.

@@ -70,6 +70,11 @@ verification, binary installation, systemd installation, and release smoke tests
 - Source and binary installers point new operators to explicit `enroll`, not
   private-key entry. Installation remains network-free with respect to Core
   authentication; enrollment requires a separate confirmed operator action.
+- The systemd unit keeps `ProtectHome=read-only` and `ProtectSystem=full`, grants
+  `ReadWritePaths` only to its private work directory, and pins
+  `VALIDATOR_STATE_DB` inside that directory so assignment/evidence recovery is
+  actually durable. A missing `.env` must direct a new operator to `enroll`, not
+  the advanced `init` path.
 - The release verifier requires enrollment before the registration check in
   both installers. Its payload tests must use the real installer sources,
   not synthetic instructions that can drift while still passing their own gate.

@@ -40,12 +40,17 @@ class SystemdInstallerTests(unittest.TestCase):
         self.assertIn(f"WorkingDirectory={workdir}", unit)
         self.assertIn(f"ExecStart={fake_exec} run", unit)
         self.assertIn(f"Environment=VALIDATOR_ENV={workdir / '.env'}", unit)
+        self.assertIn(
+            f"Environment=VALIDATOR_STATE_DB={workdir / 'state.sqlite3'}", unit
+        )
         self.assertIn("UMask=0077", unit)
         self.assertIn("NoNewPrivileges=true", unit)
         self.assertIn("PrivateTmp=true", unit)
         self.assertIn("ProtectSystem=full", unit)
         self.assertIn("ProtectHome=read-only", unit)
-        self.assertIn(" init", unit)
+        self.assertIn(f"ReadWritePaths={workdir}", unit)
+        self.assertIn(" enroll", unit)
+        self.assertNotIn(" init", unit)
 
 
 if __name__ == "__main__":

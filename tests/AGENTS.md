@@ -64,7 +64,9 @@ installer generation.
   reads, metadata exclusion from diagnostics and runtime-control isolation.
 - `test_self_test.py` - offline, real-process image/video decoder qualification
   for source and packaged runtimes.
-- `test_systemd_installer.py` - generated service security and behavior.
+- `test_systemd_installer.py` - generated service security and behavior,
+  including the narrow writable state directory, durable journal path, and
+  fresh-node enrollment guidance.
 - `test_release_tag.py` - binary/Docker release-tag and `latest` publication
   policy plus deterministic source/build identity stamping.
 - `test_release_packaging.py` - frozen container/release dependencies, action
