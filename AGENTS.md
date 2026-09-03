@@ -43,8 +43,9 @@ production-live on Core commit `4e0eb3f6` as checked on 2026-08-31, with
 migrations through `0031`. The immutable public cohort baseline is
 `v0.1.0-preview.13`; Core requires that version for candidate/verified
 qualification and independent quorum while reporting older online nodes as
-`upgrade_required`. One external preview.13 candidate is qualifying, but no
-independent operator has completed the 72-hour gate. The public validator status
+`upgrade_required`. Multiple external preview.13 nodes are participating in the
+qualification pipeline, but independent status still requires the maintainer's
+common-control review and the complete 72-hour gate. The public validator status
 page verifies registration, release, heartbeat, assignment delivery, and accepted
 evidence from a `val_*` ID without asking for credentials. Checksum-gated staging,
 offline media self-tests, no-probe registration, rolling symlink rollout,
@@ -138,11 +139,13 @@ generator here or imply that passing public templates proves model quality.
   Its new-operator path is preview.13 automatic dedicated-node enrollment and
   the local app, not manual wallet/key preparation. Keep independent-control
   review and advanced credential rotation separate from first-run setup.
-  Before candidate status, the exact preview.13 node completes a live signed
-  suspend/resume check so a copied public validator ID cannot impersonate its
-  operator. Qualification is 72 hours with bounded heartbeat sampling and an
-  expiring external review, plus qualification-window completed work and
-  accepted authoritative evidence; pre-window evidence does not satisfy that
+  The exact preview.13 node completes a live signed suspend/resume check so a
+  copied public validator ID cannot impersonate its operator. Core begins a
+  non-economic observation window on supported-version registration and samples
+  heartbeats at a bounded interval. The later candidate review preserves that
+  window while attaching the private common-control group. Qualification is 72
+  hours with an expiring external review, plus observation-window completed work
+  and accepted authoritative evidence; pre-window evidence does not satisfy that
   gate. Core owns preview-first, digest-bound finalization, which remains
   fail-closed and grants no routing or economic effect. A later review cycle
   starts a fresh candidate window rather than extending trust in place.

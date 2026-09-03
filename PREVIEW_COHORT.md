@@ -2,8 +2,8 @@
 
 AI Power Grid is qualifying three independently operated nodes for the initial
 authority-readiness review, then five for the broader pilot; ten remains the
-recruitment target. With one candidate currently running, the immediate need is
-two additional unrelated Linux/systemd operators. The purpose of this cohort is
+recruitment target. Multiple public nodes are now participating, and additional
+unrelated operators are still welcome. The purpose of this cohort is
 to prove that the software, assignment lifecycle, and shared 3-of-5 evidence
 flow work across unrelated operators and networks.
 
@@ -103,12 +103,13 @@ hostname, or review notes.
    registered node identity; no key, signature, configuration file, or wallet
    address is shared. Knowing or copying somebody else's public validator ID is
    therefore not enough to enter qualification.
-6. Ask the maintainer to begin independent-operator qualification. The signed
+6. Ask the maintainer to review the node for independent-operator status. The signed
    control check proves possession of this node's credentials at review time;
    it does not prove separate ownership, hosting, funding, or operating
    decisions. Those facts remain part of the private common-control review.
-   Running the preview and receiving assignments does not automatically start
-   or complete that review. Never send a private key to the maintainer.
+   Running the supported preview automatically starts non-economic uptime and
+   workload observation, but it does not complete the common-control review or
+   establish independence. Never send a private key to the maintainer.
 7. Check the public validator ID at <https://aipowergrid.io/validate>. This page
    requires no API key or private key and should agree with the local app's
    version, online state, aggregate activity, and qualification progress.
@@ -150,24 +151,26 @@ immediately. Do not run a second copy while the app's worker is running.
 
 For headless operation, stop the app's worker first and install the pinned
 systemd service from [QUICKSTART.md](QUICKSTART.md#systemd). Confirm it is
-active and following the same preview.13 identity before starting the 72-hour
-window:
+active and following the same preview.13 identity so the 72-hour observation
+continues:
 
 ```bash
 sudo systemctl status aipg-validator --no-pager
 sudo journalctl -u aipg-validator -f
 ```
 
-After enrollment, the project maintainer places the registration into candidate
-status only after the signed control check and common-control review above.
-Perform the suspend/resume check before the 72-hour window so it cannot create a
-qualification heartbeat gap. `aipg-validator check --no-probe` and the localhost
-dashboard show only the authenticated operator's safe qualification status and
-progress; they never show the internal common-control group or private review
-reference. Core samples at most one qualifying heartbeat every five minutes.
+Supported preview.13 registration starts a non-economic observation window
+automatically. Core samples at most one qualifying heartbeat every five minutes;
+wrong-version heartbeats do not count and missing historical samples are never
+backfilled. After the signed control check and common-control review, the
+maintainer places the registration into candidate status without resetting the
+valid observation window. Candidate status establishes neither independence nor
+authority by itself. `aipg-validator check --no-probe` and the localhost dashboard
+show only the authenticated operator's safe qualification status and progress;
+they never show the internal common-control group or private review reference.
 Verification requires at least 72 hours, at least 80% sample coverage, a fresh
 heartbeat, a project-maintainer review, at least one completed probe created
-after the candidate window began, and at least one accepted authoritative
+after the observation window began, and at least one accepted authoritative
 attestation created after that same boundary. Pre-window evidence cannot satisfy
 the work gate. The maintainer follows Core's
 [preview-first, digest-bound finalization runbook](https://github.com/AIPowerGrid/grid-core/blob/main/docs/VALIDATOR_SHADOW_RUNBOOK.md#0-finalize-and-recheck-the-independent-cohort);
