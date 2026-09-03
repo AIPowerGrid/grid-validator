@@ -72,6 +72,13 @@ change is deployed; Core still issues no media work by default.
   does not follow redirects or environment proxies, rejects encoded/oversized/MIME-
   mismatched bodies, and recomputes Core's SHA-256 commitment before decoding.
   Heavy deps imported lazily; missing dep → skip, never crash.
+- **`text_fidelity.py`** — independent bounded Jensen-Shannon scorer for the
+  default-off `text.fidelity.v1` candidate/reference lane. It validates the
+  complete public challenge and witness contract, requires two references to
+  agree before returning a failed outlier verdict, permits one reference only
+  for positive consistency evidence, and returns inconclusive on malformed or
+  ambiguous inputs. Worker-reported logprobs are behavioral evidence, not
+  cryptographic model identity.
 - **`attest.py`** — build canonical registration, suspension, rotation, and attestation bodies + `sign()` (EIP-191 over sorted-key
   compact JSON). Text V0 attestations include `modality`, `capability`,
   `assignment_id`, `epoch`, prompt/response hashes, an `evidence_hash`, and a
@@ -85,7 +92,7 @@ change is deployed; Core still issues no media work by default.
   identity when multiple previews share it.
 - **`main.py`** — entrypoint: `run()` (signed registration, optional stake gate,
   heartbeat, then assignment loop) and assignment-only `probe_round`. The loop
-  polls text plus runtime-supported media modalities, independently verifies
+  polls text, the separate text-fidelity selector, and runtime-supported media modalities, independently verifies
   Core's challenge/witness commitment, and omits raw media URLs from signed evidence.
   It journals assignments before concurrent probing, isolates sibling failures,
   and uses Core's original `probe_latency_ms` for replayed completions.

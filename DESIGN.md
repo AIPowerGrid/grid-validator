@@ -113,6 +113,28 @@ challenge seeds should stay off-chain and out of the public repo.
 
 For text, general image, and general video jobs.
 
+### Dark text fidelity pilot
+
+The source candidate supports Core's separately gated `text.fidelity.v1` lane.
+Core generates one high-entropy continuation request, seals it until execution,
+and hard-targets the same `temperature=0`, `top_p=1`, fixed-seed request to one
+candidate and one or two explicitly configured trusted workers serving the same
+explicitly calibrated model. The node validates the committed first-token top-logprob
+witnesses and independently computes Jensen-Shannon divergence.
+
+One reference may confirm that the candidate is behaviorally consistent, but a
+mismatch is inconclusive. Two references must agree with each other before an
+outlying candidate may receive failed evidence. Missing logprobs, unsupported
+backends, malformed distributions, or reference disagreement produce no vote.
+The result has no routing, reward, strike, payout, or slashing effect.
+
+This raises the cost of casual model substitution but does not prove model
+identity. Worker operators control their clients, may fabricate distributions,
+and may route recognizable logprob probes to another backend. Paid blind audits
+that resemble ordinary workloads plus multiple independent references and
+corroborating capability/performance evidence remain mandatory before any
+economic authority.
+
 The question is: did the worker produce a useful result for the advertised
 capability tier?
 

@@ -76,6 +76,13 @@ probe-aware model switching all reproduce the current fingerprinting risk while
 proving generated probes remain ineligible for quality authority. This repo
 documents and consumes that boundary; do not duplicate the Core challenge
 generator here or imply that passing public templates proves model quality.
+The source candidate also implements independent scoring for Core's default-off
+`text.fidelity.v1` witness lane. It compares a candidate's bounded first-token
+top-logprob distribution with one or two trusted same-model references. A
+single reference cannot create negative evidence, two references must agree
+before an outlier can fail, and every result remains non-economic. Because a
+worker can fabricate logprobs or reroute a recognizable probe, do not call this
+model attestation or use it as sole authority.
 
 ## Ownership
 
