@@ -22,9 +22,9 @@ service, [RELEASE_V0.md](RELEASE_V0.md) for the cross-repo rollout order, and
 [DESIGN.md](DESIGN.md) for the full validator story across text, image, video,
 reference workers, and Base anchoring.
 
-> **Cohort call: two independent Linux operators are needed.** The initial gate
-> requires three unrelated operators; one preview.13 candidate is qualifying
-> now. A CPU-only Linux host with systemd and 72 hours of availability is the
+> **Cohort call: independent operators are needed.** The initial gate requires
+> three unrelated operators, and multiple preview.13 nodes are now moving through
+> the qualification pipeline. A CPU-only Linux host with systemd and 72 hours of availability is the
 > recommended path. There are no validator rewards or routing powers in this
 > preview. Use the [guided install](https://aipowergrid.io/validate) and volunteer
 > through [cohort issue #5](https://github.com/AIPowerGrid/grid-validator/issues/5).
@@ -102,10 +102,10 @@ Production preview status:
   counts change continuously. Read the
   [public network status](https://api.aipowergrid.io/v1/status/network) instead
   of treating a README snapshot as current operational truth.
-- One confirmed preview.13 candidate is completing the unchanged 72-hour gate;
-  two more unrelated Linux/systemd operators are still needed. No operator had
-  completed independent qualification as of 2026-09-01. Current cohort intake
-  is tracked in [issue #5](https://github.com/AIPowerGrid/grid-validator/issues/5).
+- Multiple preview.13 nodes are participating in the 72-hour qualification
+  pipeline. Live counts and independent status are available from the public
+  network endpoint; current cohort intake is tracked in
+  [issue #5](https://github.com/AIPowerGrid/grid-validator/issues/5).
 - On the earlier preview.5 payload, after the one-hour worker/model cooldown
   elapsed on 2026-08-27, the same nodes completed two fresh sealed groups. A
   16K-context group reached
