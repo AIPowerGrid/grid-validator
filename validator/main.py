@@ -16,11 +16,11 @@ import time
 from pathlib import Path
 from typing import Callable
 
-from . import attest, media_prober, prober, staking, update_check
+from . import attest, media_prober, prober, staking, text_fidelity, update_check
 from .config import Settings
+from .file_lock import exclusive_lock
 from .grid_client import GridClient
 from .outbox import AttestationOutbox
-from .file_lock import exclusive_lock
 
 logging.basicConfig(
     level=logging.INFO,
@@ -83,9 +83,27 @@ def _media_response_commitment(result: dict) -> str | None:
     return _canonical({"witnesses": committed})
 
 
+def _text_fidelity_response_commitment(
+    assignment: dict,
+    result: dict,
+) -> tuple[str, list[dict]] | None:
+    try:
+        witnesses = text_fidelity.validate_witnesses(
+            assignment.get("challenge") or {},
+            result.get("witnesses"),
+            target_worker_id=str(assignment.get("target_worker_id") or ""),
+        )
+    except text_fidelity.FidelityEvidenceError:
+        return None
+    return text_fidelity.response_commitment(witnesses), witnesses
+
+
 def _prompt_commitment_text(assignment: dict) -> str:
     challenge = assignment.get("challenge") or {}
-    if challenge.get("schema") == "aipg.validator.media.challenge.v1":
+    if challenge.get("schema") in {
+        "aipg.validator.media.challenge.v1",
+        text_fidelity.SCHEMA,
+    }:
         return _canonical(challenge)
     prompt = str(challenge.get("prompt") or "")
     if str(challenge.get("kind") or "") == "tool.chain":
@@ -304,6 +322,8 @@ async def _probe_assignment(
         return await _probe_image_assignment(grid, assignment, outbox)
     if str(assignment.get("modality") or "") == "video":
         return await _probe_video_assignment(grid, assignment, outbox)
+    if assignment.get("capability") == text_fidelity.POLICY_ID:
+        return await _probe_text_fidelity_assignment(grid, assignment, outbox)
     if str(assignment.get("modality") or "text") != "text":
         logger.info("unsupported assignment modality; skipping")
         return 0
@@ -404,6 +424,99 @@ async def _probe_assignment(
         outbox,
         str(assignment_id),
         attest.sign(att),
+    )
+
+
+async def _probe_text_fidelity_assignment(
+    grid: GridClient,
+    assignment: dict,
+    outbox: AttestationOutbox,
+) -> int:
+    """Verify and independently score one Core-executed text witness set."""
+    assignment_id = str(assignment.get("assignment_id") or "")
+    if not assignment_id or assignment.get("capability") != text_fidelity.POLICY_ID:
+        return 0
+    result = await grid.probe_assignment(assignment_id)
+    if not result:
+        logger.info("text fidelity assignment %s unavailable; skipping", assignment_id[:12])
+        return 0
+    hydrated = _hydrate_assignment_disclosure(assignment, result)
+    if hydrated is None:
+        return 0
+    assignment = hydrated
+    grid_nonce = str(assignment.get("grid_nonce") or "")
+    worker_id = str(assignment.get("target_worker_id") or "")
+    model = str(assignment.get("model") or "")
+    challenge = assignment.get("challenge") or {}
+    if (
+        not grid_nonce
+        or not worker_id
+        or not model
+        or assignment.get("canary_kind") != text_fidelity.KIND
+        or assignment.get("scoring_policy_id") != text_fidelity.POLICY_ID
+    ):
+        logger.info("text fidelity assignment disclosure is incomplete; skipping")
+        return 0
+    committed = _text_fidelity_response_commitment(assignment, result)
+    if committed is None:
+        logger.info("[%s %s] invalid text fidelity witnesses; skipping", worker_id[:8], model)
+        return 0
+    response_commitment, witnesses = committed
+    commitments = _verified_probe_evidence(assignment, result, response_commitment)
+    if commitments is None:
+        return 0
+    verdict, detail = text_fidelity.score_witnesses(
+        challenge,
+        witnesses,
+        target_worker_id=worker_id,
+        latency_budget_s=Settings.LATENCY_BUDGET_S,
+    )
+    if verdict == "inconclusive":
+        logger.info(
+            "[%s %s] text fidelity inconclusive (%s); skipping",
+            worker_id[:8],
+            model,
+            detail.get("reason", "unknown"),
+        )
+        return 0
+    if verdict not in attest.VALID_VERDICTS:
+        logger.warning("text fidelity scorer returned an invalid verdict; skipping")
+        return 0
+    candidate = witnesses[0]
+    latency_ms = int(candidate["latency_ms"])
+    canary = {
+        "kind": text_fidelity.KIND,
+        "nonce": grid_nonce,
+        "prompt": _prompt_commitment_text(assignment),
+    }
+    body = attest.build(
+        worker_id=worker_id,
+        model=model,
+        canary=canary,
+        verdict=verdict,
+        latency_ms=latency_ms,
+        ts=int(time.time()),
+        modality="text",
+        capability=text_fidelity.POLICY_ID,
+        response_text=response_commitment,
+        assignment_id=assignment_id,
+        probe_group_id=str(assignment.get("probe_group_id") or ""),
+        grid_nonce=grid_nonce,
+    )
+    body.update(commitments)
+    logger.info(
+        "[%s %s] text fidelity -> %s (%s, %dms)",
+        worker_id[:8],
+        model,
+        verdict,
+        detail.get("reason", "scored"),
+        latency_ms,
+    )
+    return await _promote_and_submit(
+        grid,
+        outbox,
+        assignment_id,
+        attest.sign(body),
     )
 
 
@@ -654,6 +767,10 @@ async def probe_round(
     outbox = outbox or AttestationOutbox(Settings.STATE_DB_PATH)
     accepted = await _flush_outbox(grid, outbox)
     assignments = await grid.validator_assignments(limit=5, modality="text")
+    if text_fidelity.POLICY_ID in attest.runtime_capabilities():
+        assignments.extend(
+            await grid.validator_assignments(limit=2, modality="text-fidelity")
+        )
     if "image.fidelity.v1" in attest.runtime_capabilities():
         assignments.extend(await grid.validator_assignments(limit=2, modality="image"))
     if "video.contract.v1" in attest.runtime_capabilities():

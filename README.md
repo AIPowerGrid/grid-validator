@@ -58,6 +58,10 @@ What is implemented and testable against production Core:
   Core independently enables assignment issuance.
 - GitHub Actions release workflow scaffold for downloadable binaries.
 - Grid-issued text assignments with short-lived nonces.
+- A source-only, default-off `text.fidelity.v1` pilot that independently
+  compares bounded first-token distributions from one candidate and trusted
+  same-model references. It is behavioral evidence, not proof of model identity,
+  and has no economic effect.
 - Targeted probe execution at
   `POST /v1/validator/probe/{assignment_id}`; the core, not the validator,
   selects the worker.

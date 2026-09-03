@@ -4,8 +4,7 @@ from unittest.mock import patch
 from eth_account import Account
 from eth_account.messages import encode_defunct
 
-from validator import __release_tag__
-from validator import attest
+from validator import __release_tag__, attest
 from validator.config import Settings
 
 
@@ -20,6 +19,7 @@ class AttestationTests(unittest.TestCase):
         self.assertEqual(
             payload["capabilities"],
             [
+                "text.fidelity.v1",
                 "text.instruction.v1",
                 "text.reasoning.v1",
                 "text.structured.v1",

@@ -9,13 +9,13 @@ or ledger effects. Signing uses EIP-191 personal_sign over canonical JSON so the
 same payload always yields the same digest.
 """
 
+import hashlib
 import json
 import logging
-import hashlib
 from datetime import datetime, timezone
 
-from .config import Settings
 from . import __release_tag__
+from .config import Settings
 
 logger = logging.getLogger("validator.attest")
 
@@ -27,6 +27,7 @@ VERDICT_SCORE = {
 }
 
 TEXT_VALIDATOR_CAPABILITIES = [
+    "text.fidelity.v1",
     "text.instruction.v1",
     "text.reasoning.v1",
     "text.structured.v1",
