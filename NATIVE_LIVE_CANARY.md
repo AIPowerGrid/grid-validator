@@ -5,7 +5,16 @@ its generated key was revoked and no validator was registered. The harness
 now expects the intended automatic startup, reports only allowlisted app
 errors, and records explicit upgrade versions. This is not a passing .14 proof.
 
-Status: preview.13 passed the protected Windows live run
+Current status: preview.15 passed protected run
+[33984877376](https://github.com/AIPowerGrid/grid-validator/actions/runs/33984877376)
+on September 5 against Core `6f12de6f`: fresh automatic enrollment, one accepted
+signature-verified report, preserved-identity upgrade, actual outage/recovery,
+signed suspension and revocation of its one generated key. Independent database
+checks confirmed suspension and zero payout/reservation rows for its probes.
+Run `33984552555` overlapped a Core restart and is invalid qualification evidence;
+see the rollout record. Freeze Core deployments during this live test.
+
+Historical status: preview.13 passed the protected Windows live run
 [33110290699](https://github.com/AIPowerGrid/grid-validator/actions/runs/33110290699)
 on 2026-08-27, including two accepted signed reports, outage/recovery and full
 test-identity retirement. See [PRODUCTION_BASELINE.md](PRODUCTION_BASELINE.md)
