@@ -40,8 +40,36 @@ evidence belong in protected operational storage, not this public report.
   verdict was accepted evidence, not a claim of worker health.
 - Core's exact preview.13/preview.14 overlap preserves qualification history.
   Fidelity issuance, media issuance, shadow authority, and rewards remain off.
+- The public download page is deployed from website PR66 (`50778ff1`) and all
+  eight website Playwright tests pass. Current installer/archive links and
+  Docker instructions selected preview.14. Operator docs are merged in PR87.
+- At 18:09 UTC eight nodes had fresh heartbeats: three first-party preview.14
+  and five preview.13. All eight had verified assignment-bound reports in the
+  preceding 24 hours; none had a current completed independence review.
 - Four-platform packaging passed; this does not replace a preview.14 human
   Windows/macOS journey or the still-open real-model fidelity experiments.
+
+### Fresh Setup Failure And Containment
+
+Windows live run `33983090757` failed during fresh app enrollment before
+registration. The canary revoked its one generated key; no registered node
+or accepted report was left behind. The newer automatic-start path imported
+Settings before writing its key and then reused that stale snapshot. Its old
+unit test mocked Settings validation. Existing configured first-party runtime
+proof is unaffected, but fresh enrollment is not qualified.
+
+The public website deployment was rolled back to its proven preview.13
+download path on September 5. Do not recommend a replacement until a fresh
+published-binary canary passes. Preview.14 remains immutable; never replace
+its archives. Operators who already installed it can preserve their config
+and use Start after setup, but the replacement release should remove that
+extra recovery step.
+
+The pending fix keeps Set up and start as one confirmed action while handing
+off from the enrollment child to a fresh runtime child. Tests must use real
+Settings parsing, prove stale values cannot carry across, and suppress the
+handoff after stop, close or failure. The live harness must expect automatic
+startup and report only allowlisted app errors rather than a generic timeout.
 
 The first Core cutover's verification mistakenly targeted the default API port
 instead of the deployed service's port and rolled back automatically. The
@@ -62,7 +90,7 @@ proceeding. Rollback release and environment backup remain available privately.
   checksums, SBOM, provenance, and versioned containers after CI passes.
 - [ ] Verify downloaded artifacts, run a first-party canary, and capture
   accepted signed evidence plus restart/outage recovery with the same identity.
-- [ ] Update the website, installers/docs, and operator instructions to the
+- [x] Update the website, installers/docs, and operator instructions to the
   verified release. Existing operators reuse their private configuration.
 - [ ] Roll first-party nodes, then support independent operators upgrading.
   Record ordinary human Windows interaction separately from CI/runtime checks.

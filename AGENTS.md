@@ -36,6 +36,11 @@ concrete detail in children. Delete stale notes instead of explaining history.
 
 ## Purpose
 
+Fresh setup is held on preview.14 after live canary `33983090757` exposed
+cached pre-enrollment Settings in its automatic start. The website was rolled
+back to preview.13; existing preview.14 runtimes remain online. The replacement
+must prove fresh setup and recovery before promotion. See `ROLLOUT_2026_09.md`.
+
 The Grid's validator node. In V0 it is a CPU-only distributed audit runner: it sends
 small canary jobs through the normal Grid path, scores replies (`healthy` / `slow` /
 `failed`), and submits signed attestations. Shared-quorum text validation is

@@ -202,8 +202,10 @@ change is deployed; Core still issues no media work by default.
 - **`operator_worker.py`** - private child protocol: allowlisted structured
   events, fresh Settings per start, EOF/cancellation cleanup, and sanitized error
   codes. Enrollment is an explicitly confirmed action and uses the existing
-  secure enrollment path, then continues directly into the normal validator
-  loop so setup can prove registration, heartbeat, assignment delivery, and
+  secure enrollment path, then exits successfully. The supervisor continues
+  the confirmed setup in a fresh runtime child, so Settings reads the saved
+  credentials instead of the enrollment process's stale snapshot. Setup can
+  prove registration, heartbeat, assignment delivery, and
   accepted evidence without a second operator action. Stopping it preserves
   any already-written identity. A bounded public-health Date check reports
   gross local clock drift before signed runtime traffic.

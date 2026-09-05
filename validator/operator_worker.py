@@ -70,6 +70,7 @@ async def _run_action(action: str, emit) -> int:
             emit("error", error="enrollment_failed")
             return 1
         emit("enrolled")
+        return 0
 
     from .config import Settings
     from .main import run

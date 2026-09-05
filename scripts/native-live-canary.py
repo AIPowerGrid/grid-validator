@@ -276,6 +276,12 @@ class App:
             state = self.state()
             if predicate(state):
                 return state
+            if state.get("error") and not state.get("running"):
+                from validator.operator_app import ERRORS
+
+                error = state["error"]
+                require(isinstance(error, str) and error in ERRORS, "invalid_app_error")
+                raise Failed("app_" + error)
             require(self.process.poll() is None, "app_exited")
             time.sleep(1)
         raise Failed("app_state_timeout")
@@ -334,6 +340,7 @@ def cleanup(binary, config, expected_wallet=None):
     from dotenv import dotenv_values
     from eth_account import Account
     from eth_account.messages import encode_defunct
+
     from validator.enrollment import DOMAIN, IDENTITY_ORIGIN, URI, validated_message
 
     values = dotenv_values(config)
@@ -453,6 +460,8 @@ def run(artifacts, workspace, report_path, minutes):
         "first_party": True,
         "platform": "windows-x64",
         "release": CURRENT,
+        "upgrade_from": PREVIOUS,
+        "upgrade_to": CURRENT,
         "checks": [],
         "passed": False,
     }
@@ -506,7 +515,7 @@ def run(artifacts, workspace, report_path, minutes):
                 "app_implicitly_enrolled",
             )
             app.action("enroll")
-            app.wait(lambda s: s["phase"] == "enrolled" and not s["running"], 120)
+            app.wait(lambda s: s["configured"] and bool(s["validator_id"]) and bool(s["heartbeat_at"]), 120)
             before = fingerprint(config)
             expected_wallet = dotenv_values(config)["VALIDATOR_WALLET"]
             command(
@@ -524,11 +533,12 @@ def run(artifacts, workspace, report_path, minutes):
             )
             emit("explicit_app_enrollment")
             emit("windows_owner_only_identity_acl")
+            app.action("stop")
+            app.wait(lambda s: not s["running"], 45)
             app.action("enroll")
-            app.wait(lambda s: s["phase"] == "enrolled" and not s["running"], 60)
+            app.wait(lambda s: s["configured"] and bool(s["validator_id"]) and bool(s["heartbeat_at"]), 120)
             require(fingerprint(config) == before, "repeat_enrollment_changed_identity")
             emit("repeat_enrollment_preserved_identity")
-            app.action("run")
             state = app.wait(
                 lambda s: bool(s["validator_id"]) and bool(s["heartbeat_at"]), 120
             )
@@ -586,7 +596,7 @@ def run(artifacts, workspace, report_path, minutes):
                 "upgrade_changed_registration",
             )
             require(fingerprint(config) == before, "upgrade_changed_credentials")
-        emit("published_preview12_to_preview13_same_identity")
+        emit("published_release_upgrade_same_identity")
         with opened_app(binary, config) as app:
             app.action("run")
             state = app.wait(lambda s: bool(s["heartbeat_at"]), 120)

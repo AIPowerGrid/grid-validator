@@ -1,5 +1,11 @@
 # Validator Quickstart
 
+**Fresh-setup hold (September 5):** use the download currently recommended at
+[aipowergrid.io/validate](https://aipowergrid.io/validate), temporarily preview.13.
+Preview.14 app setup has a stale-settings automatic-start defect. Keep any
+existing identity/configuration; Start after setup is the workaround. The
+replacement must pass a fresh published-binary canary before promotion.
+
 Run a validator when you want to help measure Grid worker quality without
 running a generation model yourself. V0 validators are CPU-only audit runners:
 they send small canary jobs through the normal Grid API, score the result, and

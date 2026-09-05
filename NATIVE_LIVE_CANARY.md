@@ -1,5 +1,10 @@
 # Native Windows Live Canary
 
+Preview.14 run `33983090757` failed fresh app setup with `app_state_timeout`;
+its generated key was revoked and no validator was registered. The harness
+now expects the intended automatic startup, reports only allowlisted app
+errors, and records explicit upgrade versions. This is not a passing .14 proof.
+
 Status: preview.13 passed the protected Windows live run
 [33110290699](https://github.com/AIPowerGrid/grid-validator/actions/runs/33110290699)
 on 2026-08-27, including two accepted signed reports, outage/recovery and full

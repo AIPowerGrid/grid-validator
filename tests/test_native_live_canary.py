@@ -28,6 +28,15 @@ spec.loader.exec_module(canary)
 
 
 class NativeCanaryTests(unittest.TestCase):
+    def test_app_wait_reports_only_allowlisted_stopped_errors(self):
+        app = object.__new__(canary.App)
+        for error, expected in (("configuration_invalid", "app_configuration_invalid"), ("private server detail", "invalid_app_error"), (["private"], "invalid_app_error")):
+            with self.subTest(error=error):
+                with patch.object(canary.App, "state", return_value={"error": error, "running": False}):
+                    with self.assertRaisesRegex(canary.Failed, expected) as failure:
+                        app.wait(lambda state: False, seconds=1)
+                    self.assertNotIn("private", str(failure.exception))
+
     @unittest.skipIf(os.name == "nt", "POSIX owned-process-group cleanup")
     def test_timeout_stops_descendants_after_parent_has_exited(self):
         script = (

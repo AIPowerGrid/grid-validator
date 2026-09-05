@@ -149,6 +149,12 @@ is not yet proven.
 
 ## Download
 
+**Fresh-setup hold (September 5):** preview.14's automatic app start can use
+stale settings after enrollment. The website temporarily recommends the proven
+preview.13 release while a replacement is qualified. Existing preview.14
+operators retain their identity; choose Start after setup as a workaround.
+See [the rollout record](ROLLOUT_2026_09.md) for the failed live test and fix.
+
 Preview.14 includes the local operator app (menu option 8) and explicit
 `aipg-validator enroll` (menu option 1): enrollment
 creates a dedicated local signer, authenticates a separate node account, and

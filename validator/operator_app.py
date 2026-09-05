@@ -212,6 +212,7 @@ class Supervisor:
 
     def _read(self, process: subprocess.Popen[bytes]) -> None:
         assert process.stdout is not None and process.stdin is not None
+        enrolled = False
         try:
             with process.stdout:
                 while line := process.stdout.readline(4097):
@@ -233,6 +234,8 @@ class Supervisor:
                     self.state.update(
                         phase="error", error=self.state["error"] or "process_exited"
                     )
+                elif self.state["phase"] == "enrolled" and self.action == "enroll":
+                    enrolled = True
                 elif self.state["phase"] != "enrolled":
                     self.state["phase"] = "stopped"
         finally:
@@ -241,6 +244,11 @@ class Supervisor:
             with self.lock:
                 self.process = None
                 self.action = None
+                if enrolled and self.state["phase"] == "enrolled" and not self.closed:
+                    # Enrollment imported Settings before saving credentials. The
+                    # confirmed setup continues in a fresh, separately owned child.
+                    self.reader = None
+                    self.start("run")
 
     def stop(self) -> None:
         with self.lock:
