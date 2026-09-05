@@ -13,8 +13,9 @@ a release or enable any Core feature. Human desktop onboarding remains separate.
 - Only manual dispatch on reviewed `master`, with explicit unpaid-canary consent
   and the existing owner-approved `validator-release` environment. No pull
   request, push, schedule or public contribution can start live work.
-- The hosted Windows x64 runner uses verified immutable preview.12 and
-  preview.13 archives. Both archives and manifests require GitHub provenance
+- The hosted Windows x64 runner now uses verified immutable preview.13 and
+  preview.14 archives; the earlier result above tested preview.12 to .13.
+  Both archives and manifests require GitHub provenance
   bound to the exact tag, source SHA, release workflow and hosted builder before
   extraction. The harness never builds a substitute binary.
 - Enrollment creates one fresh, unfunded, first-party account and signer. The
@@ -40,7 +41,7 @@ a release or enable any Core feature. Human desktop onboarding remains separate.
    required: accepting valid failure evidence is also correct protocol behavior.
 5. Redacted diagnostics, stop/start and whole app restart with stable identity.
 6. Invalid credentials fail without changing config.
-7. Preview.12 to preview.13 existing-identity registration using both verified
+7. Preview.13 to preview.14 existing-identity registration using both verified
    binaries; this is binary-switch proof, not an OS installer-upgrade UI test.
 8. An outbound firewall block for only the tested executable produces
    `grid_unavailable`; removing it restores an acknowledged heartbeat on the

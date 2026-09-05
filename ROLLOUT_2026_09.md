@@ -3,7 +3,7 @@
 Owner: the AIPG maintainer. Updated 2026-09-05. This is the execution record for
 the controlled rollout, not a declaration of production quality authority.
 
-## Current Evidence
+## Pre-Rollout Snapshot
 
 Read-only production checks at approximately 17:28 UTC on September 5:
 
@@ -25,17 +25,40 @@ Read-only production checks at approximately 17:28 UTC on September 5:
 Individual operator identities, control reviews, credentials, and raw workload
 evidence belong in protected operational storage, not this public report.
 
+## Completed September 5 Rollout
+
+- Core `6f12de6fdafa970caae6f5e380fdf72796a920ee` is production-live.
+  A fresh production backup restored and migrated cleanly in an isolated
+  scratch database; schema head remains `0034`. No live migration was needed.
+- Validator preview.14 binds source `d5e7b3e2ef9ac8c5c905432ec5b5613f2f3c7444`.
+  Binary workflow `33981849563` and Docker workflow `33981849520` succeeded.
+  The published payload passed the exact-tag/commit asset verifier and GitHub
+  provenance verification for all archives, installers, manifest, and SBOM.
+- All three first-party Linux x64 nodes now run preview.14 with existing
+  identities and state preserved. The first rolling canary submitted fresh
+  accepted, signature-verified evidence at 17:57:09 UTC. Its failed code-task
+  verdict was accepted evidence, not a claim of worker health.
+- Core's exact preview.13/preview.14 overlap preserves qualification history.
+  Fidelity issuance, media issuance, shadow authority, and rewards remain off.
+- Four-platform packaging passed; this does not replace a preview.14 human
+  Windows/macOS journey or the still-open real-model fidelity experiments.
+
+The first Core cutover's verification mistakenly targeted the default API port
+instead of the deployed service's port and rolled back automatically. The
+corrected deployment verified the actual bind address and public health before
+proceeding. Rollback release and environment backup remain available privately.
+
 ## Release And Upgrade
 
 - [x] Isolate the release work from existing local branches and unfinished edits.
 - [x] Check current source and four-platform build results for reviewed master.
 - [x] Reproduce and fix malformed reference IDs escaping as TypeError.
 - [x] Add scorer attack baselines for copied logprobs and probe-only correctness.
-- [ ] Merge the release hardening and Core rolling-version compatibility PRs.
-- [ ] Deploy Core compatibility with preview.13 as baseline and preview.14 as
+- [x] Merge validator PR86 (`d5e7b3e`) and Core PR112 (`6f12de6f`).
+- [x] Deploy Core compatibility with preview.13 as baseline and preview.14 as
   the exact reviewed overlap. Preserve qualification timestamps and samples.
   Shadow observation stays off during the overlap.
-- [ ] Publish immutable v0.1.0-preview.14 with four native archives, manifest,
+- [x] Publish immutable v0.1.0-preview.14 with four native archives, manifest,
   checksums, SBOM, provenance, and versioned containers after CI passes.
 - [ ] Verify downloaded artifacts, run a first-party canary, and capture
   accepted signed evidence plus restart/outage recovery with the same identity.

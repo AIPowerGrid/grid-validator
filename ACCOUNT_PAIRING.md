@@ -1,7 +1,7 @@
 # Optional Account Pairing
 
-Status: merged, native-build tested, unreleased client. **Not part of preview.13
-and not enabled in production.** [Core PR #58](https://github.com/AIPowerGrid/grid-core/pull/58)
+Status: client packaged in preview.14, native-build tested, **not enabled in
+production.** [Core PR #58](https://github.com/AIPowerGrid/grid-core/pull/58)
 (`407f2984` / Alembic `0030`) and
 [Console PR #21](https://github.com/AIPowerGrid/grid-frontend/pull/21) (`db301013`)
 were deployed dark on 2026-08-27. The pairing tables now retain a completed,
@@ -14,7 +14,7 @@ and schema proof at 20:59 UTC, then deployed dark at 21:07 UTC on 2026-08-27.
 An expiring two-account pilot subsequently passed the Linux ARM64 native
 pairing lifecycle against production and was removed after cleanup. Its
 allowlist is empty again; global pairing and economic features stayed off.
-Windows pairing, human desktop proof and client release remain open; see
+Windows pairing and human desktop proof remain open; see
 [PRODUCTION_BASELINE.md](PRODUCTION_BASELINE.md).
 
 ## What It Means
