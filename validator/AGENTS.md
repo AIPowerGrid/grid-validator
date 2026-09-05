@@ -79,6 +79,8 @@ change is deployed; Core still issues no media work by default.
   for positive consistency evidence, and returns inconclusive on malformed or
   ambiguous inputs. Worker-reported logprobs are behavioral evidence, not
   cryptographic model identity.
+  Reject non-string reference IDs before uniqueness checks so malformed JSON
+  produces inconclusive evidence rather than an uncaught TypeError.
 - **`attest.py`** — build canonical registration, suspension, rotation, and attestation bodies + `sign()` (EIP-191 over sorted-key
   compact JSON). Text V0 attestations include `modality`, `capability`,
   `assignment_id`, `epoch`, prompt/response hashes, an `evidence_hash`, and a

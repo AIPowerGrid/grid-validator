@@ -86,6 +86,10 @@ model attestation or use it as sole authority.
 
 ## Ownership
 
+- **`ROLLOUT_2026_09.md`** - controlled release, measured text-fidelity and
+  adversarial experiments, proposed capped compensation, and image/video pilot
+  acceptance record. Distinguish synthetic attack baselines from live evidence.
+
 - **`validator/`** — the whole node (config, stake gate, grid client, canary probing +
   scoring, attestation signing, probe loop, CLI, read-only dashboard, and opt-in
   local operator app). Owned in its own AGENTS.md. Browser controls ship in

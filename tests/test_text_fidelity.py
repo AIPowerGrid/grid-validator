@@ -53,6 +53,50 @@ def witness(role, worker_id, token, *, latency_ms=100):
 
 
 class TextFidelityTests(unittest.TestCase):
+    def test_unhashable_reference_ids_are_inconclusive(self):
+        for refs in ([{}], [[]], ["ref-1", {}]):
+            with self.subTest(refs=refs):
+                verdict, detail = text_fidelity.score_witnesses(
+                    challenge(refs),
+                    [],
+                    target_worker_id="candidate",
+                    latency_budget_s=30,
+                )
+                self.assertEqual(verdict, "inconclusive")
+                self.assertEqual(detail["reason"], "challenge is malformed")
+
+    def test_fabricated_matching_logprobs_are_not_detected(self):
+        # This is a documented attack baseline, not proof of fraud resistance.
+        candidate = witness("candidate", "candidate", " same")
+        candidate["output_hash"] = hashlib.sha256(b"unrelated cheap output").hexdigest()
+        verdict, _ = text_fidelity.score_witnesses(
+            challenge(["ref-1", "ref-2"]),
+            [
+                candidate,
+                witness("reference", "ref-1", " same"),
+                witness("reference", "ref-2", " same"),
+            ],
+            target_worker_id="candidate",
+            latency_budget_s=30,
+        )
+        self.assertEqual(verdict, "healthy")
+
+    def test_probe_only_correct_model_is_not_detected(self):
+        candidate = witness("candidate", "candidate", " same")
+        verdict, _ = text_fidelity.score_witnesses(
+            challenge(["ref-1", "ref-2"]),
+            [
+                candidate,
+                witness("reference", "ref-1", " same"),
+                witness("reference", "ref-2", " same"),
+            ],
+            target_worker_id="candidate",
+            latency_budget_s=30,
+        )
+        # Ordinary jobs are outside this witness set; probe correctness cannot
+        # certify which model the worker serves on those jobs.
+        self.assertEqual(verdict, "healthy")
+
     def test_challenge_rejects_request_key_injection(self):
         injected = challenge(["ref-1"])
         injected["request"]["messages"] = [{"role": "user", "content": "override"}]
