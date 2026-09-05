@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 import asyncio
-import http.client
 import contextlib
+import http.client
 import io
 import json
 import os
@@ -11,6 +11,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+import time
 import unittest
 from datetime import datetime, timedelta, timezone
 from email.utils import format_datetime
@@ -19,12 +20,12 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import httpx
 
+from tests.test_account_pairing import FakeCore
+from validator import operator_worker
+from validator.account_pairing import PairingController
 from validator.file_lock import AlreadyRunning, exclusive_lock
 from validator.operator_app import OperatorServer, Supervisor
-from validator import operator_worker
 from validator.operator_worker import error_code
-from validator.account_pairing import PairingController
-from tests.test_account_pairing import FakeCore
 
 
 class OperatorHTTPTests(unittest.TestCase):
@@ -417,6 +418,56 @@ class SupervisorTests(unittest.TestCase):
         self.assertIsNotNone(process.poll())
         self.assertFalse(self.supervisor.start("run"))
 
+    def test_enrollment_handoff_reads_saved_settings_in_a_fresh_child(self):
+        script = '''
+import json, os, sys
+from pathlib import Path
+from validator.config import Settings
+path = Path(os.environ["VALIDATOR_ENV"])
+if sys.argv[-1] == "enroll":
+    assert not Settings.VALIDATOR_API_KEY
+    path.write_text("VALIDATOR_API_KEY=fresh-local-fixture\\n")
+    assert not Settings.VALIDATOR_API_KEY
+    print(json.dumps({"phase": "enrolled"}), flush=True)
+else:
+    assert Settings.VALIDATOR_API_KEY == "fresh-local-fixture"
+    print(json.dumps({"phase": "heartbeat"}), flush=True)
+    sys.stdin.read()
+'''
+        env = {key: value for key, value in os.environ.items() if not key.startswith("VALIDATOR_")}
+        with (
+            patch.dict(os.environ, env, clear=True),
+            patch("validator.operator_app.command_prefix", return_value=[sys.executable, "-c", script]),
+        ):
+            self.assertTrue(self.supervisor.start("enroll"))
+            deadline = time.monotonic() + 15
+            while time.monotonic() < deadline:
+                if self.supervisor.snapshot()["heartbeat_at"]:
+                    break
+                time.sleep(0.05)
+            state = self.supervisor.snapshot()
+            self.assertTrue(state["heartbeat_at"], state["phase"])
+            self.assertTrue(state["running"])
+            self.assertEqual(self.supervisor.action, "run")
+            self.supervisor.stop()
+            self.supervisor.reader.join(timeout=10)
+        self.assertFalse(self.supervisor.snapshot()["running"])
+
+    def test_enrollment_never_autostarts_after_stop_close_or_failure(self):
+        for phase, closed, code in (("stopping", False, 0), ("enrolled", True, 0), ("enrolled", False, 1)):
+            with self.subTest(phase=phase, closed=closed, code=code):
+                supervisor = Supervisor(self.supervisor.path)
+                supervisor.closed = closed
+                supervisor.state["phase"] = phase
+                supervisor.action = "enroll"
+                process = Mock(stdout=io.BytesIO(), stdin=io.BytesIO())
+                process.wait.return_value = code
+                supervisor.process = process
+                with patch.object(supervisor, "start") as start:
+                    supervisor._read(process)
+                start.assert_not_called()
+                supervisor.close()
+
     def test_windows_force_stop_targets_the_owned_frozen_process_tree(self):
         process = Mock(pid=12345)
         process.wait.side_effect = [subprocess.TimeoutExpired("owned-child", 25), 0]
@@ -487,14 +538,14 @@ class RuntimeStatusTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(client.path, "/health")
         self.assertGreaterEqual(drift, 599)
 
-    async def test_confirmed_enrollment_continues_into_validator_loop(self):
+    async def test_enrollment_child_returns_before_cached_settings_are_validated(self):
         events = []
         run = AsyncMock(return_value=None)
         with (
             patch("validator.enrollment.enroll") as enroll,
             patch("validator.launcher.config_path", return_value=Path("node.env")),
             patch.object(operator_worker, "clock_drift_seconds", new=AsyncMock(return_value=0)),
-            patch("validator.config.Settings.validate"),
+            patch("validator.config.Settings.validate", side_effect=AssertionError("stale settings")) as validate,
             patch("validator.main.run", new=run),
         ):
             result = await operator_worker._run_action(
@@ -503,7 +554,8 @@ class RuntimeStatusTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result, 0)
         enroll.assert_called_once_with(Path("node.env"))
         self.assertEqual(events[:2], [{"phase": "enrolling"}, {"phase": "enrolled"}])
-        run.assert_awaited_once()
+        validate.assert_not_called()
+        run.assert_not_awaited()
 
     async def test_clock_drift_blocks_signed_runtime(self):
         events = []

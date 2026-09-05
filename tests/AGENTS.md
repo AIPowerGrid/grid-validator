@@ -35,6 +35,9 @@ installer generation.
   keys or operator home-directory writes.
   A real unavailable loopback connection covers HTTPX's exception cause chain,
   including the startup wrapper, without contacting an external service.
+  Enrollment handoff uses two real child processes and the real Settings
+  parser to prove saved credentials replace the enrollment-time snapshot;
+  stop, close, and failed enrollment must suppress automatic runtime start.
 - `test_account_pairing.py` - synthetic Core responses with real EIP-191
   signature recovery, exact contract validation, prior-review/fresh-read consent,
   stale/replaced approvals, cancellation, expired attempts, response-loss/restart
