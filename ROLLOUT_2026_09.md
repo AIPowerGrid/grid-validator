@@ -144,6 +144,13 @@ reviewed version never grants operator independence or enables scoring effects.
 
 ## Text Fidelity Experiment
 
+The first real run is complete; see
+[the September 5 experiment report](TEXT_FIDELITY_EXPERIMENT_2026_09_05.md).
+It measured 100-prompt same-backend and different-backend comparisons, copied
+logprob evasion and a live probe-aware router. This does not complete the
+cross-engine/quant or independently qualified reference gates below. First-token
+protocol formatting confounds the apparent separation; authority stays off.
+
 Run on explicitly owned test workers. Keep public fidelity issuance off until
 the isolated experiment has usable logprob evidence. Do not register a fake
 model claim in the public production inventory to test substitution.
@@ -260,11 +267,12 @@ Unfinished empirical work and unavailable hardware remain explicit open items.
 - Ask existing operators to install preview.15 while preserving configuration
   and their `val_*` ID. Confirm fresh accepted evidence after each upgrade.
 - Obtain the owned text-serving host and a non-disruptive test allocation. Its
-  SSH endpoint is not established in this rollout; the known media machine's
-  GPUs are occupied by production audio/video. Do not evict those workloads or
-  claim a cross-engine/quant experiment from synthetic fixtures.
+  bridge was located on the chat frontend VM and upgraded to v0.3.8 while
+  preserving the config and signer. Direct backend calibration is now recorded
+  above. Rack-level configuration access is still needed for verified
+  same-family engine/quant comparisons; do not evict production media workloads.
 - Complete Peteq's existing qualification review rather than restart the
-  72-hour observation. Public status currently says to keep waiting even when
-  time/coverage are ready: its candidate next-action copy needs a scoped Core
-  correction. Fixing that copy must not bypass signed-control or common-control
+  72-hour observation. Core PR113 corrected the mature candidate's next-action
+  copy; the fix is included in the separate `8380dfdf` production release.
+  Correcting that copy does not bypass signed-control or common-control
   review, and a public validator ID alone is not authority to approve someone.

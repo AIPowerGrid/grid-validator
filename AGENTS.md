@@ -95,6 +95,10 @@ model attestation or use it as sole authority.
 - **`ROLLOUT_2026_09.md`** - controlled release, measured text-fidelity and
   adversarial experiments, proposed capped compensation, and image/video pilot
   acceptance record. Distinguish synthetic attack baselines from live evidence.
+- **`TEXT_FIDELITY_EXPERIMENT_2026_09_05.md`** - first real backend calibration,
+  captured-logprob forgery and live probe-aware routing evidence. Its successful
+  pair separation is not proof of exact weights, cross-quant tolerance or safe
+  quality authority; record protocol-token confounding and successful evasions.
 
 - **`validator/`** — the whole node (config, stake gate, grid client, canary probing +
   scoring, attestation signing, probe loop, CLI, read-only dashboard, and opt-in
