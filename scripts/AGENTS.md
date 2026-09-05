@@ -32,7 +32,7 @@ verification, binary installation, systemd installation, and release smoke tests
   evidence and recovery, then suspends/revokes the disposable node credentials.
   Never print captured child output or upload private state. This is a manual
   protected workflow, not ordinary CI or independent/operator-UI proof.
-  Current pins exercise published preview.13 to preview.14. Updating the pins
+  Current pins exercise preview.13 to preview.15 after publication. Updating the pins
   prepares a test; only a successful live report establishes runtime proof.
 - `native-pairing-canary.py` is a separate, manual Windows/Linux candidate
   qualification harness. It binds a successful reviewed-master binary workflow
