@@ -39,10 +39,10 @@ concrete detail in children. Delete stale notes instead of explaining history.
 The Grid's validator node. In V0 it is a CPU-only distributed audit runner: it sends
 small canary jobs through the normal Grid path, scores replies (`healthy` / `slow` /
 `failed`), and submits signed attestations. Shared-quorum text validation is
-production-live on Core commit `4e0eb3f6` as checked on 2026-08-31, with
-migrations through `0031`. The immutable public cohort baseline is
-`v0.1.0-preview.13`; Core requires that version for candidate/verified
-qualification and independent quorum while reporting older online nodes as
+production-live on Core commit `6f12de6f` as checked on 2026-09-05, with
+migrations through `0034`. The recommended release is preview.14. Core accepts
+the exact preview.13 baseline plus preview.14 upgrade during a controlled
+overlap, preserving qualification timestamps and samples. It reports older nodes as
 `upgrade_required`. Multiple external preview.13 nodes are participating in the
 qualification pipeline, but independent status still requires the maintainer's
 common-control review and the complete 72-hour gate. The public validator status
@@ -76,7 +76,7 @@ probe-aware model switching all reproduce the current fingerprinting risk while
 proving generated probes remain ineligible for quality authority. This repo
 documents and consumes that boundary; do not duplicate the Core challenge
 generator here or imply that passing public templates proves model quality.
-The source candidate also implements independent scoring for Core's default-off
+Preview.14 also packages independent scoring for Core's default-off
 `text.fidelity.v1` witness lane. It compares a candidate's bounded first-token
 top-logprob distribution with one or two trusted same-model references. A
 single reference cannot create negative evidence, two references must agree
@@ -100,7 +100,7 @@ model attestation or use it as sole authority.
   source preview, verified binary install, versioned public Docker, systemd,
   health checks, and V0
   safety boundaries.
-  Current downloads target preview.13 with confirmed local dedicated-account
+  Current downloads target preview.14 with confirmed local dedicated-account
   enrollment, the Windows menu, and opt-in operator app; preserve deployed-fleet snapshots
   separately. Do not direct first-time operators to paste private keys or claim
   existing-account pairing is shipped.
@@ -111,7 +111,7 @@ model attestation or use it as sole authority.
   normal runs mount the credential file read-only and only the journal directory
   writable.
   The public Linux cohort path pins the systemd helper to a reviewed immutable
-  source commit and verifies its SHA-256 separately from the frozen preview.13
+  source commit and verifies its SHA-256 separately from the frozen preview.14
   binary. Never replace that with a mutable branch download or pipe-to-shell.
 - **`OPERATORS.md`** — plain-language run guide (install, systemd, troubleshooting, FAQ).
   It owns the signed suspend/resume and account-bound signing-wallet/API-key
@@ -120,12 +120,12 @@ model attestation or use it as sole authority.
   libraries need executable mapping, without weakening the host's `/tmp` policy.
 - **`ACCOUNT_PAIRING.md`** - existing-account visibility association contract,
   explicit two-sided consent, failure recovery, and cross-repo rollout gates.
-  Local app support is merged and native-build tested but unreleased;
-  preview.13 does not include it. Core (`f51875ce` / `0030`) and Console
+  Local app support is packaged in preview.14, but Core keeps it disabled.
+  Core (`f51875ce` / `0030`) and Console
   PR #21 (`db301013`) are deployed dark. An unpublished Linux ARM64 candidate
   passed live pairing, recovery and both removal paths against a disposable
   two-account pilot, now removed. Windows pairing, human desktop qualification
-  and a published client remain gates; the feature stays off.
+  remain gates; the feature stays off.
   Core PR #60 adds an expiring account-scoped pilot for that qualification,
   deployed dark with an empty allowlist and no expiry configured. Keep private
   pilot membership out of diagnostics, docs and public capability responses.
@@ -147,7 +147,7 @@ model attestation or use it as sole authority.
   the initial three independent operators, broader five-operator pilot, and
   ten-operator recruitment target, including safe reporting and the
   distinction between node count and independently controlled quorum weight.
-  Its new-operator path is preview.13 automatic dedicated-node enrollment and
+  Its new-operator path is preview.14 automatic dedicated-node enrollment and
   the local app, not manual wallet/key preparation. Keep independent-control
   review and advanced credential rotation separate from first-run setup.
   The exact preview.13 node completes a live signed suspend/resume check so a
@@ -165,8 +165,8 @@ model attestation or use it as sole authority.
   expiry, but must never expose the opaque control group or private review ref.
   Three recently participating qualified groups unlock only a seven-day Core
   shadow observation, not routing or economic authority. The qualifying client
-  stays on the frozen preview.13 release; shadow collection does not require a
-  validator release.
+  must use one frozen baseline during shadow observation. Shadow stays off
+  during the preview.13/preview.14 upgrade overlap.
 - **`PRODUCTION_BASELINE.md`** — dated public capability, assignment, quorum,
   independence, and network-capacity snapshots. It is historical evidence, not
   a substitute for the live public status endpoints.
@@ -190,7 +190,7 @@ model attestation or use it as sole authority.
   maintainer test tooling, not onboarding for ordinary operators. It has offline
   safety coverage and a completed first-party Linux ARM64 run; Windows pairing
   remains unproven. It neither deploys Core nor activates the pilot. Public
-  downloads remain preview.13.
+  downloads target preview.14; account pairing remains Core-disabled.
 - **`LINUX_PAIRING_CANARY_REPORT.json`** - immutable redacted output of the
   first-party Linux ARM64 production pairing canary. Its limits, independent
   database audit and cleanup evidence are in `PRODUCTION_BASELINE.md`; the

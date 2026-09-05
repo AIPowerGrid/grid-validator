@@ -28,15 +28,15 @@ slashing are gated on reviewed independent operators and a separate activation
 decision. First-party nodes may keep the telemetry lane healthy, but they never
 fill independent-operator seats.
 
-Enrollment is open for the evidence-only cohort. As checked on 2026-09-01,
+Enrollment is open for the evidence-only cohort. As checked on 2026-09-05,
 production Core runs commit
-`4e0eb3f6b883218502b01d550c7cdeed7f9a0dd2` with migrations through `0031`.
+`6f12de6fdafa970caae6f5e380fdf72796a920ee` with migrations through `0034`.
 New operators must use the immutable public
-[`v0.1.0-preview.13`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.13),
+[`v0.1.0-preview.14`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.14),
 which provides explicit automatic enrollment and a local operator app. Core
-marks older versions `upgrade_required` and excludes them from independent
-quorum. Legacy first-party registrations still reporting preview.9 are a
-deployment snapshot, not the download recommendation.
+also accepts the exact preview.13 baseline during the preview.14 upgrade
+overlap, preserving qualification history. Older versions are upgrade-required
+and excluded from independent quorum. Three first-party nodes now run preview.14.
 The three first-party nodes share one operator and hypervisor, so they do not
 count toward the five independent-operator exit gate.
 See [PRODUCTION_BASELINE.md](PRODUCTION_BASELINE.md) for dated runtime evidence;
@@ -59,7 +59,7 @@ New enrollment creates a dedicated local signer and obtains a scoped validator
 key for its own node account, only after confirmation. No pre-existing wallet,
 funds, Google/GitHub login, or exported private key is required. Do not paste a
 funded wallet's key into the validator. Optional association with an existing
-human account is separate, unreleased work; preview.13 does not include it.
+human account is separate: preview.14 packages the client, but Core keeps it disabled.
 
 One organization or person counts as one independent operator, regardless of
 how many nodes they run. Multiple nodes controlled by the same operator do not
@@ -74,14 +74,14 @@ hostname, or review notes.
 
 ## Join
 
-1. Install the verified preview.13 release using [QUICKSTART.md](QUICKSTART.md).
+1. Install the verified preview.14 release using [QUICKSTART.md](QUICKSTART.md).
    On Windows, extract the ZIP and double-click `aipg-validator.exe`; choose
    menu option **8: Open local operator app**. No PowerShell is needed for the
    menu/app flow. Follow the unsigned-preview and verification guidance before
    running the download.
 2. In the local app, choose **Set up node** on a new installation and confirm
    with **Create node account**, then choose **Start validator**. Published
-   preview.13 keeps setup and start as separate actions. Existing operators
+   preview.14 keeps setup and start as separate actions. Existing operators
    should keep their protected configuration and use **Start validator**; do not
    delete keys or enroll a replacement identity just to upgrade. Wait for
    acknowledged registration and heartbeat, then copy the public `val_*`
@@ -128,12 +128,12 @@ the live review, not an independence oracle and not validator authority.
 
 Linux x64 and ARM64 binaries target glibc 2.35 or newer. macOS and Windows
 preview binaries are explicitly unsigned; Linux is the lowest-friction public
-pilot path. The exact `ghcr.io/aipowergrid/validator:v0.1.0-preview.13`
+pilot path. The exact `ghcr.io/aipowergrid/validator:v0.1.0-preview.14`
 container is anonymously pullable on Linux x64 and ARM64; the prerelease does
 not publish `latest`.
 
 ```bash
-curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.13/install-validator.sh
+curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.14/install-validator.sh
 gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator
 bash install-validator.sh
 cd ~/.aipg-validator
@@ -151,7 +151,7 @@ immediately. Do not run a second copy while the app's worker is running.
 
 For headless operation, stop the app's worker first and install the pinned
 systemd service from [QUICKSTART.md](QUICKSTART.md#systemd). Confirm it is
-active and following the same preview.13 identity so the 72-hour observation
+active and following the same preview.14 identity so the 72-hour observation
 continues:
 
 ```bash
@@ -159,7 +159,7 @@ sudo systemctl status aipg-validator --no-pager
 sudo journalctl -u aipg-validator -f
 ```
 
-Supported preview.13 registration starts a non-economic observation window
+Supported preview.14 registration starts a non-economic observation window
 automatically. Core samples at most one qualifying heartbeat every five minutes;
 wrong-version heartbeats do not count and missing historical samples are never
 backfilled. After the signed control check and common-control review, the
@@ -210,9 +210,9 @@ The canonical design and review contract lives in Core's
 [`VALIDATOR_SHADOW_AUTHORITY.md`](https://github.com/AIPowerGrid/grid-core/blob/main/docs/architecture/VALIDATOR_SHADOW_AUTHORITY.md).
 Completing the run permits a separate routing review only; it does not activate
 validator influence or rewards. Shadow collection uses the existing signed
-evidence contract and does not require a new validator binary. Keep preview.13
-as the cohort baseline while the current candidate qualifies; do not publish
-preview.14 merely to start the observer.
+evidence contract and does not require a new validator binary. Shadow observation
+stays off during the preview.13/preview.14 overlap; freeze one reviewed baseline
+before starting that separate experiment.
 
 The 72-hour run qualifies basic operation and control separation. It does not
 prove every model claim, authorize rewards, or make subjective evidence

@@ -58,7 +58,7 @@ What is implemented and testable against production Core:
   Core independently enables assignment issuance.
 - GitHub Actions release workflow scaffold for downloadable binaries.
 - Grid-issued text assignments with short-lived nonces.
-- A source-only, default-off `text.fidelity.v1` pilot that independently
+- A packaged, Core-disabled `text.fidelity.v1` pilot that independently
   compares bounded first-token distributions from one candidate and trusted
   same-model references. It is behavioral evidence, not proof of model identity,
   and has no economic effect.
@@ -93,10 +93,10 @@ What is implemented and testable against production Core:
 Production preview status:
 
 - Production Core runs the sealed shared-quorum validator API at immutable
-  commit `4e0eb3f6b883218502b01d550c7cdeed7f9a0dd2` as checked on
-  2026-09-01, with migrations through `0031`. Core requires
-  `v0.1.0-preview.13` for candidate/verified qualification and excludes older
-  releases from independent quorum.
+  commit `6f12de6fdafa970caae6f5e380fdf72796a920ee` as checked on
+  2026-09-05, with migrations through `0034`. Core accepts the exact
+  preview.13 baseline and preview.14 upgrade during a controlled overlap.
+  Upgrades preserve qualification history; they do not grant independence.
 - Core also contains a dark, atomic accounting terminal for future
   compensated quality audits. No scheduler, audit corpus, scoring policy, or
   operator configuration is enabled, and both production audit tables were
@@ -149,18 +149,18 @@ is not yet proven.
 
 ## Download
 
-Preview.13 includes the local operator app (menu option 8) and explicit
+Preview.14 includes the local operator app (menu option 8) and explicit
 `aipg-validator enroll` (menu option 1): enrollment
 creates a dedicated local signer, authenticates a separate node account, and
 saves a validator-only API key without private-key entry. Existing-account pairing remains separate;
 do not export a personal wallet key or replace a running node's identity.
 
-Source development adds an optional **Account link** flow in the local app.
-It is **not in preview.13 or enabled in production**. See
+Preview.14 also packages the optional **Account link** flow in the local app.
+Core still keeps it **disabled in production**. See
 [Account Pairing](ACCOUNT_PAIRING.md) for its consent, recovery and rollout gates.
 
 The current public V0 preview is
-[`v0.1.0-preview.13`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.13).
+[`v0.1.0-preview.14`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.14).
 It is an unsigned, non-economic operator preview, not a stable release.
 
 Expected release assets:
@@ -179,7 +179,7 @@ Every release also carries `install-validator.sh`, `install-validator.ps1`, `val
 `SHA256SUMS`, an SPDX JSON SBOM, and GitHub build provenance. The release
 manifest binds the exact version, tag, source commit, asset sizes, and asset
 hashes, plus the platform-signing state; `SHA256SUMS` covers the manifest
-itself. The `v0.1.0-preview.13` macOS and Windows binaries are explicitly unsigned:
+itself. The `v0.1.0-preview.14` macOS and Windows binaries are explicitly unsigned:
 macOS is not Developer ID signed or notarized, and Windows is not Authenticode
 signed. Verify `SHA256SUMS` and GitHub provenance before running them. Stable
 releases remain blocked until both platform-signing gates are satisfied. The
@@ -197,7 +197,7 @@ Download the installer from the exact preview release, verify
 its GitHub provenance, and run it:
 
 ```bash
-curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.13/install-validator.sh
+curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.14/install-validator.sh
 gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator
 bash install-validator.sh
 cd ~/.aipg-validator
@@ -225,7 +225,7 @@ preview executable is not Authenticode signed; the installer verifies SHA-256
 before installing or executing it:
 
 ```powershell
-Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.13/install-validator.ps1 -OutFile install-validator.ps1
+Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.14/install-validator.ps1 -OutFile install-validator.ps1
 gh attestation verify install-validator.ps1 --repo AIPowerGrid/grid-validator
 .\install-validator.ps1 -AcceptUnsignedPreview
 ```
@@ -328,7 +328,7 @@ aipg-validator run
 From a source checkout, select the exact version explicitly:
 
 ```bash
-AIPG_VALIDATOR_VERSION=v0.1.0-preview.13 ./scripts/install-binary.sh
+AIPG_VALIDATOR_VERSION=v0.1.0-preview.14 ./scripts/install-binary.sh
 ```
 
 `dashboard` starts a read-only local status page at
@@ -356,7 +356,7 @@ Pull the exact public preview image. It is anonymously available for Linux x64
 and ARM64; prereleases never publish or replace `latest`:
 
 ```bash
-docker pull ghcr.io/aipowergrid/validator:v0.1.0-preview.13
+docker pull ghcr.io/aipowergrid/validator:v0.1.0-preview.14
 ```
 
 First-time Docker operators must enroll into a private host directory and mount
@@ -368,12 +368,12 @@ The preview bundles the dark image/video decoders. Qualify the exact image
 without contacting the Grid:
 
 ```bash
-docker run --rm ghcr.io/aipowergrid/validator:v0.1.0-preview.13 self-test
+docker run --rm ghcr.io/aipowergrid/validator:v0.1.0-preview.14 self-test
 ```
 
 Use the [Docker quickstart](QUICKSTART.md#docker) for enrollment, a no-probe
 check, the persistent validator loop, logs, and the optional dashboard. That
-single flow pins preview.13, runs as the host user, mounts credentials read-only
+single flow pins preview.14, runs as the host user, mounts credentials read-only
 after setup, and preserves the evidence journal across container recreation.
 
 Build `aipowergrid/validator:local` from this checkout only when testing source

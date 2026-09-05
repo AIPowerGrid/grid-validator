@@ -13,8 +13,9 @@ For the shortest install path, start with [QUICKSTART.md](QUICKSTART.md). This
 file is the longer operator runbook.
 
 Current rollout: sealed assignment-bound shared quorum is live in production
-and the immutable `v0.1.0-preview.13` release is the required qualification
-baseline. Older preview.9 registrations are upgrade-required and do not count
+and the recommended release is `v0.1.0-preview.14`. Core accepts the exact
+preview.13 baseline plus preview.14 during a controlled upgrade overlap.
+Older preview.9 registrations are upgrade-required and do not count
 toward independent quorum. First-party nodes prove the signed workflow, not
 independence. Public enrollment remains an unpaid evidence-only cohort: current
 assignments have no routing, payout, reward, strike, bond, or slashing effect.
@@ -60,16 +61,16 @@ If a key was issued but the local write failed, retrying may leave an unused
 key on the dedicated account; revoke unused keys during account recovery.
 
 Older binary users should not export a personal wallet key to complete setup.
-Upgrade to preview.13, preserving existing configuration. New operators can
+Upgrade to preview.14, preserving existing configuration. New operators can
 extract the Windows ZIP, double-click `aipg-validator.exe`, and choose 8 for the
 local app described below. The menu's setup/check/run commands remain available.
 PowerShell is optional.
 
 ### Local Operator App
 
-Preview.13 includes `aipg-validator app` (menu option 8). Native packaged-app
+Preview.14 includes `aipg-validator app` (menu option 8). Native packaged-app
 and clean-install tests pass on Windows x64, macOS ARM64, and Linux x64/ARM64.
-Published preview.13 also passed a hosted Windows Server runtime journey through
+The earlier published preview.13 passed a hosted Windows Server runtime journey through
 accepted signed evidence and recovery. That HTTP-driven test does not replace
 ordinary-user double-click/browser qualification; see [PRODUCTION_BASELINE.md](PRODUCTION_BASELINE.md).
 
@@ -94,9 +95,8 @@ the menu if the local session expires. **Download diagnostics** includes only
 version, public validator ID, status, timestamps, counts, and bounded activity.
 It omits credentials, config paths, raw logs, and challenge content. Missing or
 invalid credentials and connection failures are shown without leaking server
-responses. Existing-account pairing remains separate, unreleased work. Source
-builds include optional account-link controls; they require the matching Core
-and Console deployment and are not available in preview.13. See
+responses. Preview.14 packages optional account-link controls, but Core still
+keeps pairing disabled pending the remaining native qualification. See
 [Account Pairing](ACCOUNT_PAIRING.md) before testing or enabling that flow.
 
 ### Binary Install
@@ -109,7 +109,7 @@ before running it:
 > before accepting the OS warning. Prefer Linux or Docker for pilot nodes.
 
 ```bash
-curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.13/install-validator.sh
+curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.14/install-validator.sh
 gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator
 bash install-validator.sh
 cd ~/.aipg-validator
@@ -125,14 +125,14 @@ The installer places the binary in `$HOME/.local/bin` and creates
 ```bash
 AIPG_VALIDATOR_INSTALL_DIR=/usr/local/bin \
   AIPG_VALIDATOR_CONFIG_DIR=/var/lib/aipg-validator \
-  AIPG_VALIDATOR_VERSION=v0.1.0-preview.13 \
+  AIPG_VALIDATOR_VERSION=v0.1.0-preview.14 \
   ./scripts/install-binary.sh
 ```
 
 For scripted Windows x64 installs, use the native PowerShell installer:
 
 ```powershell
-Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.13/install-validator.ps1 -OutFile install-validator.ps1
+Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.14/install-validator.ps1 -OutFile install-validator.ps1
 gh attestation verify install-validator.ps1 --repo AIPowerGrid/grid-validator
 .\install-validator.ps1 -AcceptUnsignedPreview
 ```
@@ -144,7 +144,7 @@ remain blocked on signing.
 From a source checkout, select the exact release explicitly:
 
 ```bash
-AIPG_VALIDATOR_VERSION=v0.1.0-preview.13 ./scripts/install-binary.sh
+AIPG_VALIDATOR_VERSION=v0.1.0-preview.14 ./scripts/install-binary.sh
 ```
 
 Running nodes perform a notification-only release check at most every six
@@ -298,7 +298,7 @@ Docker is the easiest server path and can perform first-run enrollment without
 a source checkout. Keep the exact preview tag and a private host directory:
 
 ```bash
-IMAGE=ghcr.io/aipowergrid/validator:v0.1.0-preview.13
+IMAGE=ghcr.io/aipowergrid/validator:v0.1.0-preview.14
 CONFIG_DIR="$HOME/.aipg-validator"
 mkdir -p "$CONFIG_DIR/state"
 chmod 700 "$CONFIG_DIR" "$CONFIG_DIR/state"
@@ -379,7 +379,7 @@ exists.
 
 For released binaries, download the reviewed helper from its immutable source
 commit and verify its SHA-256. This pins the service definition independently
-from the installed preview.13 binary and avoids executing a moving `master`
+from the installed preview.14 binary and avoids executing a moving `master`
 branch:
 
 ```bash
@@ -522,11 +522,11 @@ assignments, then rewards/staking after the evidence loop is boring.
 | attestations remain pending | Check Core reachability; the node retries the durable local outbox automatically |
 | outbox reports dead letters | Stop and inspect Core rejection logs before removing the local state database |
 | registration fails with 403 | Confirm the key purpose is validator and the signing wallet is linked to the same Grid account |
-| Windows `.exe` closes immediately | Upgrade to preview.13, extract the ZIP, and double-click its executable. It opens a persistent menu. Keep existing configuration. |
+| Windows `.exe` closes immediately | Upgrade to preview.14, extract the ZIP, and double-click its executable. It opens a persistent menu. Keep existing configuration. |
 | Windows setup mentions `fchmod` | Known identity-creation bug through preview.9, fixed in preview.11. Upgrade the executable; more API keys will not help. |
 | Console shows a different wallet than `prepare-wallet` | Stop and request enrollment assistance; a public address alone is not proof of control. Never export a funded wallet key to get past registration. |
-| `VALIDATOR_PRIVATE_KEY is required` | New operators: choose Set up node in the preview.13 app, or menu option 1. Existing operators: restore the correct private config; do not replace the identity or paste a personal wallet key. |
-| Setup asks you to type a private key | You are using an older build. Stop and upgrade to preview.13; automatic enrollment creates its own local signer. |
+| `VALIDATOR_PRIVATE_KEY is required` | New operators: choose Set up node in the preview.14 app, or menu option 1. Existing operators: restore the correct private config; do not replace the identity or paste a personal wallet key. |
+| Setup asks you to type a private key | You are using an older build. Stop and upgrade to preview.14; automatic enrollment creates its own local signer. |
 | `Setup needs confirmation` | Confirm in the executable menu, or use explicit `enroll --yes` only for deliberate automation. Do not paste credentials into command arguments. |
 | `web3 not installed` | Install stake extras with `./.venv/bin/python -m pip install -e '.[stake]'`, or keep `VALIDATOR_REQUIRE_STAKE=false` for V0 preview |
 | `Stake contract not deployed and REQUIRE_STAKE=true` | Expected in V0; set `VALIDATOR_REQUIRE_STAKE=false` unless you are testing the future stake gate |
