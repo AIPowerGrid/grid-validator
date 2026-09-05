@@ -232,6 +232,14 @@ fed invented worker completions to pay validators.
 
 ## Image And Video
 
+Read-only production preflight at 18:53 UTC on September 5 is **not ready**:
+neither lane has fresh media-capable validators or configured bond verification,
+and the local curated snapshot yields no governed deterministic recipe. The
+stricter `--sync-recipes --require-ready` check also fails because the configured
+RecipeVault returns no governed recipes. This does not mean ordinary image or
+video generation is offline; governed validation readiness is a separate gate.
+Do not enable issuance or treat a local-only preflight as chain-catalog proof.
+
 - [ ] Start with one active image model/workflow and explicit seed. Capture
   same-hardware repeats, cross-hardware agreement, and deliberate wrong-model,
   wrong-seed, corrupt-file, dimension, and blank-image cases.
@@ -246,3 +254,17 @@ fed invented worker completions to pay validators.
 
 Do not waive the absent reference pool by labelling owned replicas independent.
 Unfinished empirical work and unavailable hardware remain explicit open items.
+
+## Immediate Operator Follow-Up
+
+- Ask existing operators to install preview.15 while preserving configuration
+  and their `val_*` ID. Confirm fresh accepted evidence after each upgrade.
+- Obtain the owned text-serving host and a non-disruptive test allocation. Its
+  SSH endpoint is not established in this rollout; the known media machine's
+  GPUs are occupied by production audio/video. Do not evict those workloads or
+  claim a cross-engine/quant experiment from synthetic fixtures.
+- Complete Peteq's existing qualification review rather than restart the
+  72-hour observation. Public status currently says to keep waiting even when
+  time/coverage are ready: its candidate next-action copy needs a scoped Core
+  correction. Fixing that copy must not bypass signed-control or common-control
+  review, and a public validator ID alone is not authority to approve someone.
