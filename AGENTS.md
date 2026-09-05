@@ -36,17 +36,18 @@ concrete detail in children. Delete stale notes instead of explaining history.
 
 ## Purpose
 
-Fresh setup is held on preview.14 after live canary `33983090757` exposed
-cached pre-enrollment Settings in its automatic start. The website was rolled
-back to preview.13; existing preview.14 runtimes remain online. The replacement
-must prove fresh setup and recovery before promotion. See `ROLLOUT_2026_09.md`.
+Preview.15 replaces preview.14's cached pre-enrollment Settings defect. The
+published replacement is running on the three owned nodes. Its published Windows binary passed fresh enrollment,
+accepted evidence, outage/recovery and full retirement in run `33984877376`.
+The public download page now selects preview.15.
+See `ROLLOUT_2026_09.md` for current evidence and release status.
 
 The Grid's validator node. In V0 it is a CPU-only distributed audit runner: it sends
 small canary jobs through the normal Grid path, scores replies (`healthy` / `slow` /
 `failed`), and submits signed attestations. Shared-quorum text validation is
 production-live on Core commit `6f12de6f` as checked on 2026-09-05, with
-migrations through `0034`. The recommended release is preview.14. Core accepts
-the exact preview.13 baseline plus preview.14 upgrade during a controlled
+migrations through `0034`. The replacement release is preview.15. Core accepts
+the exact preview.13 baseline plus preview.15 upgrade during a controlled
 overlap, preserving qualification timestamps and samples. It reports older nodes as
 `upgrade_required`. Multiple external preview.13 nodes are participating in the
 qualification pipeline, but independent status still requires the maintainer's
@@ -81,7 +82,7 @@ probe-aware model switching all reproduce the current fingerprinting risk while
 proving generated probes remain ineligible for quality authority. This repo
 documents and consumes that boundary; do not duplicate the Core challenge
 generator here or imply that passing public templates proves model quality.
-Preview.14 also packages independent scoring for Core's default-off
+Preview.15 also packages independent scoring for Core's default-off
 `text.fidelity.v1` witness lane. It compares a candidate's bounded first-token
 top-logprob distribution with one or two trusted same-model references. A
 single reference cannot create negative evidence, two references must agree
@@ -105,7 +106,7 @@ model attestation or use it as sole authority.
   source preview, verified binary install, versioned public Docker, systemd,
   health checks, and V0
   safety boundaries.
-  Current downloads target preview.14 with confirmed local dedicated-account
+  Current downloads target preview.15 with confirmed local dedicated-account
   enrollment, the Windows menu, and opt-in operator app; preserve deployed-fleet snapshots
   separately. Do not direct first-time operators to paste private keys or claim
   existing-account pairing is shipped.
@@ -116,7 +117,7 @@ model attestation or use it as sole authority.
   normal runs mount the credential file read-only and only the journal directory
   writable.
   The public Linux cohort path pins the systemd helper to a reviewed immutable
-  source commit and verifies its SHA-256 separately from the frozen preview.14
+  source commit and verifies its SHA-256 separately from the frozen preview.15
   binary. Never replace that with a mutable branch download or pipe-to-shell.
 - **`OPERATORS.md`** — plain-language run guide (install, systemd, troubleshooting, FAQ).
   It owns the signed suspend/resume and account-bound signing-wallet/API-key
@@ -125,7 +126,7 @@ model attestation or use it as sole authority.
   libraries need executable mapping, without weakening the host's `/tmp` policy.
 - **`ACCOUNT_PAIRING.md`** - existing-account visibility association contract,
   explicit two-sided consent, failure recovery, and cross-repo rollout gates.
-  Local app support is packaged in preview.14, but Core keeps it disabled.
+  Local app support is packaged in preview.15, but Core keeps it disabled.
   Core (`f51875ce` / `0030`) and Console
   PR #21 (`db301013`) are deployed dark. An unpublished Linux ARM64 candidate
   passed live pairing, recovery and both removal paths against a disposable
@@ -152,7 +153,7 @@ model attestation or use it as sole authority.
   the initial three independent operators, broader five-operator pilot, and
   ten-operator recruitment target, including safe reporting and the
   distinction between node count and independently controlled quorum weight.
-  Its new-operator path is preview.14 automatic dedicated-node enrollment and
+  Its new-operator path is preview.15 automatic dedicated-node enrollment and
   the local app, not manual wallet/key preparation. Keep independent-control
   review and advanced credential rotation separate from first-run setup.
   The exact preview.13 node completes a live signed suspend/resume check so a
@@ -171,7 +172,7 @@ model attestation or use it as sole authority.
   Three recently participating qualified groups unlock only a seven-day Core
   shadow observation, not routing or economic authority. The qualifying client
   must use one frozen baseline during shadow observation. Shadow stays off
-  during the preview.13/preview.14 upgrade overlap.
+  during the preview.13/preview.15 upgrade overlap.
 - **`PRODUCTION_BASELINE.md`** — dated public capability, assignment, quorum,
   independence, and network-capacity snapshots. It is historical evidence, not
   a substitute for the live public status endpoints.
@@ -195,7 +196,7 @@ model attestation or use it as sole authority.
   maintainer test tooling, not onboarding for ordinary operators. It has offline
   safety coverage and a completed first-party Linux ARM64 run; Windows pairing
   remains unproven. It neither deploys Core nor activates the pilot. Public
-  downloads target preview.14; account pairing remains Core-disabled.
+  downloads target preview.15; account pairing remains Core-disabled.
 - **`LINUX_PAIRING_CANARY_REPORT.json`** - immutable redacted output of the
   first-party Linux ARM64 production pairing canary. Its limits, independent
   database audit and cleanup evidence are in `PRODUCTION_BASELINE.md`; the

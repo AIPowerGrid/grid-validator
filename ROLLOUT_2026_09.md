@@ -25,7 +25,7 @@ Read-only production checks at approximately 17:28 UTC on September 5:
 Individual operator identities, control reviews, credentials, and raw workload
 evidence belong in protected operational storage, not this public report.
 
-## Completed September 5 Rollout
+## Initial September 5 Rollout
 
 - Core `6f12de6fdafa970caae6f5e380fdf72796a920ee` is production-live.
   A fresh production backup restored and migrated cleanly in an isolated
@@ -65,11 +65,53 @@ its archives. Operators who already installed it can preserve their config
 and use Start after setup, but the replacement release should remove that
 extra recovery step.
 
-The pending fix keeps Set up and start as one confirmed action while handing
+The fix in PR88 (`809b357c`) keeps Set up and start as one confirmed action while handing
 off from the enrollment child to a fresh runtime child. Tests must use real
 Settings parsing, prove stale values cannot carry across, and suppress the
 handoff after stop, close or failure. The live harness must expect automatic
 startup and report only allowlisted app errors rather than a generic timeout.
+
+### Replacement Release Qualification
+
+Preview.15 is published against `809b357cec6ca51a78cc8fe3f8013543b0522c02`.
+Binary workflow `33984143672` and Docker workflow `33984143652` succeeded.
+All four archives, both installers, the manifest and SBOM passed exact
+tag/commit/checksum verification and GitHub provenance verification. The source
+suite passed 332 tests with six optional skips; the fresh-settings regression
+uses real separate child processes rather than mocking Settings validation.
+
+Core now accepts preview.13 plus the exact preview.15 upgrade. The guarded
+configuration change verified that this was the only changed setting and
+checked the running Core commit after restart. All three owned Linux nodes
+run preview.15 with their existing identities and state preserved.
+
+Windows run `33984552555` overlapped that Core restart and failed enrollment;
+it is an invalid qualification attempt, not a product regression result. Its
+cleanup did not complete during the outage. A read-only production check
+found zero accounts created in its enrollment window (18:40:51-18:40:57 UTC).
+Repeat run `33984877376` is against stable Core with further Core deployments
+paused. It passed fresh enrollment, one accepted signature-verified tool-chain
+report, identity-preserving upgrade/restart, actual network outage/recovery and
+full retirement (suspended, one key revoked). Independent database checks
+confirmed suspension and zero payout/reservation rows for its probes. Website
+PR67 (`008d37df`) passes all eight browser tests and is deployed for preview.15.
+After explicit promotion of the reviewed Vercel deployment, the public
+`aipowergrid.io/validate` page was checked to contain only preview.15 release
+links. The old preview.13 rollback deployment remains available.
+
+At 18:45 UTC there were eight ongoing online nodes: three owned preview.15
+and five other preview.13 registrations, all with verified assignment-bound
+reports in the prior 24 hours. The additional disposable Windows canary is
+excluded from this fleet count. No completed current independence review has
+been established. Peteq's public record now satisfies elapsed time and coverage,
+but that does not replace the separate signed-control/common-control review.
+
+The existing read-only 24-hour text calibration report also shows non-fidelity
+GPT-OSS failures with `empty_visible_output` on stop-sequence and token-limit
+probes. Investigate reasoning budgets and backend behavior before attributing
+these to worker misconduct. Report rows count assignments, not independent
+operators or independent model experiments. No model-substitution accuracy or
+false-positive rate has yet been measured.
 
 The first Core cutover's verification mistakenly targeted the default API port
 instead of the deployed service's port and rolled back automatically. The
@@ -83,16 +125,17 @@ proceeding. Rollback release and environment backup remain available privately.
 - [x] Reproduce and fix malformed reference IDs escaping as TypeError.
 - [x] Add scorer attack baselines for copied logprobs and probe-only correctness.
 - [x] Merge validator PR86 (`d5e7b3e`) and Core PR112 (`6f12de6f`).
-- [x] Deploy Core compatibility with preview.13 as baseline and preview.14 as
+- [x] Deploy Core compatibility with preview.13 as baseline and preview.15 as
   the exact reviewed overlap. Preserve qualification timestamps and samples.
   Shadow observation stays off during the overlap.
-- [x] Publish immutable v0.1.0-preview.14 with four native archives, manifest,
+- [x] Publish immutable v0.1.0-preview.15 with four native archives, manifest,
   checksums, SBOM, provenance, and versioned containers after CI passes.
-- [ ] Verify downloaded artifacts, run a first-party canary, and capture
+- [x] Verify downloaded artifacts, run a first-party canary, and capture
   accepted signed evidence plus restart/outage recovery with the same identity.
 - [x] Update the website, installers/docs, and operator instructions to the
   verified release. Existing operators reuse their private configuration.
-- [ ] Roll first-party nodes, then support independent operators upgrading.
+- [x] Roll all three first-party nodes with private configuration preserved.
+- [ ] Support independent operators upgrading.
   Record ordinary human Windows interaction separately from CI/runtime checks.
 
 Qualification is operational history plus a separate review of operator
@@ -160,6 +203,32 @@ treasury; budgets are never increased automatically.
 
 This rewards audited pilot contributions. It does not claim that synthetic
 canary agreement proves general model quality, nor that accounts are Sybil-proof.
+
+### Implementation Gates Before Funding
+
+Core's existing `validator_audit_budgets` funds **worker execution of audits**;
+it is not a validator reward ledger. Likewise, the current custodial payout CLI
+splits worker den for a time period. Neither can be relabelled as this pilot or
+fed invented worker completions to pay validators.
+
+1. Add a separate immutable campaign and reviewed contribution ledger. Enforce
+   unique `(campaign_id, operator_control_group, probe_group_id)` units and
+   unique `(campaign_id, operator_control_group)` payout manifests in PostgreSQL.
+   Private control groups must not appear in public receipts or manifests.
+2. Require a current control review at contribution time and at manifest
+   approval, plus explicit recipient ownership proof. A generated validator
+   signer is not automatically the operator's desired payout wallet.
+3. Freeze recipient, evidence digest, integer token amount and campaign end
+   before sending. Changed review, recipient or evidence requires a new reviewed
+   manifest, not a mutation of an in-flight payment. Replaying a campaign under
+   a different display name cannot create a second entitlement.
+4. Reuse verified transfer/receipt mechanics only through an explicit campaign
+   adapter sharing the treasury nonce lock with existing payout rails. Prove
+   duplicate manifest, concurrent runners, crash before/after broadcast, pending
+   receipt, partial batch retry and budget-cap cases on real PostgreSQL.
+5. Test a dry manifest first, then obtain explicit approval for one bounded
+   transfer. Publish the approved terms before the earning window; no retroactive
+   promise is implied by this proposed seven-day campaign.
 
 ## Image And Video
 
