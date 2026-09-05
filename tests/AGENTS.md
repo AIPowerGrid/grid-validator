@@ -11,6 +11,9 @@ installer generation.
 - `test_prober.py`, `test_media_prober.py`, `test_text_fidelity.py`,
   `test_attest.py`, `test_main.py` - challenge, bounded reference-distribution
   scoring, signed evidence, and assignment loop.
+  Text fidelity includes explicit attack baselines: fabricated matching
+  logprobs and correct-model-only probe responses still pass this scorer. These
+  passing attack tests document missing detection, not security qualification.
 - `test_outbox.py` - durable assignment journaling, atomic signed-evidence
   promotion, delivery, dead-letter recovery, restart behavior, and deterministic
   connection closure after both commit and rollback.

@@ -9,6 +9,12 @@ For the evidence-only rollout sequence, use [RELEASE_V0.md](RELEASE_V0.md).
 
 ## Active Milestone: Usable Independent Preview
 
+The current maintainer-authorized execution record is
+[September rollout](ROLLOUT_2026_09.md). It adds a reviewed release overlap so
+operators retain qualification history while upgrading, empirical text-fidelity
+and evasion experiments, and a proposed capped compensation pilot. Proposed
+payments remain subject to a reviewed budget and transfer manifest.
+
 This is the current execution order. The numbered phases below describe the
 longer architecture, not permission to activate paid audits or economics.
 
