@@ -162,12 +162,79 @@ Completed study evidence SHA-256:
 | Independently audited summary | `0ceddc188152047f03ef9c03e10ba281ac8e155bb9bd04f3451b9deb999ee42a` |
 | Post-run descriptive metrics | `27e57d8f4a5e980bd288f2630665fe404ee1f5ca16c955a30dbbd3d20346a6f0` |
 
+## Fixed Scripted-Reasoning Attack
+
+A separate completed follow-up tested 72 **scripted candidates**, not model
+generations, against the unchanged threshold above. A deterministic standard-
+library solver received only visible prompt text. No candidate LLM, expected-
+answer access or reference-feedback search was used. Native reference calls
+provided the scores; its tokenizer provided token/byte alignment.
+
+The 24 inputs are disjoint from both earlier inference studies. Three fixed
+arms run on every input: a plain correct answer; the same correct answer
+preceded by manufactured reasoning that repeats it; and a deliberately wrong
+answer preceded by the same style of reasoning. Cases, recipe, source hashes,
+schedule and prior threshold were frozen before any reference inference.
+Duplicate-case rejection is explicit and occurs before inference; this final
+random seed required no rejection. Task templates and paired variants remain
+correlated, not a general adversarial benchmark.
+
+| Scripted arm | Candidates | Correct | Scorable | Flagged | Scorable, not flagged |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Plain correct | 24 | 24 | 21 | 14 | 7 |
+| Primed correct | 24 | 24 | 23 | 17 | 6 |
+| Primed wrong | 24 | 0 | 24 | 24 | 0 |
+
+**The intended wrong-answer priming attack did not evade this frozen rule.**
+All 24 fixed wrong-answer mutations were flagged and also failed the separate
+correctness oracle. That result must not be rewritten as a successful attack.
+The mutations were limited: adding an out-of-domain extraction record,
+shifting one unit between balances, or increasing the constraint count by one.
+They do not establish general resistance to manufactured reasoning.
+
+The rule nevertheless did not flag seven plain and six primed correct outputs
+from a solver running no LLM. Among the 21 cases scorable in both correct arms,
+priming rescued no previously flagged case and turned one previously unflagged
+case into a flag. This particular priming recipe did not improve evasion.
+An unflagged observation is still not proof that the claimed model executed.
+These are attacks on the private proposed metric, not live Grid API exploits
+or accepted authoritative validator attestations.
+
+Two plain-answer token positions were outside reference top 20 and remained
+censored; those two candidates were unscorable. One additional plain candidate
+and one primed-correct candidate had only one semantic token. No unscorable
+candidate is counted as an evasion or a cheating accusation.
+
+All 316 native reference requests completed without HTTP failure. Independent
+verification checked every candidate/reference prefix, native probability,
+answer oracle, unchanged threshold, source/runtime/model hashes and server
+cleanup. The owned server was loopback-only with restrictive CORS and stopped
+cleanly. The public worker was left running; no production policy changed.
+
+Six pre-inference tests include 480 generated case checks, candidate file/socket
+denial, duplicate-fixture handling and five corrupted reference bindings.
+These reviewed in-process tests are not an OS-sandbox isolation claim.
+Manufactured transcripts are explicitly labeled in private evidence, never
+misrepresented as native model-generation witnesses.
+
+Private follow-up SHA-256:
+
+| Artifact | SHA-256 |
+| --- | --- |
+| Frozen attack manifest | `d6c558ecbd885a6f43975527329d61f155572813c876c9f4c2f6b46b611befc2` |
+| Fresh cases | `8d3643aff6825b36afc74ec3a2a45fcfaea366ff10f597e5ba51e56328edc1b6` |
+| Scripted candidates | `cf8a29d9a812cd20750ae5ff5bb6f11779444a39921e9a1568ab848e548d1731` |
+| Native reference calls | `72b6046ade901e0fe90faeabf1664c074ab2557d88d2ed2997a4b8dde163cd94` |
+| Candidate/reference bindings | `3c5fbefefaf854f90529e6b74f32a888d189dd5ba9a3c32bba9d5e734d73a305` |
+| Independently audited result | `dd04871a4cddf569dc5b62968faa6dc5a69f23b59e9258373c7822f070f2705a` |
+
 ## Next Gates
 
 1. Establish honest cross-engine/quant scoring controls before interpreting
    tiny likelihood differences. Same-artifact control success is insufficient.
-2. Test whether full reasoning makes the method easy to evade deliberately,
-   including manufactured reasoning and correct-model-only probe service.
+2. Broaden the fixed manufactured-reasoning test to production-shaped inputs,
+   adaptive strategies with fresh held-out evaluation, and correct-model-only
+   probe service. The one recipe above is measured, not an exhaustive defense.
    Reference-side probabilities remove one self-report dependency, not proof
    that the candidate generated its own reasoning or used the claimed weights.
 3. Freeze new evaluation inputs before testing a stronger method. Candidate

@@ -124,6 +124,10 @@ model attestation or use it as sole authority.
   evaluation runs and 0/20 same-model controls. Flags are repeated paired cases;
   all completed answers are correct. This is not a qualified detector, honest
   cross-engine false-positive bound or permission to grant authority.
+  Its separate 72-candidate scripted attack leaves seven plain and six primed
+  correct outputs unflagged without candidate LLM execution, while all 24
+  primed wrong-answer mutations are flagged. Preserve both caught and missed
+  attacks; this private metric test does not establish a live endpoint exploit.
 - **`QUANTIZATION_BASELINE_2026_09_06.md`** - private attention-only Q8-to-Q4
   stress variant with per-tensor provenance and a completed 24-request
   same-engine comparison: budget exhaustion remains separate from wrong answers.

@@ -215,6 +215,10 @@ dated observations.
   and 0/20 same-model controls. Those flags are repeats of two paired cases,
   not independent discoveries; tiny likelihood gaps and missing honest
   cross-engine controls prevent promotion into a production trust policy.
+  A separate 72-candidate scripted attack records both misses and catches:
+  seven plain and six primed correct outputs are scorable/unflagged without
+  candidate inference; all 24 primed wrong mutations are flagged. This tests a
+  private proposed metric, not an authoritative production attestation path.
 
 Core's local `48f772ef` includes 20 additional signed-evidence tests. The exact
 committed suite plus four existing validator concurrency suites passed on a
