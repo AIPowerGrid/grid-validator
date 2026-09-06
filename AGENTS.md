@@ -114,6 +114,9 @@ model attestation or use it as sole authority.
   same-engine comparison: budget exhaustion remains separate from wrong answers.
   Experts are unchanged MXFP4; do not present it as a new production model,
   acceptable quantization threshold or verified 120B comparison.
+  Also records a separate 24-request native-probability comparison with exact
+  raw token-ID contexts: matching chosen tokens can have different probabilities;
+  whitespace-only positions remain excluded from semantic interpretation.
 - **`TOOL_CAPABILITY_PILOT_2026_09_06.md`** - eight completed local 20B
   multi-step tool episodes with corrected instructions and stockout recovery;
   an unchanged non-LLM solver also passes 400 fresh randomized-value cases.

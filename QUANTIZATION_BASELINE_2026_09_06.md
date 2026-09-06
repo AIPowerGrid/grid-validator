@@ -124,6 +124,89 @@ endpoint confirmed no loaded models. The Ollama daemon, LM Studio and public
 worker were left running. No raw benchmark prompts or variant artifacts were
 published to operators.
 
+## Exact Raw-Context Probability Follow-Up
+
+A separate frozen 24-request run compares the same two files through the
+official llama.cpp b10826 server on the same Mac. This removes the previous
+experiment's uncertainty about rendered conversational contexts, but does not
+test ordinary chat behavior or different serving engines.
+
+Six short raw few-shot contexts, two repeats per file, and all settings were
+frozen before inference. Each model ran in its own temporary loopback process,
+with one slot, 2048 context, four CPU threads, Metal offload, flash attention
+enabled, and f16 KV caches. The runner and independent audit hashed both model
+files, the server binary and real dynamic libraries. Saved process commands
+and `/props` agree on the model paths and build identity.
+
+Each input was tokenized without automatic special tokens and detokenized
+back to its original text. Both files returned exactly the same token IDs and
+pieces. `/completion` received those explicit token arrays, with no chat
+template, generated reasoning history, grammar, logit bias or LoRA. It requested
+one token, temperature zero, seed 17, only the temperature sampler, no repetition
+penalty, and native pre-sampling top-20 logprobs. Prompt caching was disabled
+in both launch flags and requests. The backend's `tokens_cached` response is
+retained but is not used as proof of how many tokens were reused.
+
+The API contract is pinned to
+[llama.cpp's source revision](https://github.com/ggml-org/llama.cpp/blob/73a43d1f69345aee8bb186ef4b3172cef892f2e5/tools/server/README.md).
+The saved responses confirm the requested sampler and pre-sampling settings;
+probabilities are not reconstructed from chosen text or replaced with a
+temperature-zero one-hot distribution.
+
+All 24 requests returned one native probability position without context
+truncation. Their intentional one-token `limit` stop is an observation boundary,
+not failure to finish a user task. The independent audit verified token IDs,
+decoded bytes, complete prompt echoes, evaluated-token counts, settings,
+finite logprobs, unique top-20 IDs, sorted probabilities and retained probability
+mass. It checked every schedule slot and rehashed the runtime/artifacts.
+
+| Raw context family | Original chosen-token probability | Q4 chosen-token probability | Common top-20 IDs |
+| --- | ---: | ---: | ---: |
+| Antonym completion | 66.45% | 49.94% | 19 |
+| Attribute completion | 82.99% | 80.90% | 19 |
+| Boolean completion | 99.19% | 94.75% | 17 |
+| Translation completion | 93.31% | 88.89% | 16 |
+| Updated-record completion | 80.45% | 72.24% | 19 |
+| Arithmetic prefix, whitespace only | 99.65% | 99.60% | 18 |
+
+All six emitted token IDs agree across the two files, and all 12 within-file
+repeat pairs have identical native top-20 observations. Five contexts produce
+ordinary word tokens; the arithmetic context produces only a space. All four
+arithmetic observations are retained and excluded from semantic interpretation.
+No after-the-fact extra generation was mixed into the frozen run.
+
+For the five word-producing contexts, chosen-token probability changes range
+from 2.09 to 16.51 percentage points despite matching token choices. Only 16-19
+top-20 alternatives are shared. Missing alternatives have unknown probabilities,
+not zero; this report does not calculate full-distribution KL/JSD by filling
+missing entries or renormalizing a truncated vocabulary.
+
+This is useful same-engine quantization calibration, not a safe tolerance or
+proof of dishonesty. The private Q4 stress artifact is not an approved network
+quant, five lexical positions are not population accuracy, and exact repeat
+agreement on this run does not prove determinism across hosts, engines, load,
+or longer contexts. No 120B model or candidate-answer likelihood detector was
+tested here. Request times (median 0.080 seconds) concern short one-token raw
+requests only, not chat throughput.
+
+Private evidence directory: `text-worker-20b/raw-context-quant-20260906/`.
+`audit_raw_context_quant.py` checks stored native evidence without calling the
+backend. Its unit tests accept the original observation and reject eight
+controlled mutations, including missing/empty/oversized probability lists,
+nonfinite or positive logprobs, changed context/token IDs and post-sampling
+substitution. Rejected observations are not assigned fraud authority.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| Frozen raw-context manifest | `a3f2809617bac961c73f97fc5271edd27c77ef0042c7fa5d8bf008f14cacfd79` |
+| All raw-context responses | `561e99265f208941a1c0fb4f73150062ffc1c02139d0529bfa75cf686e21e3a6` |
+| Independent raw-context audit | `87d2b58e2610c75aea4703c7c999915a75867ee591cb8dd1915f4b976bac5a81` |
+
+Both temporary server processes exited cleanly and their PIDs were absent at
+post-run inspection. The existing LM Studio model remained loaded and idle,
+and the public worker process remained running. No production services or
+Grid authority settings were modified.
+
 ## Reference Provenance Gate
 
 The owned 120B service reports vLLM 0.10.2 and supports the prompt-scoring
