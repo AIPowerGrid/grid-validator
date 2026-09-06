@@ -210,7 +210,7 @@ dated observations.
   randomized-value episodes. This is useful capability testing, not model
   identity or a successful defense against probe-aware workers.
 
-Core's local `17c4b50a` includes 20 additional signed-evidence tests. The exact
+Core's local `48f772ef` includes 20 additional signed-evidence tests. The exact
 committed suite plus four existing validator concurrency suites passed on a
 fresh, isolated PostgreSQL 14.19 instance: **45 passed, zero skips**. Invalid
 assignment/worker/model/nonce/hash bindings, signatures, expiry, unfinished
@@ -230,9 +230,9 @@ every test file and records the exact commit; its server was stopped afterward.
 Evidence SHA-256:
 
 - PostgreSQL final-run manifest:
-  `5e833faf6e25d2c812cd93386f48a936cbc11ce504e81cdb6e9c51b01ab4b8f8`.
+  `a39132f303f31a942cd89439f132817c1ff9945d15df67c95e55132846374603`.
 - PostgreSQL JUnit results:
-  `abd13c50796f43a0b65464b1386b69439ee5258ed796929c3d653eef5e23b937`.
+  `b056f49294d1fcd32fae0a361681f1f461c20ff678dd60ed1fe5df0064112652`.
 
 The validator working branch also reran its full unit suite: 342 tests,
 six skips, no failures. All qualification branches remain local and unpushed
