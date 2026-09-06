@@ -14,6 +14,11 @@ installer generation.
   Text fidelity includes explicit attack baselines: fabricated matching
   logprobs and correct-model-only probe responses still pass this scorer. These
   passing attack tests document missing detection, not security qualification.
+- `test_responses_observation.py` - independent native-probability envelope
+  bounds, duplicates, prefix/sequence binding, unchanged numeric/byte values,
+  missing/partial coverage, and refusal of quality-authority flags. Its forged
+  but well-formed probability fixture is deliberately accepted: internal
+  consistency does not authenticate worker execution or conditional context.
 - `test_outbox.py` - durable assignment journaling, atomic signed-evidence
   promotion, delivery, dead-letter recovery, restart behavior, and deterministic
   connection closure after both commit and rollback.

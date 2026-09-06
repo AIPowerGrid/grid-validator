@@ -99,6 +99,10 @@ model attestation or use it as sole authority.
   captured-logprob forgery and live probe-aware routing evidence. Its successful
   pair separation is not proof of exact weights, cross-quant tolerance or safe
   quality authority; record protocol-token confounding and successful evasions.
+- **`RESPONSES_QUALIFICATION.md`** - local native-logprob component qualification
+  through fresh inference, a released worker, local WebSocket/Redis and the
+  independent observation reader. Not proof of the public assignment/signing
+  loop, model identity, cross-engine tolerance or production deployment.
 
 - **`validator/`** — the whole node (config, stake gate, grid client, canary probing +
   scoring, attestation signing, probe loop, CLI, read-only dashboard, and opt-in

@@ -81,6 +81,15 @@ change is deployed; Core still issues no media work by default.
   cryptographic model identity.
   Reject non-string reference IDs before uniqueness checks so malformed JSON
   produces inconclusive evidence rather than an uncaught TypeError.
+- **`responses_observation.py`** - independent, bounded reader for Core's local
+  `responses-logprobs-observation.v1` qualification envelope. It recomputes
+  visible-prefix hashes, checks sequence/item consistency and native value
+  bounds, verifies explicit coverage gaps, and preserves probabilities without
+  renormalization. It neither imports Core nor grants a healthy/failed verdict.
+  It is not advertised by registration or wired to the assignment loop. The
+  surrounding future protocol must separately verify assignment/nonce/expiry
+  and evidence commitments. Internally consistent forged probabilities still
+  pass; full conditional model context and execution are not proven.
 - **`attest.py`** — build canonical registration, suspension, rotation, and attestation bodies + `sign()` (EIP-191 over sorted-key
   compact JSON). Text V0 attestations include `modality`, `capability`,
   `assignment_id`, `epoch`, prompt/response hashes, an `evidence_hash`, and a
