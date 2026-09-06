@@ -109,6 +109,11 @@ model attestation or use it as sole authority.
   not a detector, engine ranking or calibrated penalty threshold.
   Also owns the two-request reference-side prompt-logprob capability preflight;
   synthetic supplied continuations are not a real model-substitution test.
+- **`QUANTIZATION_BASELINE_2026_09_06.md`** - private attention-only Q8-to-Q4
+  stress variant with per-tensor provenance and a completed 24-request
+  same-engine comparison: budget exhaustion remains separate from wrong answers.
+  Experts are unchanged MXFP4; do not present it as a new production model,
+  acceptable quantization threshold or verified 120B comparison.
 
 - **`validator/`** — the whole node (config, stake gate, grid client, canary probing +
   scoring, attestation signing, probe loop, CLI, read-only dashboard, and opt-in

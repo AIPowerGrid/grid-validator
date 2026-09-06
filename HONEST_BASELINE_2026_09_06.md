@@ -184,3 +184,9 @@ No public assignment API, validator policy, worker capability advertisement or
 production setting changed. The next experiment must use pinned reference
 artifacts and controlled context construction on real candidate continuations,
 with honest baselines and held-out evaluation before drawing detection claims.
+
+The subsequent [attention-quantization baseline](QUANTIZATION_BASELINE_2026_09_06.md)
+adds a controlled 24-request comparison with per-tensor provenance. It verifies
+that the original GGUF's attention is already Q8_0 while experts are MXFP4, and
+records behavior after attention-only requantization. Neither result qualifies
+a model-substitution detector or resolves the 120B provenance gate.
