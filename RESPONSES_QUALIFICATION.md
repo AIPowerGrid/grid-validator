@@ -71,6 +71,30 @@ measure idle/loaded variation, establish meaningful context alignment, then
 test held-out model substitutions and adversarial work. No public penalty or
 trust threshold is justified by these component tests.
 
+## Fault-Path Follow-Up
+
+An 18-case synthetic SSE/HTTP -> released v0.3.8 worker -> real WebSocket ->
+Core/isolated Redis -> this independent reader run exposed four discrepancies:
+Core accepted duplicate JSON keys and incorrectly labeled invalid-Unicode or
+over-byte-limit item IDs as available. The reader already rejected invalid
+identifiers; duplicate keys had been collapsed before reaching it.
+
+Core now rejects ambiguous JSON and enforces the same UTF-8 identifier limit.
+All 18 cases pass against the final formatted source. Missing, empty, malformed,
+oversized and replayed evidence remains unavailable. Valid controls pass before
+and after the faults, using new test connections, not same-socket recovery.
+The collector does not enter guarded economic or worker-health functions.
+Final private fault-report SHA-256:
+`5c5b74e29810779a193c039b15a02fc66077ba846d0a59a7c2d81959403ccf8a`.
+
+A fresh LM Studio request after the logic fix again preserved seven native
+probability positions, retained one missing first-word delta, and rejected the
+local diagnostic as a network attestation. Evidence SHA-256:
+`0d876097e861cdc858aa907b075eb7a681c8d78dc8ae59a579aa8cb4a9de7e03`.
+Core's focused regression suite passed 122 tests with no skips, including the
+private capture replay. No public Responses assignment policy, signed runtime
+loop or production deployment is established by these tests.
+
 ## Second-Backend Preparation
 
 The identical GGUF was imported without re-quantization into the existing local

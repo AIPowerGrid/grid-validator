@@ -106,6 +106,9 @@ model attestation or use it as sole authority.
   through fresh inference, a released worker, local WebSocket/Redis and the
   independent observation reader. Not proof of the public assignment/signing
   loop, model identity, cross-engine tolerance or production deployment.
+  Its synthetic 18-case fault follow-up exposed and fixed Core duplicate-key
+  and UTF-8 item-ID inconsistencies. Invalid observations remain unavailable;
+  the reader still grants no model-execution or economic authority.
 - **`HONEST_BASELINE_2026_09_06.md`** - completed 48-request same-GGUF
   LM Studio/Ollama baseline and bounded historical reference-timeout replay.
   Six distinct cases, shared backends and unproven rendered-context equality:
