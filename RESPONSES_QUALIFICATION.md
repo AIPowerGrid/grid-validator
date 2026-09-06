@@ -84,3 +84,8 @@ This establishes availability for a same-artifact comparison, not a measured
 range of honest differences. Reported templates do not prove identical rendered
 prompts, and different serving stacks may share underlying engine components.
 They are not independently operated validator references.
+
+The subsequent frozen 48-request same-GGUF comparison is complete; see
+[Honest Baseline](HONEST_BASELINE_2026_09_06.md) for measured correct, wrong and
+truncated outcomes, shared-load limitations and the 120B timeout follow-up.
+It does not establish logprob context alignment or cross-quantization tolerance.

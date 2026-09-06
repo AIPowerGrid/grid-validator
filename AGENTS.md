@@ -103,6 +103,12 @@ model attestation or use it as sole authority.
   through fresh inference, a released worker, local WebSocket/Redis and the
   independent observation reader. Not proof of the public assignment/signing
   loop, model identity, cross-engine tolerance or production deployment.
+- **`HONEST_BASELINE_2026_09_06.md`** - completed 48-request same-GGUF
+  LM Studio/Ollama baseline and bounded historical reference-timeout replay.
+  Six distinct cases, shared backends and unproven rendered-context equality:
+  not a detector, engine ranking or calibrated penalty threshold.
+  Also owns the two-request reference-side prompt-logprob capability preflight;
+  synthetic supplied continuations are not a real model-substitution test.
 
 - **`validator/`** — the whole node (config, stake gate, grid client, canary probing +
   scoring, attestation signing, probe loop, CLI, read-only dashboard, and opt-in
