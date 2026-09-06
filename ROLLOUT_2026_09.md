@@ -1,6 +1,6 @@
 # September Validator Rollout
 
-Owner: the AIPG maintainer. Updated 2026-09-05. This is the execution record for
+Owner: the AIPG maintainer. Updated 2026-09-06. This is the execution record for
 the controlled rollout, not a declaration of production quality authority.
 
 ## Pre-Rollout Snapshot
@@ -181,6 +181,63 @@ that the logprobs correspond to those bytes. Reference agreement does not fix
 that trust gap. Synthetic regression tests already show copied distributions
 and correct-model-only probe responses can score healthy. These are executable
 limitations; they are not live attacker trials or model-substitution benchmarks.
+
+## September 6 Local Qualification
+
+These are isolated experiments and source tests, not a fresh fleet snapshot or
+production deployment. The September 5 operational observations above remain
+dated observations.
+
+- [Native Responses transport](RESPONSES_QUALIFICATION.md): fresh local
+  backend inference through the released worker, Core WebSocket/Redis and the
+  independent validator reader preserves seven native probability positions.
+  Missing first-word coverage stays missing; this is not the public signed
+  assignment loop or proof of complete conditional-context alignment.
+- [Same-artifact behavior](HONEST_BASELINE_2026_09_06.md): 48 LM Studio/Ollama
+  requests on the identical 20B file retain wrong, truncated and correct
+  outcomes separately. Historical reference timeouts did not reproduce; their
+  original cause remains unknown.
+  A pinned local 120B follow-up now scores real 20B tokens at matching raw
+  contexts: all four word-level comparisons remain inside the unchanged
+  scorer match band. This is calibration evidence of a limitation, not a
+  qualified detector or a reason to tune thresholds on these same samples.
+- [Attention quantization](QUANTIZATION_BASELINE_2026_09_06.md): per-tensor
+  provenance, 24 behavioral requests and a separate 24-request exact-context
+  probability run. Native word probabilities can move substantially even when
+  the chosen token does not change. No acceptance threshold is qualified.
+- [Tool capability and template attack](TOOL_CAPABILITY_PILOT_2026_09_06.md):
+  eight successful model episodes, but a non-LLM solver also passes 400 fresh
+  randomized-value episodes. This is useful capability testing, not model
+  identity or a successful defense against probe-aware workers.
+
+Core's local `17c4b50a` includes 20 additional signed-evidence tests. The exact
+committed suite plus four existing validator concurrency suites passed on a
+fresh, isolated PostgreSQL 14.19 instance: **45 passed, zero skips**. Invalid
+assignment/worker/model/nonce/hash bindings, signatures, expiry, unfinished
+probes and finalized groups are rejected without inserting evidence. Twenty
+concurrent identical deliveries produce one accepted row and nineteen
+duplicates. Conflicting submissions by one validator cannot multiply votes;
+different-validator disagreement stays disputed. Existing tests cover
+common-control assignment-seat exclusion, reference-pool exclusion, audit
+budget races and shadow-run idempotency.
+
+The fixtures synthesize completed probes and call the storage service. They do
+not establish HTTP authentication, live model execution, operator independence
+or future compensation correctness. PostgreSQL 14 is supplementary: PostgreSQL
+16 PR CI remains required before a release. The private run manifest hashes
+every test file and records the exact commit; its server was stopped afterward.
+
+Evidence SHA-256:
+
+- PostgreSQL final-run manifest:
+  `5e833faf6e25d2c812cd93386f48a936cbc11ce504e81cdb6e9c51b01ab4b8f8`.
+- PostgreSQL JUnit results:
+  `abd13c50796f43a0b65464b1386b69439ee5258ed796929c3d653eef5e23b937`.
+
+The validator working branch also reran its full unit suite: 342 tests,
+six skips, no failures. All qualification branches remain local and unpushed
+at this checkpoint. No policy, routing, credit, payout or penalty setting was
+changed by these experiments.
 
 ## Compensation Pilot Proposal
 

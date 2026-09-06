@@ -190,3 +190,97 @@ adds a controlled 24-request comparison with per-tensor provenance. It verifies
 that the original GGUF's attention is already Q8_0 while experts are MXFP4, and
 records behavior after attention-only requantization. Neither result qualifies
 a model-substitution detector or resolves the 120B provenance gate.
+
+## Pinned Local 120B Token Calibration
+
+A subsequent local run replaces the unverified remote reference with a
+hash-checked publisher conversion for this experiment. It does not retroactively
+verify the remote service's weights or explain the historical timeouts.
+
+Reference provenance:
+
+- [ggml-org/gpt-oss-120b-GGUF, pinned revision](https://huggingface.co/ggml-org/gpt-oss-120b-GGUF/tree/238abdd290bb874b90a5da1b4549881b7d05c091).
+- `gpt-oss-120b-MXFP4.gguf`, 63,387,346,208 bytes, SHA-256
+  `582bd40f6886200101f4c4ed9f25f3fe80cc14c86e9e2b37746cd8904a0c622d`.
+- Publisher conversion metadata identifies primary OpenAI source revision
+  `b5c939de8f754692c1647ca79fbf85e8c1e70f8a`. That revision was verified to
+  exist; tensor equivalence to upstream safetensors was not independently proven.
+- Static inspection found 116,829,156,672 parameter elements, 36 blocks,
+  128 experts, and 687 tensors: 146 Q8_0, 433 F32, 108 MXFP4. This is neither
+  a fully FP16 model nor an OpenAI-published GGUF. No draft model was loaded.
+- Tokenizer metadata matched the original 20B conversion except for the chat
+  template. The experiment bypasses both templates with explicit raw token-ID
+  prompts, not chat messages or hidden reasoning.
+
+The same pinned official llama.cpp b10826 engine, libraries and settings from
+the raw-context quantization baseline ran the reference in a private loopback
+process. Six reused contexts, two repeats each, temperature zero, seed 17,
+one predicted token, native pre-sampling top 20. Every tokenization round-trip
+and candidate/reference input token ID matched. Both reference repeats were
+identical in all six contexts. The independent audit rehashed the model after
+inference and checked the exact complete schedule, settings, native scores,
+runner summary and process cleanup.
+
+All twelve reference calls returned the probability of the token actually
+emitted by the earlier 20B run. That reference-side score does not use the
+candidate's reported probability. Comparing the two probabilities does use
+the candidate's report and therefore still assumes honest reporting.
+
+Two contexts are excluded from word-level interpretation: one emitted only
+whitespace in both models; another emitted a word in the 20B but a formatting
+token in the 120B. Both remain in the raw evidence. The four remaining contexts
+chose the same word token in both models:
+
+| Context family | 20B token probability | 120B probability of that token | Absolute model gap (percentage points) | 20B attention-quant gap (percentage points) |
+| --- | ---: | ---: | ---: | ---: |
+| Boolean | 0.99186 | 0.98095 | 1.09 | 4.44 |
+| Translation | 0.93306 | 0.91773 | 1.53 | 4.42 |
+| Attribute | 0.82990 | 0.85381 | 2.39 | 2.09 |
+| Updated record | 0.80452 | 0.73350 | 7.10 | 8.21 |
+
+On three of these four contexts, the model-size gap is smaller than the earlier
+attention-only quantization gap. This contradicts an assumption that model
+substitution must always produce a larger chosen-token probability change
+than honest quantization. It does not estimate a detection rate or establish
+that every quantization should be accepted.
+
+### Unchanged Scorer Replay
+
+An offline replay then applied the existing `text_fidelity.jensen_shannon`
+function, without changing its constants, to these audited native top-20
+captures. This calls the metric, not the public assignment/scoring workflow;
+there is no Grid-issued challenge or independently operated reference cohort.
+
+| Word-level context | 20B vs 120B metric | 20B vs attention variant metric |
+| --- | ---: | ---: |
+| Boolean | 0.003283 | 0.010039 |
+| Translation | 0.011661 | 0.005175 |
+| Attribute | 0.020748 | 0.003905 |
+| Updated record | 0.028820 | 0.006703 |
+
+**All four cross-model word-level observations fall inside the unchanged
+0.12 match band.** The only context outside that band was the mixed
+word/formatting position (0.125665), not evidence of a substantive wrong answer.
+The metric pools unobserved tail mass; these are its bounded-input distances,
+not measurements of full-distribution Jensen-Shannon divergence.
+
+Do not fix this by fitting a tighter threshold to four reused contexts. The
+next experiment needs complete candidate continuations, aligned reference-side
+scoring, more varied honest configurations and a separate held-out evaluation.
+This run establishes a pinned measurement path and a concrete limitation of
+the current first-position comparison, not a qualified substitution detector.
+
+Private artifact SHA-256:
+
+| Artifact | SHA-256 |
+| --- | --- |
+| Reference static audit | `585e63bee80ed7395c50b103dbf3741bfcd097e0004611983d215f811296c23e` |
+| Frozen calibration manifest | `ffe02514d4f817e705f77b6abea8e434fc09f9fa966b94a5921c1c8cfd5df706` |
+| Complete reference results | `4f3059f3b1892f17a579345b33f5d4d7465286b5e92824fae8f6f13d99ce7bb8` |
+| Independently audited comparison | `3812b2eb9d86d146974e36e47b37da521f775d44a1a46366f2b4570441ead4d5` |
+| Unchanged metric replay | `25347a083856cc41173328ccb453bb867b914cfaad3f715d0e0c64de5a0e8ef6` |
+
+The private reference process exited cleanly. The public 20B worker was not
+stopped or reconfigured. No public registration, policy or economic setting
+changed. Six reused contexts remain six correlated calibration contexts, not
+twelve independent samples or a held-out normal-chat benchmark.

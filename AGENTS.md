@@ -95,6 +95,9 @@ model attestation or use it as sole authority.
 - **`ROLLOUT_2026_09.md`** - controlled release, measured text-fidelity and
   adversarial experiments, proposed capped compensation, and image/video pilot
   acceptance record. Distinguish synthetic attack baselines from live evidence.
+  Its September 6 local qualification section records 45 real-PostgreSQL-14
+  tests of committed Core evidence/concurrency code, not PostgreSQL 16 release
+  qualification, live inference or a refreshed production fleet snapshot.
 - **`TEXT_FIDELITY_EXPERIMENT_2026_09_05.md`** - first real backend calibration,
   captured-logprob forgery and live probe-aware routing evidence. Its successful
   pair separation is not proof of exact weights, cross-quant tolerance or safe
@@ -109,6 +112,10 @@ model attestation or use it as sole authority.
   not a detector, engine ranking or calibrated penalty threshold.
   Also owns the two-request reference-side prompt-logprob capability preflight;
   synthetic supplied continuations are not a real model-substitution test.
+  Its pinned local 120B follow-up scores actual captured 20B tokens at matching
+  raw contexts. All four word-level comparisons fall inside the unchanged
+  scorer match band. This records a measured limitation, not held-out detector
+  accuracy, full-answer likelihood or permission to tighten production thresholds.
 - **`QUANTIZATION_BASELINE_2026_09_06.md`** - private attention-only Q8-to-Q4
   stress variant with per-tensor provenance and a completed 24-request
   same-engine comparison: budget exhaustion remains separate from wrong answers.
