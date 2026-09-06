@@ -114,6 +114,11 @@ model attestation or use it as sole authority.
   same-engine comparison: budget exhaustion remains separate from wrong answers.
   Experts are unchanged MXFP4; do not present it as a new production model,
   acceptable quantization threshold or verified 120B comparison.
+- **`TOOL_CAPABILITY_PILOT_2026_09_06.md`** - eight completed local 20B
+  multi-step tool episodes with corrected instructions and stockout recovery;
+  an unchanged non-LLM solver also passes 400 fresh randomized-value cases.
+  Capability evidence only, not model identity, a live assignment bypass or a
+  shipped expansion of the two-stage tool-chain policy.
 
 - **`validator/`** — the whole node (config, stake gate, grid client, canary probing +
   scoring, attestation signing, probe loop, CLI, read-only dashboard, and opt-in
