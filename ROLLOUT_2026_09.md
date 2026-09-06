@@ -209,6 +209,12 @@ dated observations.
   eight successful model episodes, but a non-LLM solver also passes 400 fresh
   randomized-value episodes. This is useful capability testing, not model
   identity or a successful defense against probe-aware workers.
+- [Native-context answer scoring](ANSWER_FIDELITY_2026_09_06.md): 96 fresh
+  generations and 165 unique reference calls, with every completed answer
+  correct. The frozen rule flags 4/22 scorable smaller-model evaluation runs
+  and 0/20 same-model controls. Those flags are repeats of two paired cases,
+  not independent discoveries; tiny likelihood gaps and missing honest
+  cross-engine controls prevent promotion into a production trust policy.
 
 Core's local `48f772ef` includes 20 additional signed-evidence tests. The exact
 committed suite plus four existing validator concurrency suites passed on a

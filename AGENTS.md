@@ -116,6 +116,14 @@ model attestation or use it as sole authority.
   raw contexts. All four word-level comparisons fall inside the unchanged
   scorer match band. This records a measured limitation, not held-out detector
   accuracy, full-answer likelihood or permission to tighten production thresholds.
+- **`ANSWER_FIDELITY_2026_09_06.md`** - native-context candidate-answer
+  reference-scoring study and retained failed raw-completion attempt. The new
+  frozen method preserves candidate reasoning, excludes formatting-only score
+  positions and does not use candidate-reported probabilities in its feature.
+  The independently audited 96-generation run flags 4/22 scorable smaller-model
+  evaluation runs and 0/20 same-model controls. Flags are repeated paired cases;
+  all completed answers are correct. This is not a qualified detector, honest
+  cross-engine false-positive bound or permission to grant authority.
 - **`QUANTIZATION_BASELINE_2026_09_06.md`** - private attention-only Q8-to-Q4
   stress variant with per-tensor provenance and a completed 24-request
   same-engine comparison: budget exhaustion remains separate from wrong answers.

@@ -284,3 +284,9 @@ The private reference process exited cleanly. The public 20B worker was not
 stopped or reconfigured. No public registration, policy or economic setting
 changed. Six reused contexts remain six correlated calibration contexts, not
 twelve independent samples or a held-out normal-chat benchmark.
+
+The completed [native-context answer follow-up](ANSWER_FIDELITY_2026_09_06.md)
+uses fresh paired calibration/evaluation inputs and scores actual complete
+answers while preserving their full reasoning context. It records weak
+substitution separation and explicit coverage limits; neither its tiny fitted
+threshold nor this first-token baseline qualifies a production trust score.
