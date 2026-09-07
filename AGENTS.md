@@ -101,9 +101,12 @@ model attestation or use it as sole authority.
 - **`SUPPORTED_BETA.md`** - supported paid-beta delivery scope: preserved
   operator reviews, verified in-place upgrades, one bounded production pilot,
   separately approved capped compensation and defensible capability claims.
+  Preview download promotion and paid-beta activation are separate milestones;
+  the seven-day pilot must not prevent recommending an otherwise qualified
+  updater. Compensation simulation is not an entitlement or payment sender.
 - **`UPDATES.md`** - preview.17 one-click app update contract, versioned
   installation, identity preservation, pending-state recovery and remaining
-  native qualification evidence and remaining live rollout gates.
+  live rollout gates, with native qualification evidence recorded separately.
 
 - **`QUALIFICATION_DECISIONS.md`** - eight-part evidence index and frozen
   acceptance criteria for the next text-method evaluation and preview release.
