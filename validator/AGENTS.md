@@ -284,6 +284,11 @@ change is deployed; Core still issues no media work by default.
 - **V0 fairness:** only execute the modality and capability in the Grid-issued
   assignment. Missing or unsupported assignment metadata is a skip, never a
   worker failure and never a reason to invent another target.
+  Text dispatch rejects unknown capabilities before requesting a probe, even
+  if their sealed or unsealed challenge names a supported canary. Keep the
+  explicit legacy `text.basic.v1` compatibility path; never reinterpret a future
+  Responses policy as a chat capability. Skipped assignments follow the bounded
+  local retry/dead-letter path without creating signed worker evidence.
 - **Media fetch and decode are fail-closed:** an empty origin allowlist, non-HTTPS/private
   origin, redirect, content encoding, wrong MIME/length/hash, timeout, or byte
   overflow is inconclusive infrastructure evidence, never a worker verdict.

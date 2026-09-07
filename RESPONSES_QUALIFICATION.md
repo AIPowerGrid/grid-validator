@@ -66,6 +66,21 @@ attestation submission loop for a new Responses policy. Those must be tested
 before a public capability/release. The current chat first-token scorer must
 not consume this envelope by conversion or silent fallback.
 
+### Unsupported Runtime Dispatch Guard
+
+A subsequent local regression test found that the generic text dispatcher
+would score a familiar arithmetic challenge even when its bound capability was
+an unknown future policy. Four sealed/unsealed synthetic cases produced signed
+healthy envelopes before the fix. This uses mocked Core transport; it does not
+show that production issues or accepts such assignments.
+
+The dispatcher now rejects unknown text capabilities before probing or signing.
+Legacy basic/arithmetic controls still work, and retry/restart tests retain
+unsupported work as local dead letters without worker verdicts. This prevents a
+future Responses policy from silently borrowing a chat scorer; it does not
+implement the missing Responses assignment, scoring or outbox contract. The
+guard is source work, not part of the immutable preview.16 release.
+
 Next: pin and compare the same model across serving engines/quantizations,
 measure idle/loaded variation, establish meaningful context alignment, then
 test held-out model substitutions and adversarial work. No public penalty or
