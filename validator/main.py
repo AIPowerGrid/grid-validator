@@ -328,6 +328,16 @@ async def _probe_assignment(
         logger.info("unsupported assignment modality; skipping")
         return 0
 
+    # A familiar challenge kind cannot authorize an unknown scoring capability.
+    # Keep the legacy basic lane; optional tokenizer readiness is checked by its scorer.
+    if assignment.get("capability") not in (
+        *attest.TEXT_VALIDATOR_CAPABILITIES,
+        "text.basic.v1",
+        "text.token_limit.v1",
+    ):
+        logger.info("unsupported assignment capability; skipping")
+        return 0
+
     assignment_id = assignment.get("assignment_id")
     if not assignment_id:
         logger.info("grid assignment missing id; skipping")

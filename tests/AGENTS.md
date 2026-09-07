@@ -22,6 +22,11 @@ installer generation.
 - `test_outbox.py` - durable assignment journaling, atomic signed-evidence
   promotion, delivery, dead-letter recovery, restart behavior, and deterministic
   connection closure after both commit and rollback.
+- `test_assignment_capabilities.py` - sealed/unsealed unknown text policies
+  cannot borrow an arithmetic scorer: no probe, score, signature or submission.
+  Known legacy/arithmetic controls retain bound signed evidence. Missing and
+  malformed capabilities skip; bounded journal retries and restart cannot
+  create a verdict. Core transport is mocked, not a live issuance exploit.
 - `test_grid_client.py` - endpoint/capability and lifecycle transport contracts.
 - `test_delivery_receipts.py` - HTTPX-parsed accepted/duplicate receipt binding,
   canonical signature normalization, preview compatibility, false HTTP success,
