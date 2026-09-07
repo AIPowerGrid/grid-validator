@@ -41,8 +41,12 @@ four-platform native handoff/recovery and clean-install checks. Downloaded
 payload and pinned GitHub/Sigstore provenance verification pass. Core admits
 preview.13/.15/.16/.17 without resetting qualification. One owned node runs
 the released preview.17 Linux binary with its config and durable journal
-preserved. One fresh report after upgrade has independently verified signature
-and assignment binding; live pending-evidence replay remains unproven. The public download page was observed
+preserved. Fresh reports after upgrade have independently verified signatures
+and assignment bindings. A second owned service passed accepted-response-loss,
+pending-report preservation across .15-to-.17, and same-record duplicate
+acknowledgment at 17:04:11 UTC on September 7. Independent record, signature,
+binding, zero-economic-row and cleanup checks passed. This is service-upgrade
+recovery, not a human desktop one-click test. The public download page was observed
 selecting preview.16 on September 7; promotion to preview.17 is separate.
 Preview.16's protected Windows live run `34092210339` passed enrollment,
 accepted evidence, upgrade, outage/recovery and retirement. See
@@ -570,7 +574,8 @@ model attestation or use it as sole authority.
   cache-independent offline packaged readiness with fixed failure codes.
   The app-controlled versioned handoff is published in preview.17. Native
   update/restart/rollback fixtures pass all four platforms; real pending-evidence
-  replay and live operator promotion remain separate gates. Old discovery-only
+  replay now passes on an owned Linux service. Public promotion and independent
+  operator journeys remain separate checks. Old discovery-only
   binaries do not acquire the updater retroactively.
 - New grid-side endpoint dependencies fail closed when they are required for
   attributable evidence. Read-only dashboard metadata may degrade gracefully.

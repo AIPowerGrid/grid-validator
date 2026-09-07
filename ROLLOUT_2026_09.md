@@ -163,14 +163,43 @@ that follow-up. An initial audit query incorrectly expected a software-version
 field in attestation payloads; that field belongs to registration. Its empty
 result is not evidence of missing delivery. The corrected audit uses the
 confirmed service cutover time and independently verified signed records.
-Real pending-report replay remains an open check. This is an externally managed
+At that first checkpoint pending-report replay remained open. This is an externally managed
 service upgrade, not proof of the app's live one-click path.
 
 The public `/validate` page was checked and currently selects preview.16.
 Preview.17 publication is not website promotion or completion of the bounded
-independent paid-beta pilot. The remaining steps are live pending-report replay,
+independent paid-beta pilot. At that checkpoint the remaining steps were pending-report replay,
 operator reviews, public rollout, the frozen pilot and separately approved
 compensation accounting. Do not extend those claims from native fixtures.
+
+### Live Pending-Report Recovery
+
+The first bounded attempt on a second owned Linux node ended at 16:11:49 UTC
+without an accepted report during its 25-minute window. It restored the original
+.15 service and removed its proxy/watchdog. That was inconclusive, not a pass.
+
+The repeat used the same node and published .15/.17 binaries, with a maximum
+70-minute capture window to cover Core's normal hourly cadence and an independent
+rollback watchdog. No assignment cadence, qualification or economic setting was
+changed. At 17:03:03 UTC Core committed a real signed report; a localhost proxy
+discarded the accepted HTTP response. The old node retained the signed pending
+envelope. After service stop and atomic binary selection, .17 retried the same
+envelope while delivery remained held. Releasing delivery produced `duplicate`
+for the exact original record and drained the journal. The canary exited zero
+at 17:04:11 UTC, observing one held and one released retry.
+
+Independent read-only follow-up verified exactly one authoritative record,
+signature recovery against the registered signer, the envelope commitment and
+assignment/wallet/nonce/evidence/worker bindings. The bound probe job had zero
+worker-ledger, credit-ledger or reservation rows. The .17 service was active,
+the original config hash unchanged, pending signed reports zero, and the
+temporary proxy override absent with the failsafe timer inactive. Private raw
+evidence remains on the owned host; identifiers and credentials are not public.
+
+This closes the first-party Linux pending-report service-upgrade check. Native
+four-platform app handoff fixtures remain separate evidence, not a live human
+desktop journey. Public website promotion, independent-operator reviews and
+the bounded paid pilot remain separate milestones.
 
 ## Release And Upgrade (September 5)
 
