@@ -24,6 +24,7 @@ from . import __release_tag__
 from .account_pairing import Identity, PairingController, _unique_object
 from .file_lock import exclusive_lock
 from .launcher import command_prefix, config_path, operator_config
+from .operator_updates import UpdateController
 
 PHASES = {
     "starting",
@@ -70,6 +71,7 @@ class Supervisor:
         self.reader: threading.Thread | None = None
         self.action: str | None = None
         self.closed = False
+        self.updates = UpdateController()
         self.pairing = PairingController(
             lambda: Identity.from_values(operator_config(self.path))
         )
@@ -284,6 +286,7 @@ class Supervisor:
         with self.lock:
             self.closed = True
         self.pairing.close()
+        self.updates.close()
         self.stop()
         if self.reader:
             self.reader.join(timeout=45)
@@ -353,13 +356,15 @@ class OperatorHandler(BaseHTTPRequestHandler):
         elif self.path in ASSETS:
             name, kind = ASSETS[self.path]
             self._send(200, (Path(__file__).parent / "ui" / name).read_bytes(), kind)
-        elif self.path in {"/status.json", "/diagnostics.json", "/pairing.json"}:
+        elif self.path in {"/status.json", "/diagnostics.json", "/pairing.json", "/updates.json"}:
             if not self._authorized():
                 self._send(401, {"error": "local_session_required"})
                 return
             # Account association metadata never enters shareable diagnostics.
             data = (
-                self.server.supervisor.pairing.snapshot()
+                self.server.supervisor.updates.snapshot()
+                if self.path == "/updates.json"
+                else self.server.supervisor.pairing.snapshot()
                 if self.path == "/pairing.json"
                 else self.server.supervisor.snapshot()
             )
@@ -371,7 +376,7 @@ class OperatorHandler(BaseHTTPRequestHandler):
         if not self._allowed(write=True) or not self._authorized():
             self._send(403, {"error": "local_session_required"})
             return
-        if self.path not in {"/control", "/pairing"}:
+        if self.path not in {"/control", "/pairing", "/updates"}:
             self._send(404, {"error": "not_found"})
             return
         lengths = self.headers.get_all("Content-Length", [])
@@ -395,6 +400,13 @@ class OperatorHandler(BaseHTTPRequestHandler):
         if self.path == "/pairing":
             status, result = self.server.supervisor.pairing.perform(body)
             self._send(status, result)
+            return
+        if self.path == "/updates":
+            if body != {"action": "check"}:
+                self._send(400, {"error": "invalid_action"})
+                return
+            started = self.server.supervisor.updates.check()
+            self._send(202 if started else 429, self.server.supervisor.updates.snapshot())
             return
         if (
             not isinstance(body, dict)

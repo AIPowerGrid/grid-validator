@@ -45,7 +45,12 @@ installer generation.
   output, prepared-identity init, safe qualification progress without private
   control metadata, signed suspension, and account-bound signing-wallet
   rotation.
-- `test_update_check.py` - bounded release selection and nonfatal update checks.
+- `test_update_check.py` - bounded release selection, stable/preview isolation,
+  source builds, and unavailable-versus-current update checks.
+- `test_operator_updates.py` - cached-only startup/reads, background discovery,
+  concurrency/rate limiting, sanitized failures and close. The operator HTTP
+  suite separately covers local session/origin/body guards and no runtime start
+  or configuration creation. These tests do not prove artifact installation.
 - `test_operator_app.py` - real loopback HTTP guards, allowlisted controls and
   diagnostics, invalid-credential child recovery, owned-process stop, OS lock
   exclusion, and runtime acknowledgement/cancellation contracts. No live Grid

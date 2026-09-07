@@ -22,6 +22,23 @@ let busy = false;
 let closed = false;
 let localAvailable = false;
 let configured = false;
+let updateState = {status:"not_checked"};
+let updateBusy = false;
+let nextUpdateCheck = 0;
+function renderUpdates() {
+  const labels = {
+    not_checked:"Not checked", checking:"Checking releases...",
+    current:"No newer release found on your release channel.",
+    unavailable:"Could not check releases. Try again shortly; your node is unchanged.",
+    source_build:"Source build. Update from the reviewed repository using your existing configuration."
+  };
+  el("updates-status").textContent = updateState.status === "available" ? `${updateState.latest_tag} is available. Keep your existing node configuration when upgrading.` : labels[updateState.status] || labels.unavailable;
+  el("updates-check").disabled = !localAvailable || closed || updateBusy || updateState.status === "checking" || Date.now() < nextUpdateCheck;
+  const safeURL = typeof updateState.url === "string" && /^https:\/\/github\.com\/AIPowerGrid\/grid-validator\/releases\/tag\/v[0-9]+\.[0-9]+\.[0-9]+(?:-(?:preview|alpha|beta|rc)(?:\.[0-9]+)?)?$/.test(updateState.url);
+  el("updates-release").hidden = closed || !localAvailable || updateState.status !== "available" || !safeURL;
+  if (safeURL) el("updates-release").href = updateState.url;
+  else el("updates-release").removeAttribute("href");
+}
 async function request(path, options={}) {
   const response = await fetch(path, {...options, cache:"no-store", headers:{Authorization:`Bearer ${token}`, ...options.headers}});
   if (!response.ok) throw new Error(response.status === 401 || response.status === 403 ? "Local session expired. Reopen the app from the validator menu." : "The local app could not complete that operation. Refresh or reopen it.");
@@ -41,6 +58,7 @@ function render(data) {
   localAvailable = true;
   configured = data.configured;
   renderPairing();
+  renderUpdates();
   el("version").textContent = data.version;
   el("phase").textContent = phases[data.phase] || "Unknown state";
   el("setup").hidden = data.configured;
@@ -81,6 +99,7 @@ async function refresh() {
     if (closed) return;
     showError(error.message);
     localAvailable = false;
+    renderUpdates();
     renderPairing();
     el("phase").textContent = "Local app unavailable";
     for (const id of ["setup","start","stop","diagnostics","quit"]) el(id).disabled = true;
@@ -101,6 +120,7 @@ async function control(action) {
   if (action === "quit") {
     closed = true;
     localAvailable = false;
+    renderUpdates();
     renderPairing();
     el("phase").textContent = "App closed";
     el("message").textContent = "Local validator work stopped. Configuration and recovery journal were kept.";
@@ -240,5 +260,21 @@ async function refreshPairing() {
     if (!pairing.busy && ["pending","approved"].includes(pairing.status) && pairing.expires_at * 1000 > Date.now() && Date.now() >= nextPairingCheck && !el("pair-consent").open) await pairingAction({action:"refresh"});
   } catch(error) { showError(error.message); }
 }
-async function poll() { await refresh(); await refreshPairing(); if (!closed) setTimeout(poll,3000); }
+el("updates-check").addEventListener("click", async () => {
+  if (!localAvailable || closed || updateBusy || Date.now() < nextUpdateCheck) return;
+  updateBusy = true;
+  nextUpdateCheck = Date.now() + 30000;
+  renderUpdates();
+  try {
+    updateState = await request("/updates", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"check"})});
+  } catch (_) { updateState = {status:"unavailable"}; }
+  finally { updateBusy = false; renderUpdates(); }
+});
+async function refreshUpdates() {
+  if (!localAvailable || closed || updateBusy) return;
+  try { updateState = await request("/updates.json"); }
+  catch (_) { updateState = {status:"unavailable"}; }
+  renderUpdates();
+}
+async function poll() { await refresh(); await refreshPairing(); await refreshUpdates(); if (!closed) setTimeout(poll,3000); }
 poll();

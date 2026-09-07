@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import re
 from dataclasses import dataclass
@@ -31,8 +32,18 @@ class UpdateNotice:
     url: str
 
 
+@dataclass(frozen=True)
+class UpdateResult:
+    status: str
+    current_tag: str
+    latest_tag: str = ""
+    url: str = ""
+
+
 def _version_key(tag: str) -> tuple[int, int, int, int, int, int] | None:
-    match = _TAG_RE.fullmatch(str(tag or ""))
+    if not isinstance(tag, str) or len(tag) > 64:
+        return None
+    match = _TAG_RE.fullmatch(tag)
     if not match:
         return None
     stage = match.group("stage")
@@ -66,35 +77,51 @@ async def _fetch_releases() -> list[dict]:
     return payload
 
 
+async def inspect_update(
+    *,
+    current_tag: str = __release_tag__,
+    fetch_releases: Callable[[], Awaitable[list[dict]]] | None = None,
+) -> UpdateResult:
+    """Inspect release metadata, not artifact authenticity or Grid eligibility."""
+    current_key = _version_key(current_tag)
+    if current_key is None:
+        return UpdateResult("source_build", current_tag)
+    try:
+        releases = await asyncio.wait_for((fetch_releases or _fetch_releases)(), timeout=8)
+        if not isinstance(releases, list):
+            raise ValueError("Invalid releases")
+    except Exception:
+        return UpdateResult("unavailable", current_tag)
+
+    candidates: list[tuple[tuple[int, int, int, int, int, int], str]] = []
+    for item in releases[:10]:
+        if not isinstance(item, dict) or item.get("draft") is not False:
+            continue
+        tag = str(item.get("tag_name") or "")
+        key = _version_key(tag)
+        # A stable installation must never be invited onto a preview channel.
+        if key is not None and (not current_key[3] or key[3]):
+            candidates.append((key, tag))
+    if not candidates:
+        return UpdateResult("unavailable", current_tag)
+    latest_key, latest_tag = max(candidates)
+    if latest_key <= current_key:
+        return UpdateResult("current", current_tag)
+    return UpdateResult(
+        status="available",
+        current_tag=current_tag,
+        latest_tag=latest_tag,
+        url=f"{_DOWNLOAD_ROOT}{latest_tag}",
+    )
+
+
 async def check_for_update(
     *,
     current_tag: str = __release_tag__,
     fetch_releases: Callable[[], Awaitable[list[dict]]] | None = None,
 ) -> UpdateNotice | None:
-    """Return a newer validated release, or None on no update/network failure."""
-    current_key = _version_key(current_tag)
-    if current_key is None:
+    """Compatibility wrapper for notification-only runtime checks."""
+    result = await inspect_update(current_tag=current_tag, fetch_releases=fetch_releases)
+    if result.status != "available":
         return None
-    try:
-        releases = await (fetch_releases or _fetch_releases)()
-    except Exception:
-        return None
-
-    candidates: list[tuple[tuple[int, int, int, int, int, int], str]] = []
-    for item in releases[:10]:
-        if not isinstance(item, dict) or item.get("draft") is True:
-            continue
-        tag = str(item.get("tag_name") or "")
-        key = _version_key(tag)
-        if key is not None:
-            candidates.append((key, tag))
-    if not candidates:
-        return None
-    latest_key, latest_tag = max(candidates)
-    if latest_key <= current_key:
-        return None
-    return UpdateNotice(
-        current_tag=current_tag,
-        latest_tag=latest_tag,
-        url=f"{_DOWNLOAD_ROOT}{latest_tag}",
-    )
+    return UpdateNotice(result.current_tag, result.latest_tag, result.url)

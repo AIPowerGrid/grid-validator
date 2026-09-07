@@ -98,6 +98,10 @@ model attestation or use it as sole authority.
 
 ## Ownership
 
+- **`SUPPORTED_BETA.md`** - supported paid-beta delivery scope: preserved
+  operator reviews, verified in-place upgrades, one bounded production pilot,
+  separately approved capped compensation and defensible capability claims.
+
 - **`QUALIFICATION_DECISIONS.md`** - eight-part evidence index and frozen
   acceptance criteria for the next text-method evaluation and preview release.
   Keep scheduled case-group denominators, honest claimed-model controls and
@@ -533,8 +537,10 @@ model attestation or use it as sole authority.
   stake) — always chmod 600, never commit. The key never leaves the box; the grid receives only
   signed payloads. If the private key is configured, `VALIDATOR_WALLET` must be the derived
   wallet address.
-- **Pay for verified-correct work, never presence.** Any future reward/scoring logic added here
-  must track accepted useful attestations and consensus agreement, not attestation count.
+- **Compensation is separate from verdict authority.** Any future compensation
+  pilot must use reviewed useful participation and an explicitly approved capped
+  budget, not raw attestation count, accusations or majority agreement. A paid
+  operator gains no permission to penalize workers. See `SUPPORTED_BETA.md`.
 - **Canaries must stay unpredictable.** Do not commit static challenge answer keys, golden
   pHashes, private prompts, or live scoring secrets into the public repo.
 - Unpredictable values are not indistinguishable workloads. Public-template
