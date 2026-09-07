@@ -1,7 +1,7 @@
 # App Updates
 
-Published in preview.17 from reviewed commit `aa35fa0a`; public download
-promotion remains separate. Existing preview.13/.16 downloads do not acquire
+Published in preview.17 from reviewed commit `aa35fa0a`; the public download
+page now recommends that release. Existing preview.13/.16 downloads do not acquire
 this updater retroactively. Their first
 upgrade must preserve the existing configuration and validator ID.
 
@@ -102,3 +102,18 @@ the temporary localhost proxy override and stopped the failsafe timer; all three
 states were independently checked afterward. The result is inconclusive, not
 a recovery pass or an observed updater failure. Re-run against available real
 assignments without changing production cadence or resetting qualification.
+
+A repeat on that same owned node passed at 17:04:11 UTC. It allowed one full
+normal assignment cadence without changing Core policy. Core accepted a real
+signed report, the local fault proxy discarded its HTTP response, and the old
+node retained the pending envelope. The published .17 binary preserved the
+same configuration/journal and retried while delivery was still held. After
+release, Core returned `duplicate` for the same committed record and the node
+drained the exact pending envelope. One blocked and one released retry were
+observed. A separate read-only Core audit verified one record, its signature,
+assignment/nonce/evidence/worker bindings and exact commitment; the probe had
+zero worker-ledger, credit-ledger and reservation rows. The .17 service is
+active, its original config hash is unchanged, and the temporary proxy and
+rollback watchdog are removed. This is a first-party Linux service test, not
+a live human desktop one-click test, fleet-wide reliability estimate or paid
+pilot completion. The earlier inconclusive run remains part of the record.

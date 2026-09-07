@@ -41,9 +41,14 @@ four-platform native handoff/recovery and clean-install checks. Downloaded
 payload and pinned GitHub/Sigstore provenance verification pass. Core admits
 preview.13/.15/.16/.17 without resetting qualification. One owned node runs
 the released preview.17 Linux binary with its config and durable journal
-preserved. One fresh report after upgrade has independently verified signature
-and assignment binding; live pending-evidence replay remains unproven. The public download page was observed
-selecting preview.16 on September 7; promotion to preview.17 is separate.
+preserved. Fresh reports after upgrade have independently verified signatures
+and assignment bindings. A second owned service passed accepted-response-loss,
+pending-report preservation across .15-to-.17, and same-record duplicate
+acknowledgment at 17:04:11 UTC on September 7. Independent record, signature,
+binding, zero-economic-row and cleanup checks passed. This is service-upgrade
+recovery, not a human desktop one-click test. Website PR77 (`c23f9281`) promoted
+preview.17 on September 7; the production deployment is Ready and the custom
+domain serves its release links. Promotion does not activate the paid beta.
 Preview.16's protected Windows live run `34092210339` passed enrollment,
 accepted evidence, upgrade, outage/recovery and retirement. See
 `ROLLOUT_2026_09.md`, `NATIVE_LIVE_CANARY.md` and `QUALIFICATION_DECISIONS.md`.
@@ -270,7 +275,7 @@ model attestation or use it as sole authority.
   source preview, verified binary install, versioned public Docker, systemd,
   health checks, and V0
   safety boundaries.
-  Current downloads target preview.15 with confirmed local dedicated-account
+  Current install instructions target preview.17 with confirmed local dedicated-account
   enrollment, the Windows menu, and opt-in operator app; preserve deployed-fleet snapshots
   separately. Do not direct first-time operators to paste private keys or claim
   existing-account pairing is shipped.
@@ -281,7 +286,7 @@ model attestation or use it as sole authority.
   normal runs mount the credential file read-only and only the journal directory
   writable.
   The public Linux cohort path pins the systemd helper to a reviewed immutable
-  source commit and verifies its SHA-256 separately from the frozen preview.15
+  source commit and verifies its SHA-256 separately from the frozen preview.17
   binary. Never replace that with a mutable branch download or pipe-to-shell.
 - **`OPERATORS.md`** — plain-language run guide (install, systemd, troubleshooting, FAQ).
   It owns the signed suspend/resume and account-bound signing-wallet/API-key
@@ -322,7 +327,7 @@ model attestation or use it as sole authority.
   the initial three independent operators, broader five-operator pilot, and
   ten-operator recruitment target, including safe reporting and the
   distinction between node count and independently controlled quorum weight.
-  Its new-operator path is preview.15 automatic dedicated-node enrollment and
+  Its new-operator path is preview.17 automatic dedicated-node enrollment and
   the local app, not manual wallet/key preparation. Keep independent-control
   review and advanced credential rotation separate from first-run setup.
   The exact preview.13 node completes a live signed suspend/resume check so a
@@ -341,7 +346,7 @@ model attestation or use it as sole authority.
   Three recently participating qualified groups unlock only a seven-day Core
   shadow observation, not routing or economic authority. The qualifying client
   must use one frozen baseline during shadow observation. Shadow stays off
-  during the preview.13/preview.15 upgrade overlap.
+  during the multi-version upgrade overlap.
 - **`PRODUCTION_BASELINE.md`** — dated public capability, assignment, quorum,
   independence, and network-capacity snapshots. It is historical evidence, not
   a substitute for the live public status endpoints.
@@ -369,7 +374,7 @@ model attestation or use it as sole authority.
   maintainer test tooling, not onboarding for ordinary operators. It has offline
   safety coverage and a completed first-party Linux ARM64 run; Windows pairing
   remains unproven. It neither deploys Core nor activates the pilot. Public
-  downloads target preview.15; account pairing remains Core-disabled.
+  install instructions target preview.17; account pairing remains Core-disabled.
 - **`LINUX_PAIRING_CANARY_REPORT.json`** - immutable redacted output of the
   first-party Linux ARM64 production pairing canary. Its limits, independent
   database audit and cleanup evidence are in `PRODUCTION_BASELINE.md`; the
@@ -570,7 +575,8 @@ model attestation or use it as sole authority.
   cache-independent offline packaged readiness with fixed failure codes.
   The app-controlled versioned handoff is published in preview.17. Native
   update/restart/rollback fixtures pass all four platforms; real pending-evidence
-  replay and live operator promotion remain separate gates. Old discovery-only
+  replay now passes on an owned Linux service, and public downloads recommend
+  preview.17. Independent operator journeys remain a separate check. Old discovery-only
   binaries do not acquire the updater retroactively.
 - New grid-side endpoint dependencies fail closed when they are required for
   attributable evidence. Read-only dashboard metadata may degrade gracefully.
