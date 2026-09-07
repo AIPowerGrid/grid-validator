@@ -192,7 +192,10 @@ model attestation or use it as sole authority.
 - **`IMAGE_PILOT_2026_09_07.md`** - twelve uncached first-party image captures
   across Z-Image/FLUX and two seeds. Existing scoring catches the tested
   cross-model substitutions but accepts grayscale removal and one wrong-seed
-  pair. One scene and one GPU do not qualify cross-hardware tolerance. Stored
+  pair. Its six-render same-artifact Apple/NVIDIA follow-up accepts all twelve
+  directed honest comparisons and rejects four cross-model substitutions with
+  unchanged v1. Honest cross-stack RGB differs while pHash is identical. One
+  scene/two seeds do not qualify fleet tolerances or model identity. Stored
   tensor dtype, recipe labels and runtime compute precision remain distinct.
 - **`VIDEO_PILOT_2026_09_07.md`** - first-party LTX video calibration with four
   uncached runs, actual-byte corruption tests and reference-failure checks.

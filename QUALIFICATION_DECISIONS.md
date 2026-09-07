@@ -28,15 +28,21 @@ correctness, media and shadow-rollout objective remains open.
 
 ## Evidence And Unfinished Scope
 
+The objective asks for an honest detection report, including failed methods,
+not a guarantee that a successful model-identity detector can be built. Likewise,
+an attack report must retain successful evasions; it need not claim they have
+been prevented. Additional release/authority gates below are separate from
+completion of the corresponding research experiment.
+
 | Objective | Evidence | Scope still unproven |
 | --- | --- | --- |
 | 1. Backend compatibility | [Responses qualification](RESPONSES_QUALIFICATION.md): real LM Studio -> released worker -> local Core/Redis -> independent reader; 18 fault cases | Public Responses assignment/signing/outbox policy; first-word probabilities missing in measured native responses |
 | 2. Honest baselines | [Engine baseline](HONEST_BASELINE_2026_09_06.md), [quant/load baseline](QUANTIZATION_BASELINE_2026_09_06.md) | Exclusive idle conditions, exact native LM Studio conditioning/settings, honest 120B cross-engine/quant range; historical timeout root cause remains unresolved despite bounded replay |
-| 3. Substitution | [Answer scoring](ANSWER_FIDELITY_2026_09_06.md), [fixed contexts](FIXED_CONTEXT_FIDELITY_2026_09_07.md) | A useful detector with honest controls for the claimed reference model; the measured failures must remain in the report |
+| 3. Substitution | [Answer scoring](ANSWER_FIDELITY_2026_09_06.md), [fixed contexts](FIXED_CONTEXT_FIDELITY_2026_09_07.md): real 20B/120B comparisons, reference-side scoring, fresh evaluation and honest controls; tested methods fail to reliably distinguish models | These reports do not qualify a detector for authority. Any new candidate method needs separate matched controls and fresh evaluation; retain the current negative results |
 | 4. Useful work | [Tool pilot](TOOL_CAPABILITY_PILOT_2026_09_06.md), [full-answer/load study](QUANTIZATION_BASELINE_2026_09_06.md) | Broader independent workload coverage and public per-capability reporting; existing template tests do not certify intelligence |
-| 5. Attacks | [Adversarial design](ADVERSARIAL_VALIDATION.md), [initial live fidelity study](TEXT_FIDELITY_EXPERIMENT_2026_09_05.md), fixed-context and answer-scoring reports above | Prevention of probe-aware switching/proxying and truthful worker-reported probabilities; report attacks missed, not just signature protection |
+| 5. Attacks | [Adversarial design](ADVERSARIAL_VALIDATION.md), [initial live fidelity study](TEXT_FIDELITY_EXPERIMENT_2026_09_05.md), fixed-context and answer-scoring reports above | Probe-aware switching/proxying and fabricated probabilities remain trust limitations, not solved problems. Cross-check copied/common-control evidence tests before declaring the complete attack matrix covered |
 | 6. Correctness | [Rollout evidence and delivery tests](ROLLOUT_2026_09.md): 55 real PostgreSQL 16 binding/race/retry/terminal tests, including killed transaction backends and strict matching receipts | Linux release CI, migrated-database and authenticated production integration; worker-ledger atomicity is not a validator compensation send |
-| 7. Media | [Image pilot](IMAGE_PILOT_2026_09_07.md), [video pilot](VIDEO_PILOT_2026_09_07.md) | Same-artifact cross-hardware/runtime controls, more scenes and qualified references; measured misses and source-binding limits remain |
+| 7. Media | [Image pilot](IMAGE_PILOT_2026_09_07.md), including six actual same-artifact Apple/NVIDIA renders; [video pilot](VIDEO_PILOT_2026_09_07.md) | Broader scenes, workflow/quant variants and qualified references; one image scene/two seeds do not establish fleet tolerance; measured misses and source-binding limits remain |
 | 8. Shadow rollout | Core sampling metadata and Console preview context are implemented on local qualification branches | Reviewed release/deployment, fresh live operator qualification and an observed shadow run; local UI tests are not publication |
 
 ## Next Text Experiment: Frozen Acceptance

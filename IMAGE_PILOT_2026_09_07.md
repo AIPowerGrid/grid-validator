@@ -9,8 +9,9 @@ and accepts the wrong FLUX seed at the current distance boundary. Preserve
 these misses; do not lower the threshold after observing this one scene.
 
 No production policy, media issuance, account, reward or penalty setting was
-changed. Cross-hardware and independently controlled reference gates remain
-open. This is a first-party calibration, not a launch approval.
+changed. The same-artifact Apple/NVIDIA follow-up below passes the tested
+honest controls. Broader cross-hardware tolerance and independently controlled
+reference qualification remain open. This is calibration, not launch approval.
 
 ## Frozen Workload
 
@@ -106,6 +107,87 @@ Private artifact SHA-256:
 - Reproduced summary: `d04eba433a8adc30e7edc468d7c0c995634e8a16a7a3a913b54a54185d09c018`.
 - Stored-dtype supplement: `1f384e48721501a4c9cba25ccba724e92175ddbaafae614593c4891bcbd894f9`.
 
+## Same-Artifact Apple/NVIDIA Follow-Up
+
+Six additional uncached Z-Image renders on an owned Apple M3 Max are compared
+with the six frozen RTX 5090 Z-Image outputs above. This is actual inference on
+two hardware/runtime stacks, not a transformed-image stand-in. The same one
+private scene and two seeds each have three executions per stack.
+
+### Provenance And Controls
+
+- The exact Z-Image, Qwen encoder and VAE files are copied read-only from the
+  image host and SHA-256 verified before inference. No production model,
+  service, recipe, registration or queue is changed.
+- The isolated local ComfyUI checkout pins the same upstream commit as the
+  CUDA capture. All 680 overlapping non-custom serving Python files match.
+- Apple M3 Max, 128 GiB memory, macOS 26.2, Python 3.12.11 and Torch 2.9.0.
+  The runtime reports MPS diffusion/VAE execution with BF16 weights/VAE and a
+  CPU FP16 text encoder. Do not describe every stage as GPU execution or equate
+  stored weight dtype with every intermediate operation's compute precision.
+- The CUDA baseline uses a different OS, Python and development Torch build.
+  Hardware, runtime and device placement differ together; this experiment does
+  not isolate which one causes pixel differences.
+- The numeric seed replaces only an equivalent seed-expression node, and an
+  owned output prefix changes. Two graph-invariant tests verify that adapter.
+  The local runtime disables custom/API nodes, uses offline model access and
+  cache-none. All six histories prove successful, uncached sampler execution.
+- The owned loopback runtime is stopped after capture. The existing production
+  worker is not stopped or unloaded. No new remote inference was needed.
+
+### Results With Unchanged V1
+
+| Comparison | Result |
+| --- | --- |
+| Same-seed repeats within Apple | Identical decoded RGB; all six pair distances 0 |
+| Same-seed repeats within NVIDIA | Identical decoded RGB; all six pair distances 0 |
+| Six paired Apple/NVIDIA outputs | Different decoded RGB; all pHash distances 0 |
+| Apple candidate, NVIDIA references | 6/6 healthy, no observed false flags |
+| NVIDIA candidate, Apple references | 6/6 healthy, no observed false flags |
+| Held-out Apple repeat against other two same-seed repeats | 2/2 healthy |
+| FLUX substituted for Apple Z-Image, or reverse | 4/4 failed; distances 28 and 32 |
+
+There are only two underlying seed groups from one scene. Bidirectional
+evaluations and repeated renders are correlated, not 12 independent honest
+trials or four independent substitution trials. The FLUX outputs are reused
+from the CUDA capture; this does not establish same-FLUX cross-hardware behavior.
+The unchanged tolerance is 12. No threshold was fitted to these results.
+
+Exact RGB matching would reject these honest cross-platform results. pHash
+accepts them but still has the color and seed blind spots measured above; this
+follow-up does not resolve those misses or establish model/quant identity.
+
+Apple server execution intervals are 14.016-17.214 seconds. Cache policies,
+device placement and runtime versions differ from the earlier CUDA runs, so
+these numbers are not a controlled speed comparison or production latency SLA.
+Scorer latency remains synthetic 1000ms with actual captured bytes delivered
+through mocked HTTP; reference identities are synthetic and first-party.
+
+### Audit And Reproduction
+
+The capture manifest, graphs, histories, bytes, model/source hashes and cleanup
+are verified before scoring. Independent Pillow decoding agrees with the
+bounded decoder's pHashes. Eighteen scoring cases complete; two full offline
+audits reproduce identical canonical summary bytes without new inference.
+
+The frozen auditor had two reporting defects: it expected a dictionary instead
+of the scorer's `(outcome, detail)` tuple, then could not serialize NumPy integer
+distances. Separate hashed adapters preserve the original sources and map these
+representations without changing verdicts, distances or policy. Failed audit
+attempts are harness failures, not worker failures. Three adapter tests and two
+graph tests pass. The unchanged media suite passes 37 tests with no skips.
+The reused capture runner's cosmetic `/12` progress denominator is not the
+schedule: the manifest and six successful receipts are authoritative.
+
+Private artifact SHA-256:
+
+- Manifest: `6ecc59be539725e4ef5bfc3920167feb2c2804b334fcd291ae8ff1054f458252`.
+- Provenance: `de67e2fc1c7cf6ada9b6b9ca0bca6f8da04b7af87f617242d9cdc004fee97030`.
+- Capture index: `5f98d0947e7569a37385d0fd2f21125e6e1d12c78ecbe24d5f82bf86369aa739`.
+- Reproduced summary: `8f1b7a844a92288236843f8098d74f09d70fe9792b37ab15227b1b6c3da83d01`.
+- Audit adapter provenance: `0937b466bd186e83a2063eb970271cd7a6ef8eabe60f513f485f99957e4a9273`.
+- Runtime cleanup: `20a801a8631a8116801835503b6980298d70360a7e6fbf19977812c7050b5062`.
+
 ## Next Work
 
 1. Evaluate color-sensitive comparison as a separate observational metric with
@@ -115,7 +197,8 @@ Private artifact SHA-256:
    differences; the current one-scene result cannot qualify those cases.
 3. Distinguish approximate visual agreement from exact workflow reproduction.
    pHash alone cannot certify a seed, model or quantization.
-4. Complete source-frame adherence for video. Its separate preparation script
-   was deferred, not executed, when image-backend access became available.
+4. Review the completed [video source-adherence and splice experiments](VIDEO_PILOT_2026_09_07.md).
+   First-frame-only checking is insufficient; measured source distances do not
+   themselves implement a source-binding policy.
 5. Complete governed recipes, immutable witness retention, independent reference
    qualification and real assignment-path testing before media rollout.
