@@ -365,8 +365,11 @@ run. Honest repeats match in decoded pixels. First-frame pHash distances to
 the intended source are zero for the conditioned outputs and 32 for the
 bypassed output, yet all five pass the existing structural contract. A
 source-binding policy is not implemented or calibrated by these measurements.
-Broader scene/crop/hardware controls and first-frame-splice attacks remain
-required; this does not enable public media assignments or penalties.
+The subsequent nine-clip offline study covers first-frame/prefix splices and
+codec/resize controls. First-frame-only comparison is defeated; full-clip v1
+rejects the tested splices and accepts all three reconstruction controls.
+Broader scene/crop/hardware and legitimate temporal controls remain required;
+this does not enable public media assignments or penalties.
 
 ## Attestation Delivery Follow-Up
 

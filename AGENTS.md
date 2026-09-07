@@ -195,6 +195,9 @@ model attestation or use it as sole authority.
   Its five-run image-to-video follow-up shows that bypassing source conditioning
   still passes basic video conformance. First-frame distances are measurements,
   not a shipped source-binding policy or a calibrated penalty threshold.
+  Its offline source-splice follow-up defeats first-frame-only comparison;
+  full-clip v1 rejects the tested splices and accepts three codec/resize
+  controls. Those owned-reference results are not a fleet tolerance bound.
 
 - **`validator/`** — the whole node (config, stake gate, grid client, canary probing +
   scoring, attestation signing, probe loop, CLI, read-only dashboard, and opt-in

@@ -193,8 +193,65 @@ Private artifact SHA-256:
 The next source-adherence policy needs an assignment-bound source commitment,
 bounded fetching/decoding and explicit resize/crop handling. Calibrate normal
 reconstruction, compression, aspect-ratio changes and different scenes before
-setting a tolerance. Also test a copied correct first frame followed by
-unrelated video: passing a first-frame check alone cannot establish subsequent
+setting a tolerance. The splice follow-up below tests a copied correct first
+frame followed by unrelated video: a first-frame check cannot establish subsequent
 identity, requested motion or temporal consistency. Source adherence remains
 a separate preview dimension, not proof of exact model execution or authority
 to penalize workers.
+
+## Source-Splice And Codec Controls
+
+A frozen offline follow-up transforms the owned source-A and conditioning-bypass
+clips. It makes no new model executions or production requests. Nine derived
+clips retain 49 frames at 24 FPS and 512x512 dimensions, with original input
+frame hashes, encoder settings, output hashes and independent decode checks.
+Each is evaluated by both unchanged v1 policies: 18 actual-byte scoring cases.
+
+The three codec controls retain the original frame sequence: H.264 CRF 18,
+H.264 CRF 35, and a 512-to-256-to-512 Lanczos resize followed by CRF 18. These
+are limited reconstruction controls, not proof that a worker may silently
+change a contracted resolution, recipe or encode setting.
+
+| Derived clip | Contract v1 | Fidelity v1, two agreeing owned repeats |
+| --- | --- | --- |
+| Three honest codec/resize controls | Healthy | Healthy |
+| Conditioning bypass, re-encoded | Healthy | Failed: outlier |
+| One authentic first frame, then bypass footage | Healthy | Failed: outlier |
+| Twelve authentic first frames, then bypass footage | Healthy | Failed: outlier |
+| Source PNG as first frame, then bypass footage | Healthy | Failed: outlier |
+| Source PNG repeated throughout | Failed: repeated-still | Failed: repeated-still |
+| Authentic first frame, remaining frames reversed | Healthy | Failed: outlier |
+
+All three splice variants have first-frame pHash distance zero from the
+source. Their source RGB errors are 0.979394, 0.957057 and 0.555625 on the
+0-255 scale, respectively. The unmodified honest render's error is 0.846160.
+Thus the direct-source splice is *closer* by this metric than the honest model
+output. Tightening a first-frame cutoff cannot reliably distinguish these
+clips while accepting honest reconstruction. No such cutoff was added.
+
+The three honest transformed controls have maximum full-clip pHash distances
+of 6, 8 and 6 against the owned repeats. The three splices reach 36; their
+mean distances are 29.673, 22.776 and 29.673. Existing thresholds were not
+retuned. This small example supports retaining full-clip comparison alongside
+source adherence. It does not establish an independent-reference quorum,
+cross-hardware tolerance, model identity or general temporal semantics.
+
+Every scorer request uses distinct synthetic role URLs with actual captured
+bytes and a fixed 1000ms latency. References are the two uncached same-source
+renders from one owned GPU. Four private tests verify prefix boundaries,
+fixed lengths, no source mutation, reversal and unknown-case rejection.
+Two complete offline audits produced identical canonical summary bytes. The
+manifest binds the source scripts, decoder versions, parent capture and
+unchanged validator code. All four new private tests and 37 existing media
+tests pass; the two new harness files pass Ruff lint and format checks.
+
+Private artifact SHA-256:
+
+- Manifest: `af5c5b2a51a48fd31f9ccaeab994e2bb275fe8459e18f2bd2f65b05027ffdc83`.
+- Derived capture index: `6e6576d8dc513bec90bb01d3811b8752faf58cc92126201509d74278cb1ae1e5`.
+- Scoring summary: `216e3e0340d9be2dbfed48146bd2d26899df336b9bf78dc42bf38f390b1d1f75`.
+
+Remaining controls include smooth transitions into wrong footage, legitimate
+loops/camera cuts, aspect-ratio/crop policies and more independent scenes and
+hardware. Do not replace this list with a blanket "video validation proven"
+claim. Public issuance and automatic penalties remain gated.
