@@ -151,6 +151,11 @@ model attestation or use it as sole authority.
   same GGUF in standalone llama.cpp. The maximum chosen-token gap is 1.766401
   percentage points. Native LM token IDs and effective sampler settings remain
   unobserved; this is neither an exact-context proof nor an acceptance threshold.
+  Its subsequent official-SDK read-only check finds exact native token-ID
+  equality for all six captured prefixes, twice each, against saved llama.cpp
+  inputs. This narrows current tokenizer uncertainty but does not reconstruct
+  the historical prediction trace or effective sampler. No new inference or
+  production change is part of that check.
 - **`ANSWER_FIDELITY_2026_09_06.md`** - native-context candidate-answer
   reference-scoring study and retained failed raw-completion attempt. The new
   frozen method preserves candidate reasoning, excludes formatting-only score

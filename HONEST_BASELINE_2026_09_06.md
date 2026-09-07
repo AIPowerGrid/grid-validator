@@ -379,3 +379,39 @@ Private evidence SHA-256:
 The owned log readers and standalone model processes stopped. The existing
 public worker was not reconfigured or restarted. No assignments, capabilities,
 production policies, compensation or automatic penalties changed.
+
+## SDK-Native Tokenization Follow-Up
+
+On September 7, a separate read-only check used the official LM Studio Python
+SDK 1.5.0 against the same loaded 20B instance. Its native `tokenize` method
+processed each of the six saved full decoded contexts twice. **All twelve
+returned token-ID sequences exactly matched both corresponding saved
+llama.cpp reference inputs.** No generation request was made.
+
+The check verified the prior experiment's frozen manifest and artifact hashes,
+rehash-checked the physical GGUF before and after, and observed an open mapping
+of that file. The loaded-instance list and SDK load configuration remained
+unchanged. The SDK reported context 8192, full GPU offload, flash attention and
+four active experts. These are reported load settings, not per-prediction
+sampler measurements. The REST model catalogue's displayed file size is still
+not the physical-file provenance source.
+
+An independent saved-evidence audit reconstructed all six prefix hashes and
+twelve token-ID comparisons from the earlier reference captures. Raw contexts
+and token IDs remain private. The official SDK documents separate
+[load-configuration retrieval](https://lmstudio.ai/docs/python/model-info/get-load-config)
+and [inference-time configuration](https://lmstudio.ai/docs/python/llm-prediction/parameters);
+reading the former does not establish the latter.
+
+This narrows the tokenizer uncertainty: the current LM Studio native tokenizer
+agrees on these exact six captured strings. It does not retroactively reveal
+the historical prediction's internal token trace, KV-cache state or effective
+sampler, nor establish agreement on arbitrary inputs. The previous 1.766401
+percentage-point maximum remains an observation, not a fraud threshold or a
+known engine-causality result. No worker restart, model load/unload, assignment,
+registration or economic setting changed.
+
+Private result SHA-256:
+`a42f83e1771fd33fa375172bd8262989736abe091ca24c482b50e1398219aaf6`.
+Independent saved-evidence auditor SHA-256:
+`1f05851cf6ebca3379cd34b5a1d78e793bc04517deca106771b4f1da8bacfb5d`.
