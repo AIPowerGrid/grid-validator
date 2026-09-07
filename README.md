@@ -93,9 +93,9 @@ What is implemented and testable against production Core:
 Production preview status:
 
 - Production Core runs the sealed shared-quorum validator API at immutable
-  commit `3714a927733f61abeeeaf709867448cf8d54cb41` as checked on
-  2026-09-07, with migrations through `0035`. Core accepts the exact
-  preview.13 baseline plus preview.15/.16/.17 during a controlled overlap.
+  commit `84fe0fd6202c2744c970dfeebd5103f1ad13f883` as checked on
+  2026-09-07, with migrations through `0039`. Core accepts the exact
+  preview.13 baseline plus preview.15/.16/.17/.18 during a controlled overlap.
   Upgrades preserve qualification history; they do not grant independence.
 - Core also contains a dark, atomic accounting terminal for future
   compensated quality audits. No scheduler, audit corpus, scoring policy, or
@@ -149,14 +149,17 @@ is not yet proven.
 
 ## Download
 
-**September 7 update:** preview.17 adds verified, consent-based app updates.
+**September 7 update:** preview.18 is recommended on the public download page;
+its owned-service canary submitted fresh, independently verified signed
+evidence. See [the .18 rollout record](PREVIEW18_ROLLOUT.md).
+Preview.17 introduced verified, consent-based app updates.
 All four native handoff/recovery and clean-install lanes passed; a real owned
 Linux service preserved pending signed evidence across .15-to-.17 and recovered
 the exact committed record after a lost response. This is not a human desktop
 one-click test. Keep existing identities/configuration when upgrading.
 See [the rollout record](ROLLOUT_2026_09.md) for evidence and limitations.
 
-Preview.17 includes the local operator app (menu option 8) and explicit
+Preview.18 includes the local operator app (menu option 8) and explicit
 `aipg-validator enroll` (menu option 1): enrollment
 creates a dedicated local signer, authenticates a separate node account, and
 saves a validator-only API key without private-key entry. Existing-account pairing remains separate;
@@ -167,7 +170,7 @@ Core still keeps it **disabled in production**. See
 [Account Pairing](ACCOUNT_PAIRING.md) for its consent, recovery and rollout gates.
 
 The current public V0 preview is
-[`v0.1.0-preview.17`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.17).
+[`v0.1.0-preview.18`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.18).
 It is an unsigned, non-economic operator preview, not a stable release.
 
 Expected release assets:
@@ -186,7 +189,7 @@ Every release also carries `install-validator.sh`, `install-validator.ps1`, `val
 `SHA256SUMS`, an SPDX JSON SBOM, and GitHub build provenance. The release
 manifest binds the exact version, tag, source commit, asset sizes, and asset
 hashes, plus the platform-signing state; `SHA256SUMS` covers the manifest
-itself. The `v0.1.0-preview.17` macOS and Windows binaries are explicitly unsigned:
+itself. The `v0.1.0-preview.18` macOS and Windows binaries are explicitly unsigned:
 macOS is not Developer ID signed or notarized, and Windows is not Authenticode
 signed. Verify `SHA256SUMS` and GitHub provenance before running them. Stable
 releases remain blocked until both platform-signing gates are satisfied. The
@@ -204,7 +207,7 @@ Download the installer from the exact preview release, verify
 its GitHub provenance, and run it:
 
 ```bash
-curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.17/install-validator.sh
+curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.18/install-validator.sh
 gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator
 bash install-validator.sh
 cd ~/.aipg-validator
@@ -233,12 +236,12 @@ preview executable is not Authenticode signed; the installer verifies SHA-256
 before installing or executing it:
 
 ```powershell
-Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.17/install-validator.ps1 -OutFile install-validator.ps1
+Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.18/install-validator.ps1 -OutFile install-validator.ps1
 gh attestation verify install-validator.ps1 --repo AIPowerGrid/grid-validator
 .\install-validator.ps1 -AcceptUnsignedPreview
 ```
 
-The preview.17 local app offers **Check for updates**, then **Update and restart**
+The preview.17 or newer local app offers **Check for updates**, then **Update and restart**
 after explicit confirmation. It verifies the selected release and preserves
 configuration, node identity and queued evidence. See [App Updates](UPDATES.md).
 Older binaries need one manual upgrade with the existing configuration retained;
@@ -340,7 +343,7 @@ aipg-validator run
 From a source checkout, select the exact version explicitly:
 
 ```bash
-AIPG_VALIDATOR_VERSION=v0.1.0-preview.17 ./scripts/install-binary.sh
+AIPG_VALIDATOR_VERSION=v0.1.0-preview.18 ./scripts/install-binary.sh
 ```
 
 `dashboard` starts a read-only local status page at
@@ -368,7 +371,7 @@ Pull the exact public preview image. It is anonymously available for Linux x64
 and ARM64; prereleases never publish or replace `latest`:
 
 ```bash
-docker pull ghcr.io/aipowergrid/validator:v0.1.0-preview.17
+docker pull ghcr.io/aipowergrid/validator:v0.1.0-preview.18
 ```
 
 First-time Docker operators must enroll into a private host directory and mount
@@ -380,12 +383,12 @@ The preview bundles the dark image/video decoders. Qualify the exact image
 without contacting the Grid:
 
 ```bash
-docker run --rm ghcr.io/aipowergrid/validator:v0.1.0-preview.17 self-test
+docker run --rm ghcr.io/aipowergrid/validator:v0.1.0-preview.18 self-test
 ```
 
 Use the [Docker quickstart](QUICKSTART.md#docker) for enrollment, a no-probe
 check, the persistent validator loop, logs, and the optional dashboard. That
-single flow pins preview.17, runs as the host user, mounts credentials read-only
+single flow pins preview.18, runs as the host user, mounts credentials read-only
 after setup, and preserves the evidence journal across container recreation.
 
 Build `aipowergrid/validator:local` from this checkout only when testing source

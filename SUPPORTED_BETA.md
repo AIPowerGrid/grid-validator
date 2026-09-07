@@ -17,7 +17,10 @@ As checked September 7, 2026:
   native run `34160189029` passed all four build and clean-install targets.
   Downloaded assets and pinned provenance passed verification. Core admitted
   only the new exact tag; an owned service upgraded with config/journal intact.
-  Live human consent and website promotion remain. See `PREVIEW18_ROLLOUT.md`.
+  Fresh accepted report `123657` passed independent signature/binding and
+  zero-economic-row checks. Website PR78 (`f236575a`) is deployed and the public
+  page and issue #5 recommend .18. Live human consent remains.
+  See `PREVIEW18_ROLLOUT.md`.
 - Preview.17 was published from `aa35fa0a`, including the verified app updater.
   Release workflow `34136400434` passed four-platform native handoff, recovery
   and clean-install checks. Downloaded assets and pinned provenance passed
@@ -65,7 +68,7 @@ As checked September 7, 2026:
   by coverage. Core's candidate review reference is not the underlying private
   control confirmation: finalization still requires that record. The new
   GitHub intake declaration is retained as a claim, not silently promoted to
-  independence. Issue #5 now recommends .17 and preserves existing observation
+  independence. Issue #5 now recommends .18 and preserves existing observation
   history instead of telling operators to restart after intake.
 - An external .15 node remains active. Do not remove its supported version to
   make room for a successor release. Core PR130 is deployed and permits at most
@@ -77,8 +80,9 @@ See `UPDATES.md` and `ROLLOUT_2026_09.md` for release and failure evidence.
 
 ## Remaining Delivery Order
 
-1. Promote and help existing operators use the now-published preview.18 downloads and
-   confirm fresh accepted evidence. Preserve configs, IDs and qualification clocks.
+1. Help existing operators use the promoted preview.18 release and confirm fresh
+   accepted evidence from their nodes. The owned .18 service canary passed;
+   it does not substitute for operator rollout. Preserve configs, IDs and clocks.
    App updates never replace externally managed services or containers.
 2. Complete reviews for three independently controlled operators using existing
    records and IDs. Diagnose outages and missing coverage rather than restarting
