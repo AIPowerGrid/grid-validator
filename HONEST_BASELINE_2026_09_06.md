@@ -415,3 +415,48 @@ Private result SHA-256:
 `a42f83e1771fd33fa375172bd8262989736abe091ca24c482b50e1398219aaf6`.
 Independent saved-evidence auditor SHA-256:
 `1f05851cf6ebca3379cd34b5a1d78e793bc04517deca106771b4f1da8bacfb5d`.
+
+## Prediction-Settings Observation
+
+A bounded follow-up reused one of those six calibration prefixes through SDK
+`complete_stream`, with temperature zero, top-p one and a one-token limit.
+Across the original and numeric follow-up attempts, three predictions completed
+and one request was rejected. This was not a fresh holdout or a Responses
+probability experiment.
+
+The two default-setting predictions reported repetition penalty **1.1**, min-p
+**0.05**, top-k **40** and 12 CPU threads. Explicit numeric repetition penalty
+**1.0** and min-p **0.0** were accepted and echoed for the follow-up control.
+Both numeric-run arms returned the same one-token output and intentionally
+stopped at the output limit. These are server-reported settings filtered through
+the SDK's known-field mapping, not an exhaustive kernel configuration. They do
+not prove which settings the earlier REST Responses requests used or explain
+the earlier probability gap.
+
+The failed request used `repeatPenalty: false` and `minPSampling: false`.
+SDK 1.5.0's checkbox mapping sent the former as a checked boolean value; the
+server rejected it because it expected a number. No output fragments were
+received. That failed attempt and its original source remain preserved. This
+is a local SDK/server configuration incompatibility, not worker dishonesty or
+evidence that deployed workers need a configuration change.
+
+**The independent audit rejected an exact-context assumption:** native
+`tokenize` returned 144 IDs for the saved prefix, while all three successful
+predictions reported 211 prompt tokens. The reported template was a pass-through
+Jinja template, but that alone did not establish the actual prediction input.
+The original equal-token-count audit is retained as a failed check. A separate
+observation audit verifies the discrepancy and the numeric settings without
+claiming input-token equality. Whether the count reflects additional processing
+or a reporting issue is unresolved. Do not use these outputs as aligned
+reference scores.
+
+Physical GGUF hashes and loaded-instance/configuration checks passed before and
+after the completed numeric run. Existing workers were not restarted, models
+were not loaded/unloaded, and no persistent sampling settings, Grid jobs,
+capabilities, scoring thresholds or economic controls changed. One reused prefix
+and one output token cannot establish a distributional effect or a fraud rule.
+
+Private numeric-run evidence manifest SHA-256:
+`2bda345151d979c6b15a1bd601b289312d82b3cdf4243f9685a122bfb29f77d0`.
+Independent observation auditor SHA-256:
+`640377179198ea004482e8dfb0934bf1ad109782eb100e914531a79fed70a77a`.
