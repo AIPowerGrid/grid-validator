@@ -69,6 +69,32 @@ validator economic authority remain disabled.
 
 ## Evidence Dimensions
 
+### Executed Attack Coverage (September 7 Review)
+
+These are different experiments, not a pooled detection benchmark. The
+PostgreSQL test manifest/JUnit/summary commitments are recorded in
+`QUALIFICATION_DECISIONS.md`; their current bytes and the named passing test
+cases were rechecked. Mock completed probes do not prove live inference.
+
+| Attack | Executed evidence | Result and limit |
+| --- | --- | --- |
+| Fabricated probabilities | Captured 100-response replay and 256 fixed-context copied distributions | The metric accepts copied reference probabilities; no model-execution proof |
+| Exact old answers | Core anti-gaming tests against fresh generated prompts | Exact cache misses new values; a template solver still passes |
+| Copied identity or signed envelope | Real-PG `test_identity_and_signature_rejected`, re-signed wrong-binding cases and concurrent retries | Wrong account/node/key/body/nonce/assignment/evidence rejected; 20 identical retries store once |
+| Probe-only model switching/proxy | Isolated live router sends 100 recognizable probes to the configured reference backend, ten ordinary controls to another backend | All probes pass; forwarding valid output remains possible. Configured backend names were not weight proofs in that experiment |
+| Specialized solver | Public-template CI and separate tool pilot with 400 fresh generated-value cases | No-model solvers pass; these are capability results, never proof of a particular model |
+| Known common control | Real-PG `test_concurrent_common_control_gets_one_shared_probe_seat` and reference-pool control test | Two recorded common-control identities receive one group seat; known common control cannot fill the reference quorum |
+| Conflicting/colluding verdicts | Real-PG conflicting-vote and disagreement tests | One validator cannot multiply votes; distinct signed disagreement remains disputed. Signatures do not prove that each signer independently computed a verdict |
+
+The common-control tests supply reviewed control-group metadata. They do not
+discover a concealed shared operator. A malicious operator may create unlinked
+identities or coordinate individually signed verdicts; identifying that control
+relationship remains an external-review trust assumption. Do not describe
+nonce/signature binding, apparent wallet diversity or matching votes as Sybil
+resistance or proof of independent computation. Economic authority remains off.
+
+### Dimension Boundaries
+
 | Dimension | Examples | Current authority |
 |---|---|---|
 | Availability | accepted work, completed before deadline | evidence only |

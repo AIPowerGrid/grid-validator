@@ -5,6 +5,44 @@ This is a dated rollout snapshot, not a live status page. Query
 `GET https://api.aipowergrid.io/v1/validator/capabilities` for current public
 state.
 
+## 2026-09-07 06:54 UTC - Preview.16 Windows Live Qualification
+
+Protected [run 34092210339](https://github.com/AIPowerGrid/grid-validator/actions/runs/34092210339)
+passed using harness commit `8750d3bbf6f8684092f1436722d0c967be9e41cf`,
+published preview.15 and preview.16 archives, and unchanged production Core
+`3f0b966a438177b5c695adec4f3e6132a1c237c1`. Preview.16's release source is
+`323e0104a8a6a5886b6b58e14bf953dab5b93544`. Both archives/manifests passed
+exact-tag/source/hosted-builder provenance verification before execution.
+
+The hosted Windows job ran 06:45:26-06:54:53 UTC. Its one disposable first-party
+node, `val_56c2548ae38e4321834a37c04ad39850`, completed explicit enrollment,
+owner-only identity ACL checks, one accepted signed report, drained outbox,
+stop/restart, invalid-key rejection, identity-preserving version switches and
+real firewall outage/recovery. Final cleanup suspended it and revoked its sole
+key. The runner restored its original firewall state successfully.
+
+A separate read-only repeatable-read database audit recovered the actual stored
+EIP-191 signer and recomputed the envelope digest. It matched the signed
+assignment ID, group, nonce, evidence hash, worker, model and capability to the
+stored completed assignment. One vote and one probe job exist; no active keys,
+account credit rows, reservations or worker-ledger rows exist for this canary.
+The private audit helper also passed four offline mutation tests. Those tests
+are distinct from the successful production audit.
+
+Evidence commitments:
+
+- Original downloaded workflow report (including its CRLF bytes):
+  `c4fdfa8cdc63e541f561f9672df9e08e0854fb2b238a7cfc8be380afab30592f`.
+- Independently executed read-only audit source:
+  `c763ec70ea054b5855f7a73b88024e43fd301585b6ba71e6db54a6dd715e5759`.
+
+Core stayed active at its 06:27:07 UTC activation, config remained byte-identical,
+and health still reported nine connected workers after the run. No existing
+operator configuration, cohort version, payout or validation authority changed.
+Website promotion and fleet upgrade are separate. This is one first-party
+Windows Server runtime sample, not human desktop, independent-quorum, media,
+Responses-policy or model-possession proof.
+
 ## 2026-09-07 03:54 UTC - Fresh Public Snapshot, No Authority Activation
 
 Read-only network status reports Core
