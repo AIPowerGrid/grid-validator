@@ -23,7 +23,10 @@ As checked September 7, 2026:
 - An owned Linux service upgraded from .15 to .17 with config and durable
   journal intact. Three fresh reports by 15:53:07 UTC have independently
   verified signatures and assignment bindings. Live recovery of a pending
-  signed report across that upgrade remains a separate incomplete check.
+  signed report across that upgrade remains a separate incomplete check. A
+  second owned node received no accepted report during a bounded 25-minute
+  attempt ending 16:11:49 UTC; it was restored healthy to its original .15
+  service with the temporary proxy removed. That attempt is inconclusive.
 - The public download page still recommends preview.16. The preview.17 website
   candidate passes 112 unit tests and nine local browser tests, but has not
   been promoted. Website tests do not prove registered-node recovery.

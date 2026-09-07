@@ -94,3 +94,11 @@ live replay. A first attempt rolled back after the harness's public-status
 request failed; the restored service stayed healthy. The corrected request
 passed preflight before the successful repeat. Full evidence and remaining
 gates are recorded in `ROLLOUT_2026_09.md`.
+
+A second owned Linux node ran a bounded pending-report canary until 16:11:49
+UTC. No accepted report arrived in 25 minutes, so no response-loss or upgrade
+replay was exercised. Cleanup restored its original preview.15 service, removed
+the temporary localhost proxy override and stopped the failsafe timer; all three
+states were independently checked afterward. The result is inconclusive, not
+a recovery pass or an observed updater failure. Re-run against available real
+assignments without changing production cadence or resetting qualification.
