@@ -14,10 +14,22 @@ installer generation.
   Text fidelity includes explicit attack baselines: fabricated matching
   logprobs and correct-model-only probe responses still pass this scorer. These
   passing attack tests document missing detection, not security qualification.
+- `test_responses_observation.py` - independent native-probability envelope
+  bounds, duplicates, prefix/sequence binding, unchanged numeric/byte values,
+  missing/partial coverage, and refusal of quality-authority flags. Its forged
+  but well-formed probability fixture is deliberately accepted: internal
+  consistency does not authenticate worker execution or conditional context.
 - `test_outbox.py` - durable assignment journaling, atomic signed-evidence
   promotion, delivery, dead-letter recovery, restart behavior, and deterministic
   connection closure after both commit and rollback.
 - `test_grid_client.py` - endpoint/capability and lifecycle transport contracts.
+- `test_delivery_receipts.py` - HTTPX-parsed accepted/duplicate receipt binding,
+  canonical signature normalization, preview compatibility, false HTTP success,
+  malformed/duplicate JSON, response loss and durable restart recovery. Full
+  probe rounds also show unavailable work becoming a local dead letter without
+  signing any verdict or reviving during ordinary polling. Core transport is
+  simulated here; real PostgreSQL receipt recovery is separately recorded in
+  `ROLLOUT_2026_09.md`, not inferred from these unit fixtures.
 - `test_enrollment.py` - real local signature recovery with mock Core transport,
   exact-purpose SIWE checks, consent/cancellation, private-key-free setup,
   signer preservation on retry, concurrent setup exclusion, scoped-key checks,

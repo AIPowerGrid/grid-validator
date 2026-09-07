@@ -5,6 +5,31 @@ This is a dated rollout snapshot, not a live status page. Query
 `GET https://api.aipowergrid.io/v1/validator/capabilities` for current public
 state.
 
+## 2026-09-07 03:54 UTC - Fresh Public Snapshot, No Authority Activation
+
+Read-only network status reports Core
+`c0cda681dc0f24aed4123f356b6ef115a3a30887`, 14 active registrations, eight
+fresh heartbeats and 11 validators participating in the last 24 hours. The
+window contains 685 completed assignments and 661 authoritative votes,
+covering six workers and six models. Reported aggregate agreement is 98.03%
+and disputed rate is 6.02%; these are different server-defined metrics, not
+complements or measured model-substitution accuracy.
+
+The version distribution reports four preview.13 and four preview.15 nodes.
+Both verified-independent and participating-independent counts remain zero.
+The separate capability response still reports `operator_independence_proven`
+false, `quality_eligible` false and economic effect `none`. Image, video,
+text-fidelity and validator rewards remain disabled. Generated canaries remain
+capability/protocol observations, not blind quality proof.
+
+There are nine serving workers and 13 advertised models, each with one serving
+worker in this snapshot. That is available generation capacity, not redundant
+or independently controlled reference capacity. No operator was qualified,
+rewarded, deployed or assigned new authority during this read-only check.
+Public aggregates neither refresh individual operator-control reviews nor
+prove the seven-day shadow-authority gate. The upgrade overlap and independent
+qualification still need resolution before that gate can be claimed complete.
+
 ## 2026-09-01 13:45 UTC - Evidence Lane Live, Authority Still Gated
 
 The public network snapshot reported ten active registrations, seven fresh

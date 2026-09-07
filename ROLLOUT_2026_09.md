@@ -1,6 +1,6 @@
 # September Validator Rollout
 
-Owner: the AIPG maintainer. Updated 2026-09-05. This is the execution record for
+Owner: the AIPG maintainer. Updated 2026-09-06. This is the execution record for
 the controlled rollout, not a declaration of production quality authority.
 
 ## Pre-Rollout Snapshot
@@ -182,6 +182,85 @@ that trust gap. Synthetic regression tests already show copied distributions
 and correct-model-only probe responses can score healthy. These are executable
 limitations; they are not live attacker trials or model-substitution benchmarks.
 
+## September 6 Local Qualification
+
+These are isolated experiments and source tests, not a fresh fleet snapshot or
+production deployment. The September 5 operational observations above remain
+dated observations.
+
+- [Native Responses transport](RESPONSES_QUALIFICATION.md): fresh local
+  backend inference through the released worker, Core WebSocket/Redis and the
+  independent validator reader preserves seven native probability positions.
+  Missing first-word coverage stays missing; this is not the public signed
+  assignment loop or proof of complete conditional-context alignment.
+- [Same-artifact behavior](HONEST_BASELINE_2026_09_06.md): 48 LM Studio/Ollama
+  requests on the identical 20B file retain wrong, truncated and correct
+  outcomes separately. Historical reference timeouts did not reproduce; their
+  original cause remains unknown.
+  A pinned local 120B follow-up now scores real 20B tokens at matching raw
+  contexts: all four word-level comparisons remain inside the unchanged
+  scorer match band. This is calibration evidence of a limitation, not a
+  qualified detector or a reason to tune thresholds on these same samples.
+- [Attention quantization](QUANTIZATION_BASELINE_2026_09_06.md): per-tensor
+  provenance, 24 behavioral requests and a separate 24-request exact-context
+  probability run. Native word probabilities can move substantially even when
+  the chosen token does not change. No acceptance threshold is qualified.
+- [Tool capability and template attack](TOOL_CAPABILITY_PILOT_2026_09_06.md):
+  eight successful model episodes, but a non-LLM solver also passes 400 fresh
+  randomized-value episodes. This is useful capability testing, not model
+  identity or a successful defense against probe-aware workers.
+- [Native-context answer scoring](ANSWER_FIDELITY_2026_09_06.md): 96 fresh
+  generations and 165 unique reference calls, with every completed answer
+  correct. The frozen rule flags 4/22 scorable smaller-model evaluation runs
+  and 0/20 same-model controls. Those flags are repeats of two paired cases,
+  not independent discoveries; tiny likelihood gaps and missing honest
+  cross-engine controls prevent promotion into a production trust policy.
+  A separate 72-candidate scripted attack records both misses and catches:
+  seven plain and six primed correct outputs are scorable/unflagged without
+  candidate inference; all 24 primed wrong mutations are flagged. This tests a
+  private proposed metric, not an authoritative production attestation path.
+  The September 7 UTC follow-up evaluates all 256 captured quant/load 20B
+  answers plus 32 fresh 120B controls against the unchanged cutoff. It flags
+  0/88 scorable held-out smaller-model observations and 0/13 scorable controls.
+  Do not promote this final-answer likelihood rule: zero false alarms with zero
+  detections is not useful model-identity discrimination. See the linked report
+  for complete denominators, unavailable cases and 276 native reference calls.
+- [Fixed-context distributions](FIXED_CONTEXT_FIDELITY_2026_09_07.md): 384
+  native calls without candidate reasoning, 64 fresh contexts and three pinned
+  artifacts. No actual 20B/120B comparison reaches the current anomaly band;
+  most remain in match, while some honest quant pairs are gray. Copying the
+  reference distribution defeats the offline metric on all 256 cross-model
+  observations. This is not public assignment/quorum or model-identity proof.
+
+Core's local `48f772ef` includes 20 additional signed-evidence tests. The exact
+committed suite plus four existing validator concurrency suites passed on a
+fresh, isolated PostgreSQL 14.19 instance: **45 passed, zero skips**. Invalid
+assignment/worker/model/nonce/hash bindings, signatures, expiry, unfinished
+probes and finalized groups are rejected without inserting evidence. Twenty
+concurrent identical deliveries produce one accepted row and nineteen
+duplicates. Conflicting submissions by one validator cannot multiply votes;
+different-validator disagreement stays disputed. Existing tests cover
+common-control assignment-seat exclusion, reference-pool exclusion, audit
+budget races and shadow-run idempotency.
+
+The fixtures synthesize completed probes and call the storage service. They do
+not establish HTTP authentication, live model execution, operator independence
+or future compensation correctness. PostgreSQL 14 is supplementary: PostgreSQL
+16 PR CI remains required before a release. The private run manifest hashes
+every test file and records the exact commit; its server was stopped afterward.
+
+Evidence SHA-256:
+
+- PostgreSQL final-run manifest:
+  `a39132f303f31a942cd89439f132817c1ff9945d15df67c95e55132846374603`.
+- PostgreSQL JUnit results:
+  `b056f49294d1fcd32fae0a361681f1f461c20ff678dd60ed1fe5df0064112652`.
+
+The validator working branch also reran its full unit suite: 342 tests,
+six skips, no failures. All qualification branches remain local and unpushed
+at this checkpoint. No policy, routing, credit, payout or penalty setting was
+changed by these experiments.
+
 ## Compensation Pilot Proposal
 
 Proposed budget: 10,000 AIPG total for seven days, at most 2,000 AIPG per reviewed
@@ -261,6 +340,143 @@ Do not enable issuance or treat a local-only preflight as chain-catalog proof.
 
 Do not waive the absent reference pool by labelling owned replicas independent.
 Unfinished empirical work and unavailable hardware remain explicit open items.
+
+September 7 first-party follow-up: [VIDEO_PILOT_2026_09_07.md](VIDEO_PILOT_2026_09_07.md)
+records four uncached LTX Director executions on one owned GPU, two same-seed
+repeat pairs with identical decoded pixels, and actual-byte defect scoring.
+Basic structural checks miss reversed playback and a two-frame oscillation;
+the existing reference comparison rejects both in this pilot. Disagreement and
+reference decode failures remain inconclusive. The initial cached repeat and
+two harness corrections are retained. This completes a bounded calibration,
+not the governed video, cross-hardware, image or independent-reference gates
+above. No production issuance or economic authority was enabled.
+
+The subsequent [IMAGE_PILOT_2026_09_07.md](IMAGE_PILOT_2026_09_07.md) records
+twelve uncached Z-Image/FLUX renders across two seeds, using the owner's active
+image backend. Honest repeats have equal decoded pixels; two cross-model
+pairs are outliers in both directions. Grayscale removal and the wrong FLUX
+seed remain accepted by v1. Keep those misses explicit and do not tune the
+threshold to this scene. Cross-hardware, workflow variants and independent
+references remain open; issuance stays gated.
+
+The video report's image-to-video follow-up adds five uncached executions:
+two source images, their repeats and one deliberately bypassed conditioning
+run. Honest repeats match in decoded pixels. First-frame pHash distances to
+the intended source are zero for the conditioned outputs and 32 for the
+bypassed output, yet all five pass the existing structural contract. A
+source-binding policy is not implemented or calibrated by these measurements.
+The subsequent nine-clip offline study covers first-frame/prefix splices and
+codec/resize controls. First-frame-only comparison is defeated; full-clip v1
+rejects the tested splices and accepts all three reconstruction controls.
+Broader scene/crop/hardware and legitimate temporal controls remain required;
+this does not enable public media assignments or penalties.
+
+## Attestation Delivery Follow-Up
+
+Local unreleased hardening, September 7 UTC. A client defect treated any
+successful HTTP response from attestation submission as delivery and removed
+the durable envelope. Regression fixtures reproduced deletion after a wrong
+receipt and acceptance of HTTP-200 error/HTML/empty responses. This is a
+delivery-loss risk, not evidence of observed production loss.
+
+The client now requires HTTP 200 and an `accepted` or `duplicate` receipt with
+a positive integer stored ID, the exact canonical payload/signature hash and
+matching authority. Assignment-bound evidence also requires matching assignment
+and probe-group IDs and verified signature status. Unsigned preview helpers
+remain preview-only; signature-prefix normalization matches Core. Duplicate
+JSON keys, malformed bodies and uncommitted HTTP 202 responses cannot clear
+the local queue. Failed checks use existing retry/dead-letter limits.
+
+The probe client separately requires a completed object for the requested
+assignment. A full local round/restart/retry test feeds Core-shaped inconclusive
+responses through HTTPX and proves no signing, no attestation submission and
+no silent revival after the assignment becomes a dead letter. Operational
+probe failure is not a worker-failed verdict.
+
+Eight unit methods cover these paths and negative subcases. The full validator
+run completed 350 tests with six explicit optional-integration skips and no
+failures, using the validator dependency environment. Earlier invocations with
+the Core-only environment or a forced `VALIDATOR_ENV` override were unsuitable
+for the complete suite; they are not passing runs.
+
+Four additional cross-repo tests use Core's real signature/assignment checks
+and disposable PostgreSQL persistence with simulated HTTP delivery. Each first
+commits an attestation, then loses the reply or corrupts its hash, assignment ID
+or authority. The client retains the exact envelope across reopening SQLite;
+replay receives Core's matching duplicate receipt and clears the queue. The
+database contains one vote throughout recovery. The matching envelope hash is
+checked against Core's implementation, not just a duplicated unit-test formula.
+
+The final formatted source passed all 49 PostgreSQL 14.19 tests (four new plus
+45 existing evidence/concurrency tests), with zero skips or failures. Core was
+`ebe97a61`; the owned database stopped. Private evidence SHA-256:
+
+- Final summary: `28d0bf893c461dff1bb38251847f8a2fb69e35b09b846c1a0dcbd524a53175b2`.
+- Source-bound invocation: `145e0c44447e64c12387804bbbbde06e331a6d055291a745a25c945c04cc478c`.
+- JUnit: `4c3da491a5a2f2c08c3547f58a69c967d415c23f7e4d6e0de68aa9e36d033264`.
+
+These are delivery/persistence checks with synthesized completed probes. They
+do not prove native inference, HTTP authentication, operator independence,
+future compensation or PostgreSQL 16 release qualification. Receipt matching
+does not make a dishonest coordinator trustworthy. No public Responses
+assignment policy, capability advertisement, automatic penalty or deployment
+is introduced by this change.
+
+## PostgreSQL 16 Terminal Qualification
+
+Local Core `2cc536dd34900a44f1c0c6dfba0fadf6b51e116e` passed a fresh
+PostgreSQL 16.15 qualification run with **99 tests, zero failures or skips**.
+The final manifest records a clean Core worktree and unchanged Core/validator
+Python source hashes. A preceding source-bound working-tree run also passed.
+The database was built in a private prefix from the checksum-verified
+[official PostgreSQL source archive](https://ftp.postgresql.org/pub/source/v16.15/).
+Neither an existing database nor a production service was changed.
+
+The count is deliberately split by what it proves:
+
+- 49 real-PostgreSQL evidence, signature/binding, common-control, budget,
+  shadow-run and cross-repo receipt-recovery tests, previously run on PG14.
+- Six new real-PostgreSQL worker-ledger/audit-terminal cases. Three modality
+  cases each race twenty completions after observing at least two genuinely
+  blocked database backends: one settles and nineteen return duplicate, with
+  one ledger row and one charge against each of four budget scopes.
+- One of those six cases races release against success and checks that the
+  resulting state is either charged/paid or released/unpaid, never both. It
+  does not claim to enumerate every possible database interleaving.
+- The other two cases terminate the actual transaction backend after the
+  ledger insert, either before or after budget writes but before commit. Both
+  return an error, retain the original hold, and leave no ledger row or spent
+  budget. A subsequent retry settles once; the following retry is duplicate.
+- 14 existing terminal/utility tests using SQLite or no database, plus 30
+  pure/offline compensation-preview tests. These 44 are not PG concurrency
+  proofs. The 99-test total must not be described as 99 PostgreSQL tests.
+
+The new fixture creates and drops only its generated schema. The harness
+starts a new loopback-only cluster with production environment stripped,
+records immutable sources/results, and stops that cluster in cleanup. Tests
+use synthetic completed probes and worker outputs. Killing a database backend
+tests transaction rollback, not every possible whole-Core crash or network
+partition. The worker completion ledger is not a sent on-chain payment or a
+validator compensation entitlement.
+
+Private final-run SHA-256:
+
+- Manifest: `5ebb0d0c54192a22afe359ef2f75059010ebc579673c4106be9f71ea334be32f`.
+- JUnit: `6940a79a09d11f83a906833b38e201ff3e1ce8dd930aef4a54ba671cb9730d02`.
+- Summary: `7b1404458e40e47af34dfc43c10ee938fb196d7442cc088f41f1cb93bbc04786`.
+- Stopped-server record: `2ed7d5ebca33929df5b21f41d1b710aef81e6f4992a848b9e471f3c2179281eb`.
+
+This closes the local PostgreSQL-major-version evidence gap for these cases,
+not the required Linux/Python-3.12 PR CI, migration/restore proof, authenticated
+HTTP integration, public shadow deployment or compensation sends. The local
+runtime is macOS/Python 3.13 and disables ICU/readline/zlib at PG build time.
+No feature flag, scheduler, policy, routing or economic authority was enabled.
+
+The changed-source secret scan and the tested Core branch's complete reachable
+history passed. A broader all-local-refs scan flagged 14 entries outside that
+history, including archived/remotely tracked branches. Their redacted metadata
+is retained for separate review; this is not an all-refs secret-clean claim.
+No history or scan exclusions were rewritten to suppress findings.
 
 ## Immediate Operator Follow-Up
 

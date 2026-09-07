@@ -92,13 +92,132 @@ model attestation or use it as sole authority.
 
 ## Ownership
 
+- **`QUALIFICATION_DECISIONS.md`** - eight-part evidence index and frozen
+  acceptance criteria for the next text-method evaluation and preview release.
+  Keep scheduled case-group denominators, honest claimed-model controls and
+  unavailable outcomes explicit. Its research gates grant no model-possession,
+  population false-positive, deployment or economic authority claim.
+  Its scorecard candidate record binds Core draft PR #117 and Console draft
+  PR #25 to local evidence, passing Linux CI and a dated production snapshot.
+  Preserve CI skips and zero independently reviewed operators explicitly.
+  Draft publication is not deployed scorecards or independent shadow authority.
 - **`ROLLOUT_2026_09.md`** - controlled release, measured text-fidelity and
   adversarial experiments, proposed capped compensation, and image/video pilot
   acceptance record. Distinguish synthetic attack baselines from live evidence.
+  Its September 6 local qualification section records 45 real-PostgreSQL-14
+  tests of committed Core evidence/concurrency code, not PostgreSQL 16 release
+  qualification, live inference or a refreshed production fleet snapshot.
+  Its delivery follow-up records strict matching receipts before local evidence
+  deletion, real-PostgreSQL response-loss/receipt-corruption recovery, and
+  unavailable work producing no signed failure. It does not add a Responses
+  scoring policy, compensation entitlement or deployment claim.
+  Its PostgreSQL 16 follow-up records 55 real-PG tests plus 44 SQLite/offline
+  tests, including actual transaction-backend termination and duplicate terminal
+  races. Local PG16 proof is not Linux release CI or an on-chain payment.
 - **`TEXT_FIDELITY_EXPERIMENT_2026_09_05.md`** - first real backend calibration,
   captured-logprob forgery and live probe-aware routing evidence. Its successful
   pair separation is not proof of exact weights, cross-quant tolerance or safe
   quality authority; record protocol-token confounding and successful evasions.
+- **`RESPONSES_QUALIFICATION.md`** - local native-logprob component qualification
+  through fresh inference, a released worker, local WebSocket/Redis and the
+  independent observation reader. Not proof of the public assignment/signing
+  loop, model identity, cross-engine tolerance or production deployment.
+  Its synthetic 18-case fault follow-up exposed and fixed Core duplicate-key
+  and UTF-8 item-ID inconsistencies. Invalid observations remain unavailable;
+  the reader still grants no model-execution or economic authority.
+- **`HONEST_BASELINE_2026_09_06.md`** - completed 48-request same-GGUF
+  LM Studio/Ollama baseline and bounded historical reference-timeout replay.
+  Six distinct cases, shared backends and unproven rendered-context equality:
+  not a detector, engine ranking or calibrated penalty threshold.
+  Also owns the two-request reference-side prompt-logprob capability preflight;
+  synthetic supplied continuations are not a real model-substitution test.
+  Its pinned local 120B follow-up scores actual captured 20B tokens at matching
+  raw contexts. All four word-level comparisons fall inside the unchanged
+  scorer match band. This records a measured limitation, not held-out detector
+  accuracy, full-answer likelihood or permission to tighten production thresholds.
+  Its decoded-context follow-up captures identical LM Studio inputs/outputs
+  across six endpoint controls and scores six word positions twice with the
+  same GGUF in standalone llama.cpp. The maximum chosen-token gap is 1.766401
+  percentage points. Native LM token IDs and effective sampler settings remain
+  unobserved; this is neither an exact-context proof nor an acceptance threshold.
+- **`ANSWER_FIDELITY_2026_09_06.md`** - native-context candidate-answer
+  reference-scoring study and retained failed raw-completion attempt. The new
+  frozen method preserves candidate reasoning, excludes formatting-only score
+  positions and does not use candidate-reported probabilities in its feature.
+  The independently audited 96-generation run flags 4/22 scorable smaller-model
+  evaluation runs and 0/20 same-model controls. Flags are repeated paired cases;
+  all completed answers are correct. This is not a qualified detector, honest
+  cross-engine false-positive bound or permission to grant authority.
+  Its separate 72-candidate scripted attack leaves seven plain and six primed
+  correct outputs unflagged without candidate LLM execution, while all 24
+  primed wrong-answer mutations are flagged. Preserve both caught and missed
+  attacks; this private metric test does not establish a live endpoint exploit.
+  Its fresh quant/load follow-up retains 256 actual 20B answers and adds 32
+  actual 120B controls. The unchanged cutoff flags 0/88 scorable held-out 20B
+  observations and 0/13 scorable controls. Do not promote this final-answer
+  likelihood rule or interpret zero false alarms as successful detection.
+  All 276 unique reference calls and 678 token bindings are independently
+  audited; unavailable evidence and correlated repeats remain explicit.
+- **`QUANTIZATION_BASELINE_2026_09_06.md`** - private attention-only Q8-to-Q4
+  stress variant with per-tensor provenance and a completed 24-request
+  same-engine comparison: budget exhaustion remains separate from wrong answers.
+  Experts are unchanged MXFP4; do not present it as a new production model,
+  acceptable quantization threshold or verified 120B comparison.
+  Also records a separate 24-request native-probability comparison with exact
+  raw token-ID contexts: matching chosen tokens can have different probabilities;
+  whitespace-only positions remain excluded from semantic interpretation.
+  Its published-quant follow-up pins a same-publisher Q8/Q4 pair, audits every
+  tensor, and records 144 native calls at 24 fresh paired contexts. Expected-word
+  probability gaps reach 48.526740 percentage points, without a fraud threshold.
+  Only 85 attention/embedding tensors change; MXFP4 experts remain byte-identical
+  within that pair. Keep cross-publisher packed-byte provenance distinct from
+  numerical equivalence: all 19.11 billion differing experts' decoded values
+  match under the pinned GGUF decoder. Keep raw one-token calibration distinct
+  from complete chat quality, and published artifacts from Grid-certified tiers.
+  Its full-answer/load follow-up records 256 native calls at 32 fresh paired
+  contexts, including 4,930-token retrieval: 215 correct completions and 41
+  budget exhaustions, no wrong completed answers or infrastructure errors.
+  Every overlapping batch has observed two-slot processing. Temperature-zero
+  token sequences vary under load, including one correct-to-budget transition;
+  this is calibration evidence, not model dishonesty or authority activation.
+- **`TOOL_CAPABILITY_PILOT_2026_09_06.md`** - eight completed local 20B
+  multi-step tool episodes with corrected instructions and stockout recovery;
+  an unchanged non-LLM solver also passes 400 fresh randomized-value cases.
+  Capability evidence only, not model identity, a live assignment bypass or a
+  shipped expansion of the two-stage tool-chain policy.
+- **`FIXED_CONTEXT_FIDELITY_2026_09_07.md`** - 384 native calls across 64 fresh
+  raw-text contexts, without candidate reasoning. Existing distance bands put
+  most actual 20B/120B pairs inside match and none inside anomaly; honest Q8/Q4
+  controls also include gray observations. Keep raw metric bands distinct from
+  public assignment verdicts and pooled-tail proxies from full-vocabulary JSD.
+  Copied reference reports yield zero distance in every cross-model comparison;
+  this is offline forgery evidence, not a live signed-endpoint exploit.
+
+- **`IMAGE_PILOT_2026_09_07.md`** - twelve uncached first-party image captures
+  across Z-Image/FLUX and two seeds. Existing scoring catches the tested
+  cross-model substitutions but accepts grayscale removal and one wrong-seed
+  pair. Its six-render same-artifact Apple/NVIDIA follow-up accepts all twelve
+  directed honest comparisons and rejects four cross-model substitutions with
+  unchanged v1. Honest cross-stack RGB differs while pHash is identical. One
+  scene/two seeds do not qualify fleet tolerances or model identity. Stored
+  tensor dtype, recipe labels and runtime compute precision remain distinct.
+- **`VIDEO_PILOT_2026_09_07.md`** - first-party LTX video calibration with four
+  uncached runs, actual-byte corruption tests and reference-failure checks.
+  Same-seed decoded pixels agree despite different container hashes; structural
+  motion checks miss reversed playback and a two-frame oscillation. Preserve
+  the failed cached attempt and harness corrections. One owned backend is not
+  independent-reference, cross-hardware or governed-media qualification.
+  Its five-run image-to-video follow-up shows that bypassing source conditioning
+  still passes basic video conformance. First-frame distances are measurements,
+  not a shipped source-binding policy or a calibrated penalty threshold.
+  Its offline source-splice follow-up defeats first-frame-only comparison;
+  full-clip v1 rejects the tested splices and accepts three codec/resize
+  controls. Those owned-reference results are not a fleet tolerance bound.
+  Its actual LTX-2/LTX-2.3 follow-up rejects eight bidirectional/repeated
+  model/workflow substitutions across two seeds on two owned hosts. Basic
+  conformance accepts all clips. Model, workflow and host change together;
+  this is not a same-artifact hardware baseline, eight independent trials,
+  calibrated false-positive rate or exact model identity proof.
 
 - **`validator/`** — the whole node (config, stake gate, grid client, canary probing +
   scoring, attestation signing, probe loop, CLI, read-only dashboard, and opt-in
