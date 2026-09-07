@@ -2,150 +2,97 @@
 
 ## Objective
 
-An easy-to-operate validator with attributable, useful validation and a capped
-compensation pilot. Model-identity research is not a prerequisite for releasing
-supported operational validation. Failed detector experiments remain published
-as limitations; no automatic worker penalties are authorized by this plan.
+Ship an easy-to-operate validator, useful attributable evidence and a capped
+compensation pilot. Exact model identity is not a launch requirement. No
+automatic worker penalties are authorized by this plan.
 
 The owner is the sole AIPG maintainer. Do not invent another required maintainer
 or make operators repeat information already supplied privately.
 
-## Delivery Checklist
+## Current Checkpoint
 
-- Operator reviews: recover prior signed-control and common-control records;
-  finish missing reviews using existing IDs. Diagnose interrupted participation
-  before prescribing a remedy. Keep qualification timestamps and observations;
-  do not use `--restart-qualification` to erase an inconvenient history.
-- Upgrades: app-side release discovery is implemented in source, independent
-  of a running node. Still required: explicit verified one-click installation,
-  version/platform/source binding, provenance verification, atomic replacement,
-  Windows running-executable handoff, health-checked restart and rollback. Test
-  interrupted download, tampering, failed startup and unchanged signer/journal
-  on every distributed platform. Preserve container/service ownership: an app
-  must not kill or replace a separately managed service.
-- Production pilot: use Core's existing shadow-run machinery, not a second
-  timer. Start only with three reviewed independently controlled operators and
-  the existing participation/group requirements. Freeze release, policy, cohort,
-  acceptance thresholds, start and end in the run record before starting.
-  Observe seven days. Publish pass/fail/inconclusive with denominators and outage
-  explanations; do not extend the run indefinitely to manufacture a pass.
-  Any rerun is a separately identified decision, not an overwritten result.
-- Pilot evidence: report assignment completion, acknowledged evidence delivery,
-  attributable signatures, duplicate/retry handling, outage recovery, heartbeat
-  coverage, backlog and scorecard consistency. Separate host/coordinator failure
-  from candidate-worker failure. Keep existing qualification history intact.
-- Compensation: obtain owner approval of total budget and asset first. Existing
-  Core `preview_validator_compensation.py` is an offline allocation preview,
-  not a payment sender. Finish immutable allocations, per-operator caps,
-  reviewed eligibility, duplicate protection and reconciliation before payment.
-  Compensation is for reviewed useful participation, not majority agreement,
-  a particular verdict, or number of accusations. No automatic slashing or
-  routing privilege follows from payment. Never present simulated allocations
-  as earned or paid balances.
-- Operator view and release: show actual connection, completed assignments,
-  accepted evidence, qualification, compensation state and actionable errors.
-  Verify on native Windows/Linux/macOS and narrow/desktop browser layouts.
-  Publish one reviewed release with an in-place upgrade guide and rollback
-  evidence. Promote it only after artifact and production-pilot gates pass.
+As checked September 7, 2026:
 
-## Updater Implementation Evidence
+- Preview.17 is published from `aa35fa0a`, including the verified app updater.
+  Release workflow `34136400434` passed four-platform native handoff, recovery
+  and clean-install checks. Downloaded assets and pinned provenance passed
+  verification. Old installed binaries do not gain the updater retroactively.
+- Production Core `3714a927` admits preview.13/.15/.16/.17 while preserving
+  identity, qualification history and review records. Shadow observation and
+  validator economics remain off.
+- An owned Linux service upgraded from .15 to .17 with config and durable
+  journal intact. Three fresh reports by 15:53:07 UTC have independently
+  verified signatures and assignment bindings. Live recovery of a pending
+  signed report across that upgrade remains a separate incomplete check. A
+  second owned node received no accepted report during a bounded 25-minute
+  attempt ending 16:11:49 UTC; it was restored healthy to its original .15
+  service with the temporary proxy removed. That attempt is inconclusive.
+- The public download page still recommends preview.16. The preview.17 website
+  candidate passes 112 unit tests and nine local browser tests, but has not
+  been promoted. Website tests do not prove registered-node recovery.
+- Compensation is an offline allocation simulation, not an entitlement ledger
+  or payment sender. The total pilot budget has not been approved.
 
-Release discovery is merged; versioned installation/handoff is now implemented
-in the draft updater PR, but not released. See `UPDATES.md`. The in-progress
-`release_verify.py` authenticates the manifest using Sigstore 4.5.0, the exact
-GitHub release workflow identity and signed SLSA source/tag/platform bindings.
-On 2026-09-07 it verified the published preview.16 manifest without a GitHub
-login and rejected altered manifest bytes and an altered source commit against
-the real published attestation. Manifest SHA-256:
-`904c279ca6c381c1de75b216d160e9676aa7307ee7f979946e027683233500d0`.
+See `UPDATES.md` and `ROLLOUT_2026_09.md` for release and failure evidence.
 
-Hermetic policy tests mock the cryptographic transport explicitly. Neither
-those tests nor the live manifest check proves archive extraction, packaged
-trust-root resources, anti-downgrade selection, running-binary replacement,
-identity preservation or successful restart/rollback. Those remain required
-for the one-click updater, which must isolate verification in a killable child
-and must never replace an externally managed service or container.
+## Remaining Delivery Order
 
-Local source verification: 372 unittest cases, 366 passed and six optional
-Core/Console integration cases skipped; all 11 new verifier-policy cases pass.
-Ruff, strict mypy on the verifier, frozen-lock resolution with CI's uv 0.12.5,
-staged secret scanning and the all-extras dependency audit pass. These are local
-source checks, not native packaged updater qualification.
+1. Finish the bounded owned-node pending-report recovery check and promote the
+   verified preview.17 downloads. An unavailable assignment makes that attempt
+   inconclusive, not passed. Preserve configs, IDs and qualification clocks.
+   App updates never replace externally managed services or containers.
+2. Complete reviews for three independently controlled operators using existing
+   records and IDs. Diagnose outages and missing coverage rather than restarting
+   enrollment. Re-request only genuinely missing control information; do not
+   infer independence from a public ID, IP address or Discord handle.
+3. Freeze one seven-day production pilot in Core's existing shadow-run machinery:
+   selected reviewed operators, exact compatible release policy, acceptance
+   thresholds, start and end. Check the live start gate before activation.
+   Publish pass/fail/inconclusive at the end; do not extend it to manufacture a
+   pass. Any rerun is a separately recorded decision. Preserve prior observations.
+4. Finish compensation in parallel: owner-approved asset and total budget,
+   immutable eligible-work allocations, per-operator caps, durable duplicate
+   protection, reviewed recipients and payment reconciliation. Reuse the audited
+   payment rail where appropriate. Never send an offline preview as a payment
+   manifest or show simulated allocations as earned balances.
+5. Verify the complete operator journey and scorecard: actual connectivity,
+   completed assignments, accepted evidence, pending retries, qualification,
+   compensation status and actionable errors. Then publish the pilot result and
+   supported-beta instructions with accurate capability limits.
 
-The next implementation step adds bounded, credential-free child preparation,
-HTTPS download and private archive staging. The real preview.16 macOS archive
-was downloaded (61,383,946 bytes), signature/digest checked and extracted
-(61,845,216 executable bytes), without execution or activation. Executable
-SHA-256: `c096d116b03cc23e991b3f40cecc787883d7834891d85a4af44126368d23699a`.
-The temporary stage was removed. Fixture tests reject path/symlink/device
-entries, CRC corruption, compression bombs, untrusted redirects, interrupted
-downloads and attempts to overwrite an existing executable. Source child tests
-cover cancellation, oversized replies, timeouts and a credential-free environment.
+## Pilot Acceptance
 
-Native build CI now collects Sigstore data and invokes offline packaged
-`_update-worker self-test`, which loads trust roots and app assets. Passing the
-earlier manifest-only build does not prove this newer gate. Installation still
-needs explicit app activation, restart/rollback and cross-platform persistence
-tests. Frozen restart/handoff must use independent PyInstaller state as required
-by the [PyInstaller restart guidance](https://pyinstaller.org/en/stable/common-issues-and-pitfalls.html#using-sys-executable-to-spawn-subprocesses-that-outlive-the-application-process-implementing-application-restart).
-The staging/process source suite passes 394 cases (388 passed, six optional
-Core/Console integration skips), including 14 download/archive and eight process
-tests. Strict type checks pass for the three new modules. Native build results
-for this step must be checked on its own commit, not the earlier verifier-only
-commit.
+Freeze numerical thresholds in the run record before it starts. Evaluate
+assignment completion and acknowledged evidence delivery with denominators;
+signature and assignment binding; duplicate/retry safety; outage recovery;
+heartbeat coverage; backlog; and scorecard consistency. Separate unavailable
+coordinator/reference infrastructure from candidate-worker failures.
 
-The first staging native run (`34128664070`) failed: Windows hit a socket reset
-in an early-header-rejection test; the other three packaged readiness checks
-returned a sanitized generic error. Do not count that run as a passing release.
-The follow-up explicitly packages `sigstore._store` and tests embedded trust
-files directly, rather than consulting or populating the user's TUF cache.
-Readiness now distinguishes dependency, trust-file and UI-resource failures
-without exposing exception text. Malformed-header tests check rejection before
-sending a body. Local verification passes 396 cases (390 passed, six optional
-integration skips); cross-platform CI must still verify the follow-up commit.
+Preview release promotion and supported paid-beta activation are different
+milestones. A tested updater can be recommended before the seven-day beta pilot
+finishes. Publishing it grants no economic, routing or penalty authority.
 
-That follow-up passed all four native build/readiness and clean-install lanes
-in run `34130021821`. The subsequent app-handoff implementation is a new gate:
-source tests pass 410 cases (403 passed, six optional integration skips and one
-explicit native-fixture skip). A separate frozen macOS fixture passed actual
-app readiness, version commit, wrong-version rollback and exit. Browser checks
-at 320/390/768/1280px found no horizontal overflow; Escape issued no install,
-while confirmation submitted one tag-bound request. These checks do not prove
-live registered-node resume, real queued-evidence recovery or the new native
-CI matrix. Keep those remaining release gates explicit.
+## Capability And Payment Boundaries
 
-The app-handoff commit `090f144` passed all four native build/handoff and
-clean-install lanes in run `34132789477`, plus source CI and security checks.
-The follow-up adds same-port/session reconnection, original-shortcut cold
-launches, interrupted-selection fallback, and rollback after readiness when the
-selection write fails. Its new checks must pass on their own commit; the earlier
-green run does not qualify them. Core must admit the exact next version before
-operator promotion, preserving the existing qualification window.
+Availability and task-specific correctness are useful evidence dimensions, not
+proof of exact weights, parameter count, hardware or model provenance. Logprob
+substitution misses, fabricated matching probabilities, colluding signed
+judgments and image-copy acceptance remain limitations. Experimental fidelity
+and media lanes remain non-punitive until separately qualified.
 
-Local follow-up verification passes all 410 source cases (403 passed, seven
-explicit optional/native skips), strict types for the four install/process
-modules, and the actual dual-version macOS frozen fixture. Browser QA at
-320/390/768/1280px verifies consent cancellation, one confirmed install request,
-automatic asset reload on version change and retained same-origin session
-authentication without a repeated installation. Native Windows/Linux CI and
-registered-node evidence replay remain separate checks.
-
-## Capability Boundary
-
-Availability and task-specific correctness are supported evidence dimensions.
-They do not prove exact weights, parameter count, hardware or model provenance.
-Logprob substitution misses, forged matching probabilities, colluding signed
-judgments and image-copy acceptance remain explicit limitations. Experimental
-fidelity and media lanes stay non-punitive until separately qualified.
+Compensate reviewed useful participation, not majority agreement, particular
+verdicts or accusation counts. Payment does not authorize worker penalties.
+First-party nodes do not fill independent-operator seats or eligible paid seats
+under this pilot. No new staking contract is required to pay a reviewed pilot.
 
 ## Source Of Truth
 
-- `QUALIFICATION_DECISIONS.md`: completed experiments and remaining gates.
+- `QUALIFICATION_DECISIONS.md`: completed experiments and capability limits.
 - `PREVIEW_COHORT.md`: operator intake and independent-control qualification.
-- `ROLLOUT_2026_09.md`: deployment/release evidence, not inferred fleet health.
+- `ROLLOUT_2026_09.md`: dated deployment and release evidence.
 - Core `scripts/review_validator_operator.py`: digest-bound review preview/apply.
 - Core `scripts/manage_validator_shadow_run.py`: bounded shadow-run lifecycle.
 - Core `scripts/preview_validator_compensation.py`: offline, non-sendable preview.
 
-Live status, database review records, immutable CI artifacts and the finalized
+Live status, protected review records, immutable CI artifacts and the finalized
 pilot report are completion evidence. This checklist alone is not.

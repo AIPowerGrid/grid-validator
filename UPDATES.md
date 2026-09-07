@@ -63,12 +63,16 @@ run does not establish Windows/Linux qualification or live registered-node
 upgrade continuity. The separately tested real published-release provenance
 download is preparation evidence, not the complete update journey.
 
-Before promotion: pass the current native matrix, admit the exact release in
-Core's supported-version overlap without resetting qualification, test an owned registered
-node through a real released-version upgrade and preserved pending evidence,
-confirm recovery after interrupted startup, and run the bounded production pilot.
-Do not change public download recommendations or operator qualification clocks
-merely because this implementation is merged.
+Before preview download promotion: pass the current native matrix, admit the
+exact release in Core's supported-version overlap without resetting
+qualification, test an owned registered node through a real released-version
+upgrade and preserved pending evidence, and confirm interrupted-startup
+recovery. A merged implementation alone is not sufficient.
+
+The seven-day production pilot and approved compensation are separate gates for
+supported paid beta, not prerequisites for recommending a tested preview
+updater. Preview promotion never resets qualification or activates economic or
+worker-penalty authority. See `SUPPORTED_BETA.md` for the remaining delivery order.
 
 ## September 7 Release Checkpoint
 
@@ -90,3 +94,11 @@ live replay. A first attempt rolled back after the harness's public-status
 request failed; the restored service stayed healthy. The corrected request
 passed preflight before the successful repeat. Full evidence and remaining
 gates are recorded in `ROLLOUT_2026_09.md`.
+
+A second owned Linux node ran a bounded pending-report canary until 16:11:49
+UTC. No accepted report arrived in 25 minutes, so no response-loss or upgrade
+replay was exercised. Cleanup restored its original preview.15 service, removed
+the temporary localhost proxy override and stopped the failsafe timer; all three
+states were independently checked afterward. The result is inconclusive, not
+a recovery pass or an observed updater failure. Re-run against available real
+assignments without changing production cadence or resetting qualification.
