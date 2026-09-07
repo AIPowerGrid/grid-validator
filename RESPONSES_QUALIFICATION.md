@@ -136,3 +136,9 @@ points at six word positions. Native LM Studio token IDs and effective sampler
 settings remain unavailable, so exact conditional-context equivalence and safe
 thresholds are still unproven. This does not close the public assignment/outbox
 integration gate or make partial Responses evidence a chat first-token witness.
+
+The later SDK-native tokenization check in that baseline report queried the
+same six captured prefixes twice through LM Studio. All twelve native token-ID
+sequences match the saved llama.cpp reference inputs. This is current tokenizer
+agreement on captured strings, not a historical prediction trace, effective
+sampler proof or completion of the Responses assignment/outbox integration.
