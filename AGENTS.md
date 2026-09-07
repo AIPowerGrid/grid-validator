@@ -148,6 +148,14 @@ model attestation or use it as sole authority.
   Also records a separate 24-request native-probability comparison with exact
   raw token-ID contexts: matching chosen tokens can have different probabilities;
   whitespace-only positions remain excluded from semantic interpretation.
+  Its published-quant follow-up pins a same-publisher Q8/Q4 pair, audits every
+  tensor, and records 144 native calls at 24 fresh paired contexts. Expected-word
+  probability gaps reach 48.526740 percentage points, without a fraud threshold.
+  Only 85 attention/embedding tensors change; MXFP4 experts remain byte-identical
+  within that pair. Keep cross-publisher packed-byte provenance distinct from
+  numerical equivalence: all 19.11 billion differing experts' decoded values
+  match under the pinned GGUF decoder. Keep raw one-token calibration distinct
+  from complete chat quality, and published artifacts from Grid-certified tiers.
 - **`TOOL_CAPABILITY_PILOT_2026_09_06.md`** - eight completed local 20B
   multi-step tool episodes with corrected instructions and stockout recovery;
   an unchanged non-LLM solver also passes 400 fresh randomized-value cases.

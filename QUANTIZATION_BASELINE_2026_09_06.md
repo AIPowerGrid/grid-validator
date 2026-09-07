@@ -215,3 +215,102 @@ weights. Host SSH was rejected with both the configured identities and the
 existing AIPG infrastructure key. Working host access has been requested to
 inspect actual artifacts and runtime settings. Do not replace that gate with
 the API's advertised model name or claim a verified 120B substitution result.
+
+## Published Quantization Follow-Up (2026-09-07 UTC)
+
+This follow-up uses published artifacts, not the hand-made attention stress
+variant above. Both files come from `unsloth/gpt-oss-20b-GGUF`, pinned to revision
+`d449b42d93e1c2c7bda5312f5c25c8fb91dfa9b4`. Public metadata was checked before
+download, and full-file SHA-256 matched the publisher's LFS checksums:
+
+| File | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `gpt-oss-20b-Q8_0.gguf` | 12109567168 | `bcd455d4034ec02f71a875b46cb17df44a97911d7258291973be4d21f98329f3` |
+| `gpt-oss-20b-Q4_K_M.gguf` | 11624759488 | `c27536640e410032865dc68781d80a08b98f8db5e93575919af8ccc0568aeb4f` |
+
+The tensor audit found 459 tensors in each artifact. The published Q8 file has
+98 Q8_0, 289 F32 and 72 MXFP4 tensors. Its Q4 counterpart has 13 Q8_0, 61 Q5_0,
+24 Q4_K, 289 F32 and 72 MXFP4 tensors. Exactly 85 tensor payloads change:
+84 attention tensors and the token embedding. All shapes, the 72 expert
+payloads and tokenizer/chat-template metadata match between this publisher's
+pair; only `general.file_type` changes in metadata. This is not full-model
+four-bit versus eight-bit precision, nor a Grid-certified quantization tier.
+
+Compared with the original LM Studio-community artifact, the published Q8
+file has 387 byte-identical tensors and 72 differing packed MXFP4 expert
+payloads, with unchanged tensor types and shapes. Chat-template and padding
+token metadata also differ. Packed-byte differences alone do not establish
+different numerical weights. Neither conversion's publisher checksum proves
+correspondence with an independently verified upstream OpenAI tensor snapshot.
+
+A follow-up decoded all 72 differing expert tensors in bounded chunks with
+the installed GGUF MXFP4 decoder: 19,110,297,600 values compared, zero numerical
+differences and zero nonfinite values. All 72 decoded tensor digests match.
+Together with the other 387 byte-identical tensors, this establishes numerical
+tensor equivalence under that decoder despite different file/payload hashes.
+It does not remove the chat-template/padding metadata differences or prove
+upstream OpenAI provenance. File-hash inequality alone is not a substitution
+verdict. The decoder source digest is
+`db403c3b2292d3f2c5cfef4109d4b5745f437b5599c7afc94d4b97feca7e9247`.
+
+### Frozen Native Comparison
+
+Before inference, the private runner froze 24 fresh contexts, comprising 12
+changed-answer pairs across lookup, ordered updates and minimum selection.
+A separately implemented oracle checked every expected answer and pair;
+an additional generator check covered 4,800 cases and 2,400 pairs. These are
+predictable capability templates, not unrecognizable anti-cheat probes.
+
+Each of the three artifacts received the same 48-slot shuffled schedule
+(24 contexts, two repeats) on the pinned standalone llama.cpp b10826 runtime.
+All models received identical explicit token-ID contexts, verified by native
+tokenization, detokenization and all 144 actual prompt echoes. This avoids
+chat-template differences for this raw-completion experiment; it does not
+establish equivalent conversational behavior under the files' own templates.
+Settings used greedy temperature zero, seed 17, one intentional output token,
+pre-sampling top-20 logprobs, F16 KV cache and no prompt caching or penalties.
+
+| Artifact | Correct first-word calls / 48 | Unique contexts with identical repeat distributions / 24 | Pairs with both variants correct, first repeat / 12 |
+| --- | ---: | ---: | ---: |
+| Original LM Studio-community MXFP4 | 30 | 24 | 5 |
+| Published Q8 | 30 | 24 | 5 |
+| Published Q4 | 32 | 24 | 5 |
+
+All 144 requests returned valid native witnesses. Every preregistered expected
+color encoded as one token and appeared in the native top 20; no absent
+alternative was filled with zero. The independent verifier checked the full
+schedule, request parameters, native settings, token IDs/bytes, finite sorted
+probabilities, context sizes, artifact hashes and owned-process cleanup.
+
+Original versus published Q8 yielded identical full top-20 observations on
+all 24 unique contexts. Published Q8 versus Q4 chose the same token on 18/24
+contexts. Their expected-color probability gaps ranged from 1.605316 to
+48.526740 percentage points (median 17.769532), using first repeats only.
+These are chosen-context probability differences, not full-distribution
+distances or population false-positive rates.
+
+One-token limits intentionally prevent reasoning and complete chat answers.
+The correctness counts above must not be presented as a model ranking or
+normal chat capability. Runs were serialized on a shared Mac, not verified
+exclusive-idle or loaded hardware. No 120B reference, new detection threshold,
+production registration, authority, compensation or penalties were involved.
+All three owned server processes exited and their PIDs were absent afterward;
+the existing LM Studio backend and public worker were not reconfigured.
+
+The practical consequence is to calibrate genuine within-family variations
+before assigning outlier meaning. A tight absolute probability threshold can
+reject a published quantization even at an identical semantic context.
+This run does not determine how tolerant a useful substitution detector can
+be while still catching adversaries. Full-answer cross-quantization and
+held-out substitution/false-flag studies remain required.
+
+Private evidence is under `text-worker-20b/published-quants-20260907/` and
+`text-worker-20b/published-quant-baseline-20260907/`. Raw prompts stay private.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| Tensor and metadata audit | `bcbc5871390724f0c1e2d95cc32cecf6f97285424277573275761925ef5f4f23` |
+| Cross-publisher expert-value audit | `0673b6e31bf02c6b87f0a5e5e6ddc9a8f2fb82ec76923bbc2bb44a144295a7b6` |
+| Frozen native manifest | `b8a310492de085ba9b018455b9b215a140cf493c89f4646b77d6cd85f971578c` |
+| All 144 native responses | `cdf6e6fa49e99ecc2e8691e7ba8bd04481925f219c53719c4a9aa1bbdfdfbbda` |
+| Independent summary | `3e4a5369a215a0c6591c8d8f0e93890885c27482774420b2a5c2605da9e089b9` |
