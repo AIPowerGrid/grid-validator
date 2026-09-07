@@ -32,6 +32,10 @@ verification, binary installation, systemd installation, and release smoke tests
   process tree; killing only its bootloader can leave a child holding stdout.
   It also checks the private cached pairing endpoint and invalid-config recovery
   without Core traffic. This is package qualification, not live pairing proof.
+  Compensation likewise checks unauthorized/cache-only reads and explicit
+  invalid-config refresh with empty safe state, unchanged config and no runtime
+  start. Actual consent signatures run in every native build's source tests;
+  a frozen offline check is not production payment evidence.
 - `native-live-canary.py` verifies fixed published archives/provenance and runs
   an explicitly approved first-party Windows local-app journey against the
   unpaid production Grid. It creates fresh isolated state, checks accepted

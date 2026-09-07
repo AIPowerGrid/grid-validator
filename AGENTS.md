@@ -113,8 +113,10 @@ model attestation or use it as sole authority.
   installation, identity preservation, pending-state recovery and remaining
   live rollout gates, with native qualification evidence recorded separately.
 - **`COMPENSATION.md`** - unreleased operator-app pilot/allocation status and
-  explicit node payout consent. Core PR127 provides a dark backend; Console,
-  cross-repo native qualification and release remain gates. No payment approval.
+  explicit node payout consent. Core PR127 and Console PR27 provide the matching
+  dark backend/page; Core PR128 adds pinned real-PG client integration. Native
+  compensation qualification, coordinated deployment and release remain gates.
+  No payment approval or funded pilot.
 
 - **`QUALIFICATION_DECISIONS.md`** - eight-part evidence index and frozen
   acceptance criteria for the next text-method evaluation and preview release.
