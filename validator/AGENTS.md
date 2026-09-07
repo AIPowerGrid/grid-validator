@@ -195,9 +195,16 @@ change is deployed; Core still issues no media work by default.
   Option 8 opens the operator app, published in preview.12 after native package
   and clean-install checks. Live Windows end-to-end qualification is separate.
 - **`update_check.py`** — bounded, notification-only GitHub release check. It
-  validates tag syntax, ignores drafts, bypasses environment proxies, and
-  constructs its own canonical release URL. It never downloads or executes an
-  update; operators upgrade through the verified installer.
+  validates bounded tag syntax, ignores drafts, keeps stable installs off preview
+  channels, bypasses environment proxies, and constructs its own canonical release
+  URL. An eight-second overall deadline supplements the transport timeout.
+  `inspect_update` distinguishes current, available, source-build and unavailable;
+  neither metadata discovery nor a checksum alone authenticates an executable.
+  It never downloads or executes an update.
+- **`operator_updates.py`** - explicit, cached release discovery for the app,
+  independent of registration and the inference subprocess. One background
+  request at a time, at most once per 30 seconds. It never reads or writes node
+  credentials, identity, journal, executable, qualification or service state.
 - **`dashboard.py`** — read-only localhost operator status page and
   `/status.json`. Uses the Python standard library only; shows Grid validator
   capability flags, the authenticated operator's safe qualification progress,
@@ -218,6 +225,9 @@ change is deployed; Core still issues no media work by default.
   exact start/refresh/cancel/confirm/unlink actions under the same local session
   and origin guards. Pairing metadata never enters `/diagnostics.json` or the
   public read-only dashboard. Identity/key changes remain out of scope.
+  `/updates.json` is an authenticated cached read; `/updates` accepts only
+  `{"action":"check"}` with the same token/origin/body guards. Opening or polling
+  the app never queries GitHub. Exit joins the bounded release-check thread.
 - **`operator_worker.py`** - private child protocol: allowlisted structured
   events, fresh Settings per start, EOF/cancellation cleanup, and sanitized error
   codes. Enrollment is an explicitly confirmed action and uses the existing

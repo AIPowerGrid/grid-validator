@@ -83,6 +83,28 @@ class OperatorHTTPTests(unittest.TestCase):
             self.assertNotIn(str(self.supervisor.path).encode(), body)
             self.assertNotIn(self.server.token.encode(), body)
 
+    def test_update_checks_are_explicit_guarded_and_independent_of_runtime(self):
+        with patch.object(self.supervisor.updates, "check", return_value=True) as check:
+            self.assertEqual(self.request("GET", "/updates.json")[0], 401)
+            code, _, body = self.request("GET", "/updates.json", headers=self.credentials())
+            self.assertEqual(code, 200)
+            self.assertEqual(json.loads(body)["status"], "not_checked")
+            check.assert_not_called()
+            for override in (
+                {"Origin": "https://evil.example"}, {"Authorization": "Bearer bad"},
+                {"Host": "evil.example"}, {"Sec-Fetch-Site": "cross-site"},
+            ):
+                self.assertEqual(self.request("POST", "/updates", '{"action":"check"}', {**self.credentials(), **override})[0], 403)
+            for body in ('{"action":"install"}', '{"action":"check","url":"https://evil.example"}', '{"action":"check","action":"check"}'):
+                self.assertEqual(self.request("POST", "/updates", body, self.credentials())[0], 400)
+            check.assert_not_called()
+            self.assertEqual(self.request("POST", "/updates", '{"action":"check"}', self.credentials())[0], 202)
+            check.assert_called_once()
+            self.assertIsNone(self.supervisor.process)
+            self.assertFalse(self.supervisor.path.exists())
+            check.return_value = False
+            self.assertEqual(self.request("POST", "/updates", '{"action":"check"}', self.credentials())[0], 429)
+
     def test_pairing_reads_are_cached_and_private_not_diagnostics(self):
         core = FakeCore()
         self.supervisor.pairing = PairingController(

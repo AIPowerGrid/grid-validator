@@ -54,12 +54,36 @@ class UpdateCheckTests(unittest.IsolatedAsyncioTestCase):
         async def failed():
             raise RuntimeError("offline")
 
-        self.assertIsNone(await update_check.check_for_update(fetch_releases=failed))
+        self.assertIsNone(await update_check.check_for_update(current_tag="v0.1.0", fetch_releases=failed))
 
         async def malformed():
             return [{"tag_name": "../../malicious", "draft": False}]
 
-        self.assertIsNone(await update_check.check_for_update(fetch_releases=malformed))
+        self.assertIsNone(await update_check.check_for_update(current_tag="v0.1.0", fetch_releases=malformed))
+
+    async def test_unavailable_is_not_up_to_date(self):
+        for payload in (None, {}, "bad", [], [{"tag_name": "v9.0.0", "draft": "false"}], [{"tag_name": "v" + "9" * 5000 + ".0.0", "draft": False}]):
+            async def releases():
+                return payload
+            result = await update_check.inspect_update(
+                current_tag="v0.1.0-preview.13", fetch_releases=releases
+            )
+            self.assertEqual(result.status, "unavailable")
+
+    async def test_stable_channel_never_suggests_prerelease(self):
+        async def releases():
+            return [
+                {"tag_name": "v9.0.0-preview.1", "draft": False},
+                {"tag_name": "v0.2.0", "draft": False},
+            ]
+        result = await update_check.inspect_update(current_tag="v0.1.0", fetch_releases=releases)
+        self.assertEqual(result.latest_tag, "v0.2.0")
+
+    async def test_source_build_does_not_contact_github(self):
+        async def releases():
+            self.fail("source build queried releases")
+        result = await update_check.inspect_update(current_tag="v0.1.0-dev", fetch_releases=releases)
+        self.assertEqual(result.status, "source_build")
 
 
 if __name__ == "__main__":

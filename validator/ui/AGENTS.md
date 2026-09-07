@@ -26,8 +26,13 @@ package and frozen binary; no CDN, remote font, or third-party script is loaded.
   Exit app additionally closes the local server after stopping its child.
 - Keep unavailable/error states actionable. Disable controls when the app
   session is unavailable; keep status and controls usable at mobile widths.
-  Surface a newer verified release, gross clock drift, and a non-empty dead
+  Surface a newer published release, gross clock drift, and a non-empty dead
   evidence queue without exposing server text or recovery contents.
+- Update discovery has an explicit Check for updates command, usable even while
+  stopped or unconfigured. Cached polls do not issue external traffic. Display
+  unavailable separately from current; keep stable installs off previews. The
+  release link is constrained to this repo's canonical GitHub tag URL and never
+  opens automatically. This is discovery only, not one-click verified installation.
 - Preserve the separate read-only dashboard. This UI ships in preview.12;
   native offline package checks do not replace live end-to-end qualification.
 - Existing-account linking is newer, unreleased work. Require explicit start,

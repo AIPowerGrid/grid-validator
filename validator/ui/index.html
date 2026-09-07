@@ -15,6 +15,11 @@
     <section class="heading"><div><p class="eyebrow">YOUR NODE</p><h1 id="phase">Connecting to local app</h1><p id="message" role="status" aria-live="polite"></p></div><div class="controls"><button id="setup" hidden>Set up and start</button><button id="start" disabled>Start validator</button><button id="stop" disabled>Stop</button></div></section>
     <p class="error" id="error" role="alert" hidden></p>
     <p class="notice" id="update" role="status" hidden></p>
+    <section class="activity" aria-labelledby="updates-title">
+      <div class="section-title"><h2 id="updates-title">Software updates</h2><button id="updates-check" disabled>Check for updates</button></div>
+      <p id="updates-status" role="status" aria-live="polite">Not checked</p>
+      <a id="updates-release" class="button" target="_blank" rel="noopener noreferrer" hidden>Open release</a>
+    </section>
     <section class="metrics" aria-label="Participation">
       <div><h2>Registration</h2><strong id="registration">Not checked</strong><code id="validator-id"></code></div>
       <div><h2>Heartbeat</h2><strong id="heartbeat">Not received</strong><span id="connection">Not connected</span></div>
