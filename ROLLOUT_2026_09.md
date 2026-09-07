@@ -329,6 +329,57 @@ Do not enable issuance or treat a local-only preflight as chain-catalog proof.
 Do not waive the absent reference pool by labelling owned replicas independent.
 Unfinished empirical work and unavailable hardware remain explicit open items.
 
+## Attestation Delivery Follow-Up
+
+Local unreleased hardening, September 7 UTC. A client defect treated any
+successful HTTP response from attestation submission as delivery and removed
+the durable envelope. Regression fixtures reproduced deletion after a wrong
+receipt and acceptance of HTTP-200 error/HTML/empty responses. This is a
+delivery-loss risk, not evidence of observed production loss.
+
+The client now requires HTTP 200 and an `accepted` or `duplicate` receipt with
+a positive integer stored ID, the exact canonical payload/signature hash and
+matching authority. Assignment-bound evidence also requires matching assignment
+and probe-group IDs and verified signature status. Unsigned preview helpers
+remain preview-only; signature-prefix normalization matches Core. Duplicate
+JSON keys, malformed bodies and uncommitted HTTP 202 responses cannot clear
+the local queue. Failed checks use existing retry/dead-letter limits.
+
+The probe client separately requires a completed object for the requested
+assignment. A full local round/restart/retry test feeds Core-shaped inconclusive
+responses through HTTPX and proves no signing, no attestation submission and
+no silent revival after the assignment becomes a dead letter. Operational
+probe failure is not a worker-failed verdict.
+
+Eight unit methods cover these paths and negative subcases. The full validator
+run completed 350 tests with six explicit optional-integration skips and no
+failures, using the validator dependency environment. Earlier invocations with
+the Core-only environment or a forced `VALIDATOR_ENV` override were unsuitable
+for the complete suite; they are not passing runs.
+
+Four additional cross-repo tests use Core's real signature/assignment checks
+and disposable PostgreSQL persistence with simulated HTTP delivery. Each first
+commits an attestation, then loses the reply or corrupts its hash, assignment ID
+or authority. The client retains the exact envelope across reopening SQLite;
+replay receives Core's matching duplicate receipt and clears the queue. The
+database contains one vote throughout recovery. The matching envelope hash is
+checked against Core's implementation, not just a duplicated unit-test formula.
+
+The final formatted source passed all 49 PostgreSQL 14.19 tests (four new plus
+45 existing evidence/concurrency tests), with zero skips or failures. Core was
+`ebe97a61`; the owned database stopped. Private evidence SHA-256:
+
+- Final summary: `28d0bf893c461dff1bb38251847f8a2fb69e35b09b846c1a0dcbd524a53175b2`.
+- Source-bound invocation: `145e0c44447e64c12387804bbbbde06e331a6d055291a745a25c945c04cc478c`.
+- JUnit: `4c3da491a5a2f2c08c3547f58a69c967d415c23f7e4d6e0de68aa9e36d033264`.
+
+These are delivery/persistence checks with synthesized completed probes. They
+do not prove native inference, HTTP authentication, operator independence,
+future compensation or PostgreSQL 16 release qualification. Receipt matching
+does not make a dishonest coordinator trustworthy. No public Responses
+assignment policy, capability advertisement, automatic penalty or deployment
+is introduced by this change.
+
 ## Immediate Operator Follow-Up
 
 - Ask existing operators to install preview.15 while preserving configuration

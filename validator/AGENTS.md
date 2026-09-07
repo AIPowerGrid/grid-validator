@@ -40,6 +40,16 @@ change is deployed; Core still issues no media work by default.
   dashboard-only and must never become an alternate targeting authority.
   Heartbeats advertise the immutable release tag, not only the base Python
   package version, so qualification can distinguish reviewed preview payloads.
+  Attestation delivery requires HTTP 200 plus an accepted/duplicate receipt
+  with a positive stored ID, the canonical submitted-envelope hash and matching
+  authority. Assignment evidence additionally requires verified signature status
+  and matching assignment/group IDs. Ambiguous JSON, preview downgrades, empty
+  success bodies and HTTP 202 are not delivery acknowledgements. Keep queued
+  evidence for the existing retry/dead-letter policy; do not delete it merely
+  because a proxy returned a successful HTTP status. This verifies receipt
+  correlation, not a compromised coordinator's storage honesty.
+  Probe replies must be completed objects for the requested assignment; other
+  statuses or malformed/ambiguous JSON are unavailable, never signed failures.
 - **`prober.py`** — independent text scoring for randomized exact-instruction,
   arithmetic, strict-JSON, exact 4K/16K/32K context-retrieval, multistep-logic,
   restricted-AST Python functions against assignment-only hidden inputs, exact

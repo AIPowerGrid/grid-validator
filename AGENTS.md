@@ -98,6 +98,10 @@ model attestation or use it as sole authority.
   Its September 6 local qualification section records 45 real-PostgreSQL-14
   tests of committed Core evidence/concurrency code, not PostgreSQL 16 release
   qualification, live inference or a refreshed production fleet snapshot.
+  Its delivery follow-up records strict matching receipts before local evidence
+  deletion, real-PostgreSQL response-loss/receipt-corruption recovery, and
+  unavailable work producing no signed failure. It does not add a Responses
+  scoring policy, compensation entitlement or deployment claim.
 - **`TEXT_FIDELITY_EXPERIMENT_2026_09_05.md`** - first real backend calibration,
   captured-logprob forgery and live probe-aware routing evidence. Its successful
   pair separation is not proof of exact weights, cross-quant tolerance or safe
