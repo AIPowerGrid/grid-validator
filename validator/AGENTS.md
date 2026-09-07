@@ -239,6 +239,8 @@ change is deployed; Core still issues no media work by default.
   validate its authenticated loopback readiness, then commit selection via a
   nonce-bound pipe. Pre-commit EOF fails closed. Startup failure kills only
   the owned candidate and restores the previous selection; the old app reopens.
+  Successful handoff reuses the old loopback port and ephemeral token through
+  private stdin, never persisted metadata; the existing tab reloads new assets.
   Resume only a previously running app-owned loop. Grid availability is not a
   local app health gate. Interactive launcher/app commands follow a newer
   selected version; direct run/service commands never do. See `UPDATES.md`.

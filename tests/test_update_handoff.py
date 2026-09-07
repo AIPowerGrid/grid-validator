@@ -74,6 +74,31 @@ class HandoffTests(InstallFixture, unittest.TestCase):
                 connection.close()
                 self.children[0].wait(timeout=10)
                 self.assertEqual(self.children[0].returncode, 0)
+                self.assertTrue(
+                    uh.handoff(
+                        self.config, entry, False, port=url.port, token=url.fragment
+                    )
+                )
+                browser.assert_not_called()
+                connection = http.client.HTTPConnection(
+                    url.hostname, url.port, timeout=5
+                )
+                connection.request(
+                    "POST",
+                    "/control",
+                    json.dumps({"action": "quit"}),
+                    {
+                        "Authorization": "Bearer " + url.fragment,
+                        "Origin": f"http://{url.netloc}",
+                        "Content-Type": "application/json",
+                    },
+                )
+                response = connection.getresponse()
+                self.assertEqual(response.status, 202)
+                response.read()
+                connection.close()
+                self.children[-1].wait(timeout=10)
+                self.assertEqual(self.children[-1].returncode, 0)
             finally:
                 for child in self.children:
                     uh.stop_owned(child)

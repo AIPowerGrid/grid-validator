@@ -17,10 +17,13 @@ does preparation; a separate candidate self-test checks its version, bundled
 trust roots and UI assets. Preparation failure leaves the running app intact.
 
 Only after preparation succeeds does the old app stop its own validator loop
-and release its app lock. The candidate opens a fresh authenticated loopback
-server. The bootstrap checks that server before committing the version choice.
-The new app opens in a new browser tab. A previously running app-owned loop
-resumes; a stopped loop stays stopped. The old browser tab is no longer active.
+and release its app lock. The candidate reuses the old loopback port and
+ephemeral session token, passed only through its private startup pipe. The
+bootstrap checks that server before committing the version choice. The existing
+browser tab reconnects and reloads the new assets when the version changes;
+`--no-browser` does not need a second private URL. A previously running app-owned
+loop resumes; a stopped loop stays stopped. Tokens are never saved in version
+selection files. A failed update may reopen the old app with a fresh local URL.
 Unavailable Grid service is not mistaken for a failed local app installation.
 
 ## Storage And Recovery
@@ -50,14 +53,17 @@ consent binding, failed preparation, owned child startup/commit/rollback and
 unchanged synthetic config/journal bytes. The source process fixture simulates
 frozen identity; it is not native or live-network evidence.
 
-`scripts/smoke-update-handoff.py` builds a disposable frozen identity fixture
-and runs actual loopback readiness, commit, wrong-version rollback and exit on
-each native CI platform. No fixture binary is published. A successful macOS
+`scripts/smoke-update-handoff.py` builds disposable frozen preview.0 and
+preview.17 fixtures. It tests loopback readiness, commit, same-session restart,
+wrong-version and post-readiness write-failure rollback, reopening the original
+bootstrap into the selected app, and interrupted-selection fallback on each
+native CI platform. No fixture binary is published. A successful macOS
 run does not establish Windows/Linux qualification or live registered-node
 upgrade continuity. The separately tested real published-release provenance
 download is preparation evidence, not the complete update journey.
 
-Before promotion: pass the current native matrix, test an owned registered
+Before promotion: pass the current native matrix, admit the exact release in
+Core's supported-version overlap without resetting qualification, test an owned registered
 node through a real released-version upgrade and preserved pending evidence,
 confirm recovery after interrupted startup, and run the bounded production pilot.
 Do not change public download recommendations or operator qualification clocks

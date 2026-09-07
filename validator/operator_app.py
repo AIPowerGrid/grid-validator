@@ -474,6 +474,9 @@ def run_app(port: int = 0, open_browser: bool = True, *, resume: bool = False) -
         from .update_handoff import handoff
 
         entry, resume = server.restart
-        if not handoff(path, entry, resume, open_browser=open_browser):
+        if not handoff(
+            path, entry, resume, open_browser=open_browser,
+            port=server.server_port, token=server.token,
+        ):
             print("Update could not start. Reopening the previous app; identity is unchanged.")
             run_app(open_browser=open_browser, resume=resume)

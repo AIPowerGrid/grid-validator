@@ -114,6 +114,22 @@ while confirmation submitted one tag-bound request. These checks do not prove
 live registered-node resume, real queued-evidence recovery or the new native
 CI matrix. Keep those remaining release gates explicit.
 
+The app-handoff commit `090f144` passed all four native build/handoff and
+clean-install lanes in run `34132789477`, plus source CI and security checks.
+The follow-up adds same-port/session reconnection, original-shortcut cold
+launches, interrupted-selection fallback, and rollback after readiness when the
+selection write fails. Its new checks must pass on their own commit; the earlier
+green run does not qualify them. Core must admit the exact next version before
+operator promotion, preserving the existing qualification window.
+
+Local follow-up verification passes all 410 source cases (403 passed, seven
+explicit optional/native skips), strict types for the four install/process
+modules, and the actual dual-version macOS frozen fixture. Browser QA at
+320/390/768/1280px verifies consent cancellation, one confirmed install request,
+automatic asset reload on version change and retained same-origin session
+authentication without a repeated installation. Native Windows/Linux CI and
+registered-node evidence replay remain separate checks.
+
 ## Capability Boundary
 
 Availability and task-specific correctness are supported evidence dimensions.

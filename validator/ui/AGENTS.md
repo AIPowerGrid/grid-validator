@@ -35,8 +35,10 @@ package and frozen binary; no CDN, remote font, or third-party script is loaded.
   opens automatically. Native app updates have a separate confirmation binding
   the displayed tag and unsigned-preview disclosure. Cancel, Escape and reload
   never submit installation. Show preparing/restarting/failure distinctly;
-  source builds retain the external release link. A committed update may open
-  only its new authenticated loopback app, never a release-supplied URL.
+  source builds retain the external release link. A committed update reuses
+  the local port/session and reloads assets when status reports a new version.
+  Do not redirect to release-supplied URLs or persist the token outside the
+  existing per-tab session storage.
 - Preserve the separate read-only dashboard. This UI ships in preview.12;
   native offline package checks do not replace live end-to-end qualification.
 - Existing-account linking is newer, unreleased work. Require explicit start,

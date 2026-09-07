@@ -72,9 +72,12 @@ installer generation.
   child/HTTP startup failure, commit and rollback. The child identity in the
   source handoff tests is simulated; no fixture proves production participation.
 - `test_update_handoff_native.py` - explicit frozen fixture handoff, local
-  authenticated readiness, selection commit, wrong-version rollback and exit.
+  authenticated readiness, selection commit, same-port/token reuse, rollback
+  after wrong-version or post-readiness disk failure, cold bootstrap selection,
+  interrupted-selection fallback and exit.
   Ordinary source runs skip without `TEST_VALIDATOR_UPDATE_BINARY`; native CI
-  builds a disposable version fixture and must run it, never publish it.
+  supplies both that candidate and `TEST_VALIDATOR_BOOTSTRAP_BINARY`, must run
+  the test and never publish the disposable fixtures.
 - `test_operator_app.py` - real loopback HTTP guards, allowlisted controls and
   diagnostics, invalid-credential child recovery, owned-process stop, OS lock
   exclusion, and runtime acknowledgement/cancellation contracts. No live Grid

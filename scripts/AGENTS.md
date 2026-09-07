@@ -19,9 +19,10 @@ verification, binary installation, systemd installation, and release smoke tests
 - `install-binary.sh`, `install-validator.ps1`, and `install-systemd.sh` own
   operator installation paths.
 - `smoke-release.sh` exercises source, container, binary, and installer paths.
-- `smoke-update-handoff.py` builds a throwaway preview.17 identity fixture in
-  a temporary copy, then exercises actual frozen app handoff and wrong-version
-  rollback. It never stamps the source tree or publishes the fixture. Each
+- `smoke-update-handoff.py` builds throwaway preview.0 and preview.17 fixtures in
+  a temporary copy, then exercises frozen handoff, same-session restart,
+  wrong-version/post-readiness rollback, cold launcher selection and pending
+  fallback. It never stamps the source tree or publishes the fixtures. Each
   native CI build must run it. This is local package/lifecycle qualification,
   not release provenance or live registered-node recovery evidence.
 - `smoke-operator-app.py` starts an actual frozen binary against invalid offline

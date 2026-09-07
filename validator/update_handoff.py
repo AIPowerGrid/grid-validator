@@ -36,7 +36,13 @@ def _read(stream: Any) -> dict[str, Any]:
 
 
 def handoff(
-    config: Path, entry: dict[str, Any], resume: bool, *, open_browser: bool = True
+    config: Path,
+    entry: dict[str, Any],
+    resume: bool,
+    *,
+    open_browser: bool = True,
+    port: int = 0,
+    token: str | None = None,
 ) -> bool:
     """Called only after the old app releases its lock and stops owned work."""
     store = InstallStore(config)
@@ -89,6 +95,8 @@ def handoff(
                 "previous": previous,
                 "resume": resume,
                 "nonce": nonce,
+                "port": port,
+                "token": token,
             },
         )
         ready = replies.get(timeout=40)
@@ -105,6 +113,8 @@ def handoff(
             or not 0 < ready["port"] <= 65535
             or not isinstance(ready["token"], str)
             or len(ready["token"]) != 43
+            or (port != 0 and ready["port"] != port)
+            or (token is not None and ready["token"] != token)
         ):
             raise ReleaseVerificationError("update_start_failed")
         connection = http.client.HTTPConnection("127.0.0.1", ready["port"], timeout=5)
@@ -134,11 +144,12 @@ def handoff(
         committed = True
         url = f"http://127.0.0.1:{ready['port']}/#{ready['token']}"
         # This is the newly owned loopback app, not a release-controlled URL.
-        if open_browser:
+        if open_browser and port == 0:
             with contextlib.suppress(webbrowser.Error, OSError):
                 webbrowser.open(url)
-        with contextlib.suppress(OSError):
-            print("Updated local validator app: " + url, flush=True)
+        if port == 0:
+            with contextlib.suppress(OSError):
+                print("Updated local validator app: " + url, flush=True)
         threading.Thread(target=child.wait, daemon=True).start()
         return True
     except (OSError, ValueError, queue.Empty, http.client.HTTPException):
@@ -158,11 +169,26 @@ def updated_app() -> int:
 
     request = _read(sys.stdin.buffer)
     if (
-        set(request) != {"config", "entry", "previous", "resume", "nonce"}
+        set(request)
+        != {"config", "entry", "previous", "resume", "nonce", "port", "token"}
         or type(request["resume"]) is not bool
         or not isinstance(request["config"], str)
         or not isinstance(request["nonce"], str)
         or len(request["nonce"]) != 64
+        or type(request["port"]) is not int
+        or not 0 <= request["port"] <= 65535
+        or (
+            request["token"] is not None
+            and (
+                not isinstance(request["token"], str)
+                or len(request["token"]) != 43
+                or any(
+                    c
+                    not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"
+                    for c in request["token"]
+                )
+            )
+        )
     ):
         raise ReleaseVerificationError("invalid_update_handoff")
     config = Path(request["config"])
@@ -177,7 +203,9 @@ def updated_app() -> int:
         raise ReleaseVerificationError("invalid_update_handoff")
     with exclusive_lock(Path(str(config) + ".app.lock")):
         supervisor = Supervisor(config)
-        server = OperatorServer(supervisor)
+        server = OperatorServer(supervisor, request["port"])
+        if request["token"] is not None:
+            server.token = request["token"]
         thread = threading.Thread(target=server.serve_forever, daemon=True)
         thread.start()
         try:
@@ -217,7 +245,9 @@ def updated_app() -> int:
         if not stopped:
             return 1
         next_entry, resume = server.restart
-        if not handoff(config, next_entry, resume):
+        if not handoff(
+            config, next_entry, resume, port=server.server_port, token=server.token
+        ):
             from .operator_app import run_app
 
             run_app(resume=resume)
