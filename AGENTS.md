@@ -181,6 +181,13 @@ model attestation or use it as sole authority.
   Copied reference reports yield zero distance in every cross-model comparison;
   this is offline forgery evidence, not a live signed-endpoint exploit.
 
+- **`VIDEO_PILOT_2026_09_07.md`** - first-party LTX video calibration with four
+  uncached runs, actual-byte corruption tests and reference-failure checks.
+  Same-seed decoded pixels agree despite different container hashes; structural
+  motion checks miss reversed playback and a two-frame oscillation. Preserve
+  the failed cached attempt and harness corrections. One owned backend is not
+  independent-reference, cross-hardware or governed-media qualification.
+
 - **`validator/`** — the whole node (config, stake gate, grid client, canary probing +
   scoring, attestation signing, probe loop, CLI, read-only dashboard, and opt-in
   local operator app). Owned in its own AGENTS.md. Browser controls ship in

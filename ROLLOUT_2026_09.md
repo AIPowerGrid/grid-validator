@@ -341,6 +341,16 @@ Do not enable issuance or treat a local-only preflight as chain-catalog proof.
 Do not waive the absent reference pool by labelling owned replicas independent.
 Unfinished empirical work and unavailable hardware remain explicit open items.
 
+September 7 first-party follow-up: [VIDEO_PILOT_2026_09_07.md](VIDEO_PILOT_2026_09_07.md)
+records four uncached LTX Director executions on one owned GPU, two same-seed
+repeat pairs with identical decoded pixels, and actual-byte defect scoring.
+Basic structural checks miss reversed playback and a two-frame oscillation;
+the existing reference comparison rejects both in this pilot. Disagreement and
+reference decode failures remain inconclusive. The initial cached repeat and
+two harness corrections are retained. This completes a bounded calibration,
+not the governed video, cross-hardware, image or independent-reference gates
+above. No production issuance or economic authority was enabled.
+
 ## Attestation Delivery Follow-Up
 
 Local unreleased hardening, September 7 UTC. A client defect treated any
