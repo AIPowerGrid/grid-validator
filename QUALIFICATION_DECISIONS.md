@@ -128,6 +128,46 @@ was submitted. Fidelity, media, rewards and independent shadow authority remain
 off. The next validator binary still needs protected publication, staged live
 delivery/recovery checks and a compatible operator upgrade plan.
 
+### Account Access And Preview Publication Follow-Up
+
+On September 7, Core PR #118 deployed `3f0b966a438177b5c695adec4f3e6132a1c237c1`
+and Console PR #26 deployed `f060841828125f4cf5b2a110d53f820f5aa100f2`.
+Both protected merges retain the exact tested candidate trees. Core CI run
+`34090386886` passed 1,152 tests with eight explicit skips, plus anti-gaming
+and PostgreSQL restore/parity checks. Console CI run `34090442269` passed.
+
+`GET /v1/account/validator-scorecards` requires `account.read`, but no linked
+wallet or node registration. It exposes only the existing bounded redacted
+aggregates. The old validator-specific route and private assignment, probe,
+attestation and health permissions are unchanged. Console forwards its current
+user token and treats unavailable private health as optional, not zero counts
+or a reason to discard readable reports. Local tests cover Google/SIWE/refreshed
+account tokens, wrong scope, expiry, private-route denial and optional health
+failures; those fixtures are not live Google or wallet-provider proof.
+
+Production HTTP verification returned 200 for an existing account-read key,
+401 for anonymous reports and assignments, and retained Console's login gate.
+Core reports the new SHA, healthy Redis and nine reconnected workers. Vercel
+reports the new deployment Ready under the public Console alias. Local rendered
+checks passed at 1440, 768, 375 and 320 pixels, including private-health 403/503
+and invalid JSON. A logged-in production browser journey remains unverified.
+Configuration remained unchanged; no paid inference or economic activation.
+
+Immutable prerelease `v0.1.0-preview.16` published at `2026-09-07T06:33:23Z`
+from reviewed validator commit `323e0104a8a6a5886b6b58e14bf953dab5b93544`.
+Release run `34090594246` passed all four native builds and clean installs;
+container run `34090594219` also passed. The downloaded nine-file binary payload
+passed the release verifier with exact tag/source binding. Each of the eight
+checksummed assets independently passed GitHub provenance verification bound to
+the release workflow, tag, source and hosted builder. Windows and macOS remain
+explicitly unsigned previews; this is not a stable-platform-signing claim.
+
+The native canary pins now prepare preview.15-to-.16 qualification. A passing
+supervised runtime report and independent retirement review are still needed.
+Public website recommendations and accepted cohort versions remain unchanged.
+No model-identity claim, independent shadow authority or compensation follows
+from this package release.
+
 ### Pre-Rollout Fleet Snapshot
 
 The public network endpoint generated this snapshot at

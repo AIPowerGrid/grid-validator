@@ -41,6 +41,10 @@ published replacement is running on the three owned nodes. Its published Windows
 accepted evidence, outage/recovery and full retirement in run `33984877376`.
 The public download page now selects preview.15.
 See `ROLLOUT_2026_09.md` for current evidence and release status.
+Preview.16 is published from `323e0104`, with all four native build/clean-install
+lanes and downloaded payload/provenance checks passing. It is not yet promoted
+to the website or production cohort: supervised runtime qualification remains
+pending. See `NATIVE_LIVE_CANARY.md` and `QUALIFICATION_DECISIONS.md`.
 
 The Grid's validator node. In V0 it is a CPU-only distributed audit runner: it sends
 small canary jobs through the normal Grid path, scores replies (`healthy` / `slow` /
@@ -100,9 +104,11 @@ model attestation or use it as sole authority.
   Its scorecard rollout record binds deployed Core PR #117 and Console PR #25
   to local evidence, passing Linux CI and dated production verification.
   Preserve CI skips and zero independently reviewed operators explicitly.
-  Validator PR #92 is merged source, not a new binary release. Live account-read
-  and read-only service checks are not an authenticated scorecard browser test
-  or independent shadow authority. Keep those remaining gates explicit.
+  The access follow-up binds deployed Core PR #118 and Console PR #26 to
+  account-read aggregate reports; node-only health remains separately gated.
+  Preview.16 packages PR #92, but publication and live account-read HTTP checks
+  are not a logged-in production browser test, supervised binary canary or
+  independent shadow authority. Keep those remaining gates explicit.
 - **`ROLLOUT_2026_09.md`** - controlled release, measured text-fidelity and
   adversarial experiments, proposed capped compensation, and image/video pilot
   acceptance record. Distinguish synthetic attack baselines from live evidence.
