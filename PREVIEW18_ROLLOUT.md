@@ -48,9 +48,27 @@ checks. Its job has zero worker-ledger, reservation and credit-ledger rows.
 This is an owned service upgrade and fresh signed-report canary, not an
 independent operator, desktop one-click journey or real payout-consent test.
 
+## Public Download Promotion
+
+Website PR78 merged as `f236575a66945c83e45074ec20c281b400d9f7f4` after 112
+unit tests and all 45 CI browser tests passed. Production Vercel deployment
+`dpl_3XffNbUUW25QTzCJmvdxaEW9peCd`, created at 21:11:41 UTC and verified Ready
+by 21:14 UTC, serves `aipowergrid.io`. All four archive links, installer and
+checksum/SBOM links target .18. Desktop/mobile production browser checks pass,
+including the separate app-update and managed-service guidance. These checks
+mock only the public lookup fixture; they do not test operator wallet consent.
+Rollback is the prior `dpl_8gms6bvTKebnZePkEDmdxoG9Vdno` website deployment.
+No website environment or Core configuration was changed during promotion.
+Cohort issue #5 was updated in place after checking its unchanged prior body.
+
+The 21:14 UTC public network snapshot showed seven fresh heartbeats and zero
+verified-independent operators. FoggyFinder and h0me1ca75 pass time/coverage
+checks but remain unreviewed; Donli and peteq are offline. Do not replace their
+identities or reinterpret technical readiness as operator-control proof.
+
 ## Still Outstanding
 
-- Promote website downloads from .17 after reviewing this evidence.
+- Help external operators upgrade and confirm their fresh evidence.
 - Retain the existing .15-to-.17 lost-response replay proof separately rather
   than relabeling it as a .18 upgrade-replay test.
 - Exercise the production human wallet/node consent journey under a separately

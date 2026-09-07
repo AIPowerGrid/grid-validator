@@ -87,5 +87,6 @@ records and nonce storage are synthetic; no recipient binding, transfer,
 credit or worker payment is made. PR108 (`00949bfc`) and merged-master run
 `34157734708` explicitly passed compensation tests, frozen operator-app checks,
 update handoff and clean installs on all four platforms. Neither proves a funded
-or independent live pilot. Preview.18 is now an immutable GitHub release;
-website promotion from preview.17 remains separate.
+or independent live pilot. Preview.18 is now an immutable GitHub release and
+the public website recommends it after the owned-service canary. Promotion does
+not enable compensation; live human consent and an approved budget remain gates.

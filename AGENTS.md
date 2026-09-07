@@ -43,8 +43,8 @@ upgraded with identity/config/journal preserved at 20:55 UTC September 7.
 Fresh accepted report `123657` passed independent signature, commitment,
 assignment-binding and zero-economic-row checks at 21:03 UTC. This is not
 human wallet-consent proof. Compensation and
-shadow observation remain off; the website still recommends .17 pending
-promotion. See `PREVIEW18_ROLLOUT.md`.
+shadow observation remain off. Website PR78 (`f236575a`) and cohort issue #5
+now recommend .18; production desktop/mobile checks pass. See `PREVIEW18_ROLLOUT.md`.
 
 Preview.17 introduced the verified app updater from `aa35fa0a` with passing
 four-platform native handoff/recovery and clean-install checks. Downloaded
@@ -594,7 +594,7 @@ model attestation or use it as sole authority.
   The app-controlled versioned handoff is published in preview.17. Native
   update/restart/rollback fixtures pass all four platforms; real pending-evidence
   replay now passes on an owned Linux service, and public downloads recommend
-  preview.17. Independent operator journeys remain a separate check. Old discovery-only
+  preview.18. Independent operator journeys remain a separate check. Old discovery-only
   binaries do not acquire the updater retroactively.
 - New grid-side endpoint dependencies fail closed when they are required for
   attributable evidence. Read-only dashboard metadata may degrade gracefully.
