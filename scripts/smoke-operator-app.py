@@ -56,7 +56,10 @@ def smoke(binary: Path) -> None:
             origin = f"http://{url.netloc}"
 
             def request(
-                path: str, action: str | None = None, auth: bool = True
+                path: str,
+                action: str | None = None,
+                auth: bool = True,
+                fields: dict[str, object] | None = None,
             ) -> tuple[int, bytes]:
                 connection = http.client.HTTPConnection(
                     "127.0.0.1", url.port, timeout=10
@@ -67,7 +70,7 @@ def smoke(binary: Path) -> None:
                     headers.update(
                         {"Origin": origin, "Content-Type": "application/json"}
                     )
-                    body = json.dumps({"action": action})
+                    body = json.dumps({"action": action, **(fields or {})})
                 try:
                     connection.request("POST" if action else "GET", path, body, headers)
                     response = connection.getresponse()
@@ -88,6 +91,30 @@ def smoke(binary: Path) -> None:
             # a frozen build. Polling the page itself never starts pairing.
             code, body = request("/pairing", "refresh")
             assert code == 200 and json.loads(body)["error"] == "configuration_invalid"
+            assert request("/compensation.json", auth=False)[0] == 401
+            assert (
+                request("/compensation", "refresh", auth=False, fields={"offset": 0})[0]
+                == 403
+            )
+            assert json.loads(request("/compensation.json")[1]) == {
+                "status": "idle",
+                "items": [],
+                "campaigns": [],
+                "request": None,
+                "busy": False,
+            }
+            original_config = config.read_bytes()
+            code, body = request("/compensation", "refresh", fields={"offset": 0})
+            result = json.loads(body)
+            assert code == 200 and result["error"] == "configuration_invalid"
+            assert result["items"] == [] and result["campaigns"] == []
+            assert result["request"] is None
+            assert config.read_bytes() == original_config
+            assert not json.loads(request("/status.json")[1])["running"]
+            print(
+                "Packaged compensation cached reads and fail-closed config passed.",
+                flush=True,
+            )
             print("Packaged assets and session guard passed.", flush=True)
             for _ in range(2):
                 assert request("/control", "run")[0] == 202
@@ -126,6 +153,7 @@ def smoke(binary: Path) -> None:
                         stdout=subprocess.DEVNULL,
                         stderr=subprocess.DEVNULL,
                         timeout=15,
+                        check=False,
                     )
                 else:
                     process.terminate()

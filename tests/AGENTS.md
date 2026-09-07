@@ -93,6 +93,7 @@ installer generation.
 - `test_compensation.py` - synthetic Core compensation states, real node consent
   signature recovery, exact v1 message/hash, wrong-domain/token/identity/expiry,
   changed destination, response loss, restart and no implicit signing. The
+  release workflow explicitly runs this suite on all four native platforms. The
   local HTTP suite verifies session/origin/body guards and diagnostic privacy.
   `compensation_app_fixture.py` plus `compensation_browser.cjs` exercise browser
   review/Escape/reload/confirmation and responsive layouts using generated

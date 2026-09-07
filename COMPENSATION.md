@@ -1,8 +1,9 @@
 # Operator Compensation
 
-Status: node-app implementation in source, not yet released or production-live.
-Core PR127 (`2d16a019`, migration `0039`) provides the default-off API. The
-matching Console wallet page and full cross-repo rollout are still required.
+Status: node app merged in PR107 (`1c3b8122`), not yet released or production-live.
+Core PR127 (`2d16a019`, migration `0039`) provides the default-off API; Console
+PR27 (`28dbf5f3`) provides the matching wallet page. Coordinated deployment and
+the live operator journey remain required.
 No live campaign, budget or transfer is approved by this implementation.
 
 ## Operator Flow
@@ -57,6 +58,9 @@ validated BaseScan transaction hash. No server-supplied arbitrary URL is opened.
 - `tests.test_compensation`: synthetic Core transport and actual EIP-191
   signatures, strict message checks, changed/expired consent, response loss,
   restart, bounds and non-signing actions. Not production or Core auth proof.
+  Runs explicitly in every native build. The frozen operator-app smoke checks
+  the cached private endpoint, authorization, safe config failure and no runtime
+  start or config mutation, separately from these source signature tests.
 - `tests.test_operator_app`: real local HTTP authorization/origin/body guards
   and exclusion of private compensation data from diagnostics.
 - `tests/compensation_browser.cjs`: Playwright with a temporary synthetic
@@ -70,3 +74,12 @@ and provenance checks; deploy migrations before code; and test a bounded canary.
 Keep `VALIDATOR_COMPENSATION_OPERATOR_ENABLED=0` until that is complete. Payment
 sending remains a separate approval and flag. Existing operators keep their
 identities and qualification history throughout.
+
+Core PR128 (`874f7407`) adds a real PostgreSQL/Core/Console/node test and pins the
+reviewed clients in required CI. Both its local September 7 run and GitHub run
+`34156611385` passed. The integration covers real SIWE/Auth.js login,
+scoped routes and both signatures; a discarded node acknowledgement recovered
+the committed review state without another confirmation. Earning/independence
+records and nonce storage are synthetic; no recipient binding, transfer,
+credit or worker payment is made. Native build/clean-install checks on PR107
+passed all four platforms. Neither proves a funded or independent live pilot.

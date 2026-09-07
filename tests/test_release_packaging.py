@@ -172,6 +172,7 @@ class ReleasePackagingTests(unittest.TestCase):
         self.assertIn("scripts/stamp-release-installers.py", binaries)
         self.assertIn("-AcceptUnsignedPreview", binaries)
         self.assertIn("PYTHONIOENCODING=cp1252", binaries)
+        self.assertIn("python -m unittest tests.test_compensation", binaries)
         self.assertIn("subject-checksums: dist-artifacts/SHA256SUMS", binaries)
         self.assertIn("id: release_draft", binaries)
         self.assertIn("draft: true", binaries)
