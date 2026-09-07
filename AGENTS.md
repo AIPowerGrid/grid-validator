@@ -36,24 +36,24 @@ concrete detail in children. Delete stale notes instead of explaining history.
 
 ## Purpose
 
-Preview.15 replaces preview.14's cached pre-enrollment Settings defect. The
-published replacement is running on the three owned nodes. Its published Windows binary passed fresh enrollment,
-accepted evidence, outage/recovery and full retirement in run `33984877376`.
-The public download page now selects preview.15.
-See `ROLLOUT_2026_09.md` for current evidence and release status.
-Preview.16 is published from `323e0104`, with all four native build/clean-install
-lanes and downloaded payload/provenance checks passing. Protected Windows live
-run `34092210339` passed enrollment, one accepted signed report, upgrade,
-outage/recovery and retirement; an independent read-only database audit passed.
-Website/cohort promotion remains separate. See `NATIVE_LIVE_CANARY.md` and
-`QUALIFICATION_DECISIONS.md`.
+Preview.17 is published from `aa35fa0a` with the verified app updater and passing
+four-platform native handoff/recovery and clean-install checks. Downloaded
+payload and pinned GitHub/Sigstore provenance verification pass. Core admits
+preview.13/.15/.16/.17 without resetting qualification. One owned node runs
+the released preview.17 Linux binary with its config and durable journal
+preserved. Fresh preview.17 evidence and live pending-evidence replay remain
+unproven at this rollout checkpoint. The public download page was observed
+selecting preview.16 on September 7; promotion to preview.17 is separate.
+Preview.16's protected Windows live run `34092210339` passed enrollment,
+accepted evidence, upgrade, outage/recovery and retirement. See
+`ROLLOUT_2026_09.md`, `NATIVE_LIVE_CANARY.md` and `QUALIFICATION_DECISIONS.md`.
 
 The Grid's validator node. In V0 it is a CPU-only distributed audit runner: it sends
 small canary jobs through the normal Grid path, scores replies (`healthy` / `slow` /
 `failed`), and submits signed attestations. Shared-quorum text validation is
-production-live on Core commit `6f12de6f` as checked on 2026-09-05, with
-migrations through `0034`. The replacement release is preview.15. Core accepts
-the exact preview.13 baseline plus preview.15 upgrade during a controlled
+production-live on Core commit `3714a927` as checked on 2026-09-07, with
+migrations through `0035`. Core accepts the exact preview.13 baseline plus
+preview.15/.16/.17 upgrades during a controlled
 overlap, preserving qualification timestamps and samples. It reports older nodes as
 `upgrade_required`. Multiple external preview.13 nodes are participating in the
 qualification pipeline, but independent status still requires the maintainer's
@@ -101,9 +101,9 @@ model attestation or use it as sole authority.
 - **`SUPPORTED_BETA.md`** - supported paid-beta delivery scope: preserved
   operator reviews, verified in-place upgrades, one bounded production pilot,
   separately approved capped compensation and defensible capability claims.
-- **`UPDATES.md`** - unreleased one-click app update contract, versioned
+- **`UPDATES.md`** - preview.17 one-click app update contract, versioned
   installation, identity preservation, pending-state recovery and remaining
-  native/live qualification gates.
+  native qualification evidence and remaining live rollout gates.
 
 - **`QUALIFICATION_DECISIONS.md`** - eight-part evidence index and frozen
   acceptance criteria for the next text-method evaluation and preview release.
@@ -565,9 +565,10 @@ model attestation or use it as sole authority.
   The updater components now stage verified archives in an isolated process;
   native builds collect Sigstore data and its resource package, then run
   cache-independent offline packaged readiness with fixed failure codes.
-  The app-controlled versioned handoff is implemented but unreleased; native
-  update, restart/rollback and live identity-continuity qualification remain
-  release gates. Passing old discovery-only builds does not satisfy them.
+  The app-controlled versioned handoff is published in preview.17. Native
+  update/restart/rollback fixtures pass all four platforms; real pending-evidence
+  replay and live operator promotion remain separate gates. Old discovery-only
+  binaries do not acquire the updater retroactively.
 - New grid-side endpoint dependencies fail closed when they are required for
   attributable evidence. Read-only dashboard metadata may degrade gracefully.
 
