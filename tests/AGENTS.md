@@ -52,6 +52,15 @@ installer generation.
   rejection, limits and unsigned-preview/stable separation. Signature transport
   is mocked in this hermetic suite; it does not prove installation or native
   cryptographic packaging. Real published-provenance verification is separate.
+- `test_update_download.py` - real ZIP/digest/permission/exclusive-write checks,
+  mocked HTTPX download/redirect/bounds and signature-first staging, failed-stage
+  cleanup and unchanged config/journal fixtures. Windows symlink creation has a
+  separate native policy; no skipped case proves that boundary there.
+- `test_update_worker.py` - private request shape, platform selection, sanitized
+  errors, credential-free environment and real owned-child timeout, output
+  bounds and cancellation. Native release CI also executes the packaged
+  `_update-worker self-test` to exercise bundled offline trust roots and UI
+  resources; source transport mocks do not prove packaged readiness.
 - `test_operator_updates.py` - cached-only startup/reads, background discovery,
   concurrency/rate limiting, sanitized failures and close. The operator HTTP
   suite separately covers local session/origin/body guards and no runtime start

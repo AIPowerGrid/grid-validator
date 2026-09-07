@@ -613,6 +613,12 @@ def main(argv=None) -> int:
     from . import __release_tag__
 
     argv = sys.argv[1:] if argv is None else argv
+    if argv and argv[0] == "_update-worker":
+        from .update_worker import main as update_main
+
+        internal = argparse.ArgumentParser(prog="aipg-validator _update-worker")
+        internal.add_argument("action", choices=["prepare", "self-test"])
+        return update_main(internal.parse_args(argv[1:]).action)
     if argv and argv[0] == "_operator-worker":
         internal = argparse.ArgumentParser(prog="aipg-validator _operator-worker")
         internal.add_argument("action", choices=["run", "enroll"])

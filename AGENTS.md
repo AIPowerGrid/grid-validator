@@ -559,9 +559,10 @@ model attestation or use it as sole authority.
   requires the explicit media-origin gate. `eth-account` remains a default
   dependency because signed V0 attestations are part of the preview.
 - Sigstore is pinned in the optional `update` and native `release` extras.
-  The new release-verification component is not an installed updater yet;
-  packaged trust-root resources, bounded child verification, verified archive
-  extraction and platform restart/rollback remain release gates.
+  The updater components now stage verified archives in an isolated process;
+  native builds collect Sigstore data and run offline packaged readiness.
+  This is not an installed updater yet: native verification, app-controlled
+  activation and platform restart/rollback remain release gates.
 - New grid-side endpoint dependencies fail closed when they are required for
   attributable evidence. Read-only dashboard metadata may degrade gracefully.
 

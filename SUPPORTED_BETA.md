@@ -71,6 +71,28 @@ Ruff, strict mypy on the verifier, frozen-lock resolution with CI's uv 0.12.5,
 staged secret scanning and the all-extras dependency audit pass. These are local
 source checks, not native packaged updater qualification.
 
+The next implementation step adds bounded, credential-free child preparation,
+HTTPS download and private archive staging. The real preview.16 macOS archive
+was downloaded (61,383,946 bytes), signature/digest checked and extracted
+(61,845,216 executable bytes), without execution or activation. Executable
+SHA-256: `c096d116b03cc23e991b3f40cecc787883d7834891d85a4af44126368d23699a`.
+The temporary stage was removed. Fixture tests reject path/symlink/device
+entries, CRC corruption, compression bombs, untrusted redirects, interrupted
+downloads and attempts to overwrite an existing executable. Source child tests
+cover cancellation, oversized replies, timeouts and a credential-free environment.
+
+Native build CI now collects Sigstore data and invokes offline packaged
+`_update-worker self-test`, which loads trust roots and app assets. Passing the
+earlier manifest-only build does not prove this newer gate. Installation still
+needs explicit app activation, restart/rollback and cross-platform persistence
+tests. Frozen restart/handoff must use independent PyInstaller state as required
+by the [PyInstaller restart guidance](https://pyinstaller.org/en/stable/common-issues-and-pitfalls.html#using-sys-executable-to-spawn-subprocesses-that-outlive-the-application-process-implementing-application-restart).
+The staging/process source suite passes 394 cases (388 passed, six optional
+Core/Console integration skips), including 14 download/archive and eight process
+tests. Strict type checks pass for the three new modules. Native build results
+for this step must be checked on its own commit, not the earlier verifier-only
+commit.
+
 ## Capability Boundary
 
 Availability and task-specific correctness are supported evidence dimensions.

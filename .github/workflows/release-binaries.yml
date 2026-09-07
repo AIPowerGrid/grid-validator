@@ -90,7 +90,7 @@ jobs:
         run: uv sync --frozen --extra media --extra release --python 3.11
 
       - name: Build binary
-        run: uv run --frozen --extra media --extra release pyinstaller --onefile --collect-data validator --name aipg-validator --specpath build/pyinstaller validator/__main__.py
+        run: uv run --frozen --extra media --extra release pyinstaller --onefile --collect-data validator --collect-data sigstore --name aipg-validator --specpath build/pyinstaller validator/__main__.py
 
       - name: Test native CLI and first-run behavior
         shell: bash
@@ -102,6 +102,8 @@ jobs:
           uv run --frozen --extra media --extra release python -m unittest tests.test_native_live_canary tests.test_native_pairing_canary
           uv run --frozen --extra media --extra release python -m unittest discover -s tests -p test_operator_app.py
           uv run --frozen --extra media --extra release python -m unittest discover -s tests -p test_media_prober.py
+          uv run --frozen --extra media --extra release python -m unittest discover -s tests -p test_update_download.py
+          uv run --frozen --extra media --extra release python -m unittest discover -s tests -p test_update_worker.py
 
       - name: Smoke-test binary
         timeout-minutes: 5
@@ -114,6 +116,7 @@ jobs:
           version="$(PYTHONIOENCODING=cp1252 "$BIN" --version)"
           test "$version" = "aipg-validator $EXPECTED_RELEASE_TAG"
           PYTHONIOENCODING=cp1252 "$BIN" --help
+          "$BIN" _update-worker self-test
           PYTHONIOENCODING=cp1252 "$BIN" self-test
           uv run --frozen --extra media --extra release python scripts/smoke-operator-app.py "$BIN"
           BIN_ABS="$(pwd)/$BIN"

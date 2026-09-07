@@ -212,6 +212,20 @@ change is deployed; Core still issues no media work by default.
   ambiguous metadata, unbounded assets and unsigned stable releases. The future
   installer must run verification in a bounded killable child, verify archive
   bytes and perform the owned-process restart/rollback separately.
+- **`update_download.py`** - private staging only. Exact GitHub/release-asset
+  HTTPS hosts, no proxies/credentials/encoded responses, bounded redirects,
+  bytes and download time. Signature verification precedes archive fetching;
+  hash and ZIP checks use the same file handle. Extract only one regular
+  executable into an exclusive new file, never paths from ZIP metadata.
+  Failed staging removes only its newly created slot, not existing releases,
+  identity/configuration or queued evidence. Activation remains separate.
+- **`update_worker.py`** / **`update_process.py`** - fixed prepare/self-test
+  subprocess protocol. Allowlisted environment excludes node credentials and
+  proxies; output is bounded to 8 KiB, preparation to 420 seconds, with explicit
+  cancellation and owned-process cleanup. Frozen children reset PyInstaller
+  state. Self-test loads offline Sigstore roots and packaged app assets without
+  importing runtime Settings. Native release CI executes this check. The app's
+  install action and restart/rollback handoff are not wired yet.
 - **`dashboard.py`** — read-only localhost operator status page and
   `/status.json`. Uses the Python standard library only; shows Grid validator
   capability flags, the authenticated operator's safe qualification progress,
