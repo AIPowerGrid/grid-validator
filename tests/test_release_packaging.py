@@ -149,6 +149,7 @@ class ReleasePackagingTests(unittest.TestCase):
         self.assertIn("uv sync --frozen --extra media --extra release", binaries)
         self.assertIn("uv run --frozen --extra media --extra release pyinstaller", binaries)
         self.assertIn("--collect-data sigstore", binaries)
+        self.assertIn("--hidden-import sigstore._store", binaries)
         self.assertIn('"$BIN" _update-worker self-test', binaries)
         self.assertGreaterEqual(binaries.count("self-test"), 3)
         self.assertIn("VALIDATOR_MEDIA_ALLOWED_ORIGINS=https://media.example", binaries)

@@ -3,6 +3,7 @@
 
 import contextlib
 import io
+import importlib.util
 import json
 import os
 import sys
@@ -63,6 +64,42 @@ class UpdateWorkerTests(unittest.TestCase):
             json.loads(output.getvalue()),
             {"ready": False, "error": "update_preparation_failed"},
         )
+
+    @unittest.skipUnless(
+        importlib.util.find_spec("sigstore"), "update extra not installed"
+    )
+    def test_self_test_uses_embedded_roots_not_mutable_cache(self):
+        with patch("sigstore.verify.Verifier.production") as cached:
+            self.assertTrue(uw.self_test()["ready"])
+            cached.assert_not_called()
+        with (
+            patch.object(
+                uw.resources, "files", side_effect=FileNotFoundError("private path")
+            ),
+            self.assertRaisesRegex(
+                ReleaseVerificationError, "^update_trust_resources_invalid$"
+            ),
+        ):
+            uw.self_test()
+
+    def test_only_fixed_readiness_errors_escape(self):
+        for error, expected in (
+            ("update_dependencies_missing", "update_dependencies_missing"),
+            ("update_trust_resources_invalid", "update_trust_resources_invalid"),
+            ("update_resources_missing", "update_resources_missing"),
+            ("private remote response", "update_preparation_failed"),
+        ):
+            output = io.StringIO()
+            with (
+                contextlib.redirect_stdout(output),
+                patch.object(
+                    uw, "self_test", side_effect=ReleaseVerificationError(error)
+                ),
+            ):
+                self.assertEqual(uw.main("self-test"), 1)
+            self.assertEqual(
+                json.loads(output.getvalue()), {"ready": False, "error": expected}
+            )
 
     def test_child_environment_excludes_credentials_and_proxies(self):
         with patch.dict(

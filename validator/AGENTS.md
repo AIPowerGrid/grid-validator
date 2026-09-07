@@ -224,7 +224,9 @@ change is deployed; Core still issues no media work by default.
   proxies; output is bounded to 8 KiB, preparation to 420 seconds, with explicit
   cancellation and owned-process cleanup. Frozen children reset PyInstaller
   state. Self-test loads offline Sigstore roots and packaged app assets without
-  importing runtime Settings. Native release CI executes this check. The app's
+  importing runtime Settings or consulting a mutable TUF cache. The resource
+  package is explicitly included in frozen builds. Dependency, trust-resource
+  and UI-resource failures have fixed redacted codes. Native release CI executes this check. The app's
   install action and restart/rollback handoff are not wired yet.
 - **`dashboard.py`** — read-only localhost operator status page and
   `/status.json`. Uses the Python standard library only; shows Grid validator

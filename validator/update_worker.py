@@ -10,6 +10,7 @@ import json
 import platform
 import sys
 from dataclasses import asdict
+from importlib import resources
 from pathlib import Path
 from typing import Any
 
@@ -31,9 +32,23 @@ def native_platform() -> str:
 
 def self_test() -> dict[str, Any]:
     """Offline startup proof, including packaged trust roots and app assets."""
-    from sigstore.verify import Verifier
-
-    Verifier.production(offline=True)
+    try:
+        from sigstore.models import TrustedRoot
+        from sigstore.verify import Verifier
+    except Exception as exc:
+        raise ReleaseVerificationError("update_dependencies_missing") from exc
+    try:
+        # Test the shipped roots, never a previous install's mutable TUF cache.
+        store = resources.files("sigstore._store").joinpath(
+            "https%3A%2F%2Ftuf-repo-cdn.sigstore.dev"
+        )
+        for filename in ("root.json", "signing_config.v0.2.json"):
+            if not isinstance(json.loads(store.joinpath(filename).read_bytes()), dict):
+                raise ValueError("invalid embedded trust data")
+        with resources.as_file(store.joinpath("trusted_root.json")) as root:
+            Verifier(trusted_root=TrustedRoot.from_file(str(root)))
+    except Exception as exc:
+        raise ReleaseVerificationError("update_trust_resources_invalid") from exc
     assets = Path(__file__).parent / "ui"
     for filename in ("index.html", "app.js", "app.css", "logo.png"):
         if not (assets / filename).is_file() or (assets / filename).stat().st_size == 0:
@@ -83,11 +98,19 @@ def main(action: str) -> int:
             raise ReleaseVerificationError("invalid_update_action")
         print(json.dumps(result), flush=True)
         return 0
-    except Exception:
+    except Exception as exc:
         # Third-party errors can contain remote URLs or local paths. Only a
         # fixed failure escapes this process; the controller retains old state.
+        code = "update_preparation_failed"
+        if isinstance(exc, ReleaseVerificationError) and str(exc) in {
+            "update_dependencies_missing",
+            "update_trust_resources_invalid",
+            "update_resources_missing",
+            "unsupported_update_platform",
+        }:
+            code = str(exc)
         print(
-            json.dumps({"ready": False, "error": "update_preparation_failed"}),
+            json.dumps({"ready": False, "error": code}),
             flush=True,
         )
         return 1

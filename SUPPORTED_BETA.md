@@ -93,6 +93,16 @@ tests. Strict type checks pass for the three new modules. Native build results
 for this step must be checked on its own commit, not the earlier verifier-only
 commit.
 
+The first staging native run (`34128664070`) failed: Windows hit a socket reset
+in an early-header-rejection test; the other three packaged readiness checks
+returned a sanitized generic error. Do not count that run as a passing release.
+The follow-up explicitly packages `sigstore._store` and tests embedded trust
+files directly, rather than consulting or populating the user's TUF cache.
+Readiness now distinguishes dependency, trust-file and UI-resource failures
+without exposing exception text. Malformed-header tests check rejection before
+sending a body. Local verification passes 396 cases (390 passed, six optional
+integration skips); cross-platform CI must still verify the follow-up commit.
+
 ## Capability Boundary
 
 Availability and task-specific correctness are supported evidence dimensions.

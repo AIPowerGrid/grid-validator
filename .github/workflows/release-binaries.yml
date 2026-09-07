@@ -90,7 +90,7 @@ jobs:
         run: uv sync --frozen --extra media --extra release --python 3.11
 
       - name: Build binary
-        run: uv run --frozen --extra media --extra release pyinstaller --onefile --collect-data validator --collect-data sigstore --name aipg-validator --specpath build/pyinstaller validator/__main__.py
+        run: uv run --frozen --extra media --extra release pyinstaller --onefile --collect-data validator --collect-data sigstore --hidden-import sigstore._store --name aipg-validator --specpath build/pyinstaller validator/__main__.py
 
       - name: Test native CLI and first-run behavior
         shell: bash

@@ -60,7 +60,8 @@ installer generation.
   errors, credential-free environment and real owned-child timeout, output
   bounds and cancellation. Native release CI also executes the packaged
   `_update-worker self-test` to exercise bundled offline trust roots and UI
-  resources; source transport mocks do not prove packaged readiness.
+  resources without falling back to a user cache; source transport mocks do
+  not prove packaged readiness. Only fixed failure codes may escape the child.
 - `test_operator_updates.py` - cached-only startup/reads, background discovery,
   concurrency/rate limiting, sanitized failures and close. The operator HTTP
   suite separately covers local session/origin/body guards and no runtime start
@@ -74,6 +75,9 @@ installer generation.
   Enrollment handoff uses two real child processes and the real Settings
   parser to prove saved credentials replace the enrollment-time snapshot;
   stop, close, and failed enrollment must suppress automatic runtime start.
+  Malformed framing/content-type cases send headers without a body, proving
+  rejection without waiting for untrusted input and avoiding a Windows TCP reset
+  from sending bytes after an early rejection. Valid-body and size tests remain.
 - `test_account_pairing.py` - synthetic Core responses with real EIP-191
   signature recovery, exact contract validation, prior-review/fresh-read consent,
   stale/replaced approvals, cancellation, expired attempts, response-loss/restart

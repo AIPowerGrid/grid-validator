@@ -560,7 +560,8 @@ model attestation or use it as sole authority.
   dependency because signed V0 attestations are part of the preview.
 - Sigstore is pinned in the optional `update` and native `release` extras.
   The updater components now stage verified archives in an isolated process;
-  native builds collect Sigstore data and run offline packaged readiness.
+  native builds collect Sigstore data and its resource package, then run
+  cache-independent offline packaged readiness with fixed failure codes.
   This is not an installed updater yet: native verification, app-controlled
   activation and platform restart/rollback remain release gates.
 - New grid-side endpoint dependencies fail closed when they are required for
