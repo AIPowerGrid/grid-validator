@@ -1,8 +1,10 @@
 # Validator Quickstart
 
-**September 7 update:** preview.17 includes verified app updates. Native
-handoff/recovery checks passed on all four platforms, and an owned Linux
-service preserved and delivered pending signed evidence across the upgrade.
+**September 7 update:** preview.18 is the recommended release, with verified app
+updates introduced in .17 and the disabled-by-default payout-consent interface.
+Native handoff/recovery checks passed on all four platforms. An owned Linux
+service preserved pending evidence across .15-to-.17, then the .18 rollout
+passed a fresh signed-report check. See [release evidence](PREVIEW18_ROLLOUT.md).
 Existing operators keep their identity/configuration; new app setup starts
 after confirmation. Human desktop qualification remains separate from CI.
 
@@ -15,8 +17,8 @@ V0 is evidence-only. It does not pay validator rewards, slash workers, change
 routing, or prove exact model weights.
 
 Rollout status: sealed shared-quorum text validation is live in production and
-the recommended release is `v0.1.0-preview.17`. Core accepts the exact
-preview.13 baseline plus preview.15/.16/.17 during the controlled overlap;
+the recommended release is `v0.1.0-preview.18`. Core accepts the exact
+preview.13 baseline plus preview.15/.16/.17/.18 during the controlled overlap;
 upgrading preserves qualification history, not independent-operator approval.
 Older preview.9 nodes are upgrade-required and cannot fill an independent
 quorum seat. The evidence lane is unpaid and cannot change routing, rewards,
@@ -27,11 +29,11 @@ gate. Begin with `check --no-probe` before running an assignment probe.
 
 ## What You Need
 
-**New setup (preview.17):** use the local operator app, or `aipg-validator enroll`, to create a dedicated node account
+**New setup (preview.18):** use the local operator app, or `aipg-validator enroll`, to create a dedicated node account
 after confirmation. It saves an empty local signer, signs Core's short-lived
 login challenge, and obtains a validator-only API key. No Google/GitHub login,
 wallet extension, or pasted private key is needed. Upgrade older binaries to
-preview.17 instead of exporting a personal wallet key.
+preview.18 instead of exporting a personal wallet key.
 Existing-account pairing is separate and not yet available. Keep existing
 configured nodes on their current identities.
 
@@ -114,7 +116,7 @@ before running it:
 > Docker are the least-friction preview paths.
 
 ```bash
-curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.17/install-validator.sh
+curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.18/install-validator.sh
 gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator
 bash install-validator.sh
 cd ~/.aipg-validator
@@ -127,7 +129,7 @@ aipg-validator run
 Windows x64: see the double-click steps below. Optional PowerShell installer:
 
 ```powershell
-Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.17/install-validator.ps1 -OutFile install-validator.ps1
+Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.18/install-validator.ps1 -OutFile install-validator.ps1
 gh attestation verify install-validator.ps1 --repo AIPowerGrid/grid-validator
 .\install-validator.ps1 -AcceptUnsignedPreview
 ```
@@ -138,7 +140,7 @@ binary is installed or executed.
 
 ### Windows First Run
 
-1. Download the preview.17 Windows x64 ZIP, verify its checksum/provenance,
+1. Download the preview.18 Windows x64 ZIP, verify its checksum/provenance,
    and extract it.
 2. Double-click `aipg-validator.exe`. The menu stays open; PowerShell is not
    required. Opening the menu does not create credentials or start probes.
@@ -163,7 +165,7 @@ private localhost URL private and never forward its port. **Download diagnostics
 provides redacted status for support, not keys or raw logs. See
 [OPERATORS.md](OPERATORS.md#local-operator-app).
 
-In the preview.17 app, choose **Check for updates**, review the version, then
+In the preview.17 or newer app, choose **Check for updates**, review the version, then
 confirm **Update and restart**. Configuration, identity and queued evidence
 remain in place. Older binaries need one manual upgrade to gain this feature.
 CLI/systemd/Docker instances are externally managed: their six-hour check only
@@ -180,7 +182,7 @@ validator API key. Follow [OPERATORS.md](OPERATORS.md) and revoke the old API
 key after the replacement checks healthy.
 
 The versioned GitHub binaries and exact preview container are public. Anonymous
-GHCR access to `v0.1.0-preview.17` is verified for Linux x64 and ARM64. Keep the
+The versioned `v0.1.0-preview.18` image is published for Linux x64 and ARM64. Keep the
 version explicit: prereleases never publish or replace `latest`.
 
 ## Docker
@@ -190,7 +192,7 @@ preview image. Mapping the container to your host user lets enrollment create
 the private configuration without running the validator as root:
 
 ```bash
-IMAGE=ghcr.io/aipowergrid/validator:v0.1.0-preview.17
+IMAGE=ghcr.io/aipowergrid/validator:v0.1.0-preview.18
 CONFIG_DIR="$HOME/.aipg-validator"
 mkdir -p "$CONFIG_DIR/state"
 chmod 700 "$CONFIG_DIR" "$CONFIG_DIR/state"
@@ -260,7 +262,7 @@ intend to test source changes instead of the immutable cohort release.
 
 After `.env` is configured and `check --no-probe` passes, download the reviewed
 service helper by its immutable source commit and verify its SHA-256 before
-running it. The helper is separate from the frozen preview.17 binary release;
+running it. The helper is separate from the frozen preview.18 binary release;
 pinning both prevents a moving `master` branch from changing a qualifying node
 mid-run.
 
@@ -285,7 +287,7 @@ sudo journalctl -u aipg-validator -f
 The helper keeps secrets in `.env`, keeps the durable journal writable only in
 the private work directory, and refuses to start the service when `.env` is
 missing. Do not run the local app's validator child at the same time as the
-systemd service. The service runs the immutable preview.17 binary installed
+systemd service. The service runs the immutable preview.18 binary installed
 above; updating either the binary or helper is a separate, explicit operation.
 
 ## Healthy Output

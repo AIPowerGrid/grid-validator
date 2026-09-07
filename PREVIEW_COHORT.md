@@ -30,14 +30,16 @@ fill independent-operator seats.
 
 Enrollment is open for the evidence-only cohort. As checked on 2026-09-07,
 production Core runs commit
-`3714a927733f61abeeeaf709867448cf8d54cb41` with migrations through `0035`.
+`84fe0fd6202c2744c970dfeebd5103f1ad13f883` with migrations through `0039`.
 New operators must use the immutable public
-[`v0.1.0-preview.17`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.17),
+[`v0.1.0-preview.18`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.18),
 which provides explicit automatic enrollment and a local operator app. Core
-also accepts the exact preview.13 baseline plus preview.15/.16 during the .17 upgrade
+also accepts the exact preview.13 baseline plus preview.15/.16/.17 during the .18 upgrade
 overlap, preserving qualification history. Older versions are upgrade-required
 and excluded from independent quorum. First-party nodes are upgrading in place;
-two owned Linux services have passed the .15-to-.17 rollout checks.
+two owned Linux services have passed the .15-to-.17 rollout checks. One owned
+service has since upgraded to .18 and submitted independently verified fresh
+signed evidence; see [PREVIEW18_ROLLOUT.md](PREVIEW18_ROLLOUT.md).
 The three first-party nodes share one operator and hypervisor, so they do not
 count toward the five independent-operator exit gate.
 See [PRODUCTION_BASELINE.md](PRODUCTION_BASELINE.md) for dated runtime evidence;
@@ -75,7 +77,7 @@ hostname, or review notes.
 
 ## Join
 
-1. Install the verified preview.17 release using [QUICKSTART.md](QUICKSTART.md).
+1. Install the verified preview.18 release using [QUICKSTART.md](QUICKSTART.md).
    On Windows, extract the ZIP and double-click `aipg-validator.exe`; choose
    menu option **8: Open local operator app**. No PowerShell is needed for the
    menu/app flow. Follow the unsigned-preview and verification guidance before
@@ -129,12 +131,12 @@ the live review, not an independence oracle and not validator authority.
 
 Linux x64 and ARM64 binaries target glibc 2.35 or newer. macOS and Windows
 preview binaries are explicitly unsigned; Linux is the lowest-friction public
-pilot path. The exact `ghcr.io/aipowergrid/validator:v0.1.0-preview.17`
-container is anonymously pullable on Linux x64 and ARM64; the prerelease does
+pilot path. The exact `ghcr.io/aipowergrid/validator:v0.1.0-preview.18`
+container is published for Linux x64 and ARM64; the prerelease does
 not publish `latest`.
 
 ```bash
-curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.17/install-validator.sh
+curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.18/install-validator.sh
 gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator
 bash install-validator.sh
 cd ~/.aipg-validator
