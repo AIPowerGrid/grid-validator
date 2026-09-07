@@ -43,7 +43,7 @@ completion of the corresponding research experiment.
 | 5. Attacks | [Adversarial design](ADVERSARIAL_VALIDATION.md), [initial live fidelity study](TEXT_FIDELITY_EXPERIMENT_2026_09_05.md), fixed-context and answer-scoring reports above | Probe-aware switching/proxying and fabricated probabilities remain trust limitations, not solved problems. Cross-check copied/common-control evidence tests before declaring the complete attack matrix covered |
 | 6. Correctness | [Rollout evidence and delivery tests](ROLLOUT_2026_09.md): 55 real PostgreSQL 16 binding/race/retry/terminal tests, including killed transaction backends and strict matching receipts | Linux release CI, migrated-database and authenticated production integration; worker-ledger atomicity is not a validator compensation send |
 | 7. Media | [Image pilot](IMAGE_PILOT_2026_09_07.md), including six actual same-artifact Apple/NVIDIA renders; [video pilot](VIDEO_PILOT_2026_09_07.md) | Broader scenes, workflow/quant variants and qualified references; one image scene/two seeds do not establish fleet tolerance; measured misses and source-binding limits remain |
-| 8. Shadow rollout | Core sampling metadata is under review in [Core PR #117](https://github.com/AIPowerGrid/grid-core/pull/117); Console preview context remains a local candidate | Reviewed release/deployment, fresh live operator qualification and an observed shadow run; local UI tests and a draft PR are not publication |
+| 8. Shadow rollout | [Core PR #117](https://github.com/AIPowerGrid/grid-core/pull/117) and [Console PR #25](https://github.com/AIPowerGrid/grid-frontend/pull/25) have passing CI; current fleet snapshot below | Reviewed merge/deployment and an observed shadow run; zero reviewed independent operators in the snapshot. Passing CI and draft PRs are not deployed scorecards |
 
 ## Scorecard Release Candidate
 
@@ -67,11 +67,44 @@ Private result commitments:
 - JUnit: `26c09515dfcf4cbc4523f49cd30567f8f6ca971bc9d47df29de6991ec24bbc9f`.
 - Summary: `a954ed0690433b9c7b43041756c5dd3a7c4d800312dc5b4986bb5c5ce1602982`.
 
-GitHub Linux/Python 3.12 CI must independently pass the production dependency
-lock/audit, full Grid suite and PostgreSQL migration/restore gates before this
-draft can be considered merge-ready. Do not infer success from local tests or
-the existence of a workflow run. No automatic merge, deployment, new public
-Responses assignment policy, compensation or penalty activation is enabled.
+GitHub Linux/Python 3.12 [run 34087354680](https://github.com/AIPowerGrid/grid-core/actions/runs/34087354680)
+passed the production dependency lock/audit, anti-gaming contract (15 tests),
+backup/restore through Alembic `0034`, schema parity and full Grid suite:
+1,143 passed, eight skipped, two warnings. The quiet CI report does not identify
+skip reasons; do not describe this as zero skipped coverage. CodeQL and
+secret/infra-string checks also pass. These checks qualify the candidate, not
+live model identity, independent operators or deployed behavior.
+
+Console draft #25 pins `005a1a849628fd370b5ae208ddc1a1cf38be1575` and adds the
+six evidence-metadata tests to required CI. [Run 34087765631](https://github.com/AIPowerGrid/grid-frontend/actions/runs/34087765631)
+passed the pinned pnpm frozen install, formatting, strict lint, six metadata
+tests, production build and account/key-management/OAuth/pairing smoke tests.
+The existing default-branch Faker and selector-parser advisories remain open:
+Faker has no app/script imports in this checkout; selector-parser is transitive
+CSS build tooling. No vulnerable API use was found in this scorecard diff;
+this is scoped triage, not remediation or a general dependency security claim.
+
+Both PRs remain drafts. No automatic merge, deployment, new public Responses
+assignment policy, compensation or penalty activation is enabled.
+
+### Pre-Rollout Fleet Snapshot
+
+The public network endpoint generated this snapshot at
+`2026-09-07T05:44:14.282163+00:00`, Core
+`c0cda681dc0f24aed4123f356b6ef115a3a30887`:
+
+- 14 active registrations, eight fresh heartbeats, 11 participants in 24 hours.
+- 690 completed assignments, 666 authoritative votes, six workers/six models
+  covered. Votes and completed assignments are not independent workload counts.
+- Fresh software split: four preview.13 and four preview.15 nodes.
+- Zero verified/participating independent operators; independence not proven.
+- Economic effect: none. Observability is active, but this snapshot does not
+  qualify independent shadow authority or prove the new scorecards are deployed.
+
+Captured public-response SHA-256:
+`ab4ed179eed3b18e81882d69517570ed49fb9a8795cb412735a06d6d55f73275`.
+This is a dated aggregate snapshot, not continuous monitoring or an identity
+claim about any individual operator.
 
 ## Next Text Experiment: Frozen Acceptance
 

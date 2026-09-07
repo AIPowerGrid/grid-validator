@@ -97,9 +97,10 @@ model attestation or use it as sole authority.
   Keep scheduled case-group denominators, honest claimed-model controls and
   unavailable outcomes explicit. Its research gates grant no model-possession,
   population false-positive, deployment or economic authority claim.
-  Its scorecard candidate record binds Core draft PR #117 and 106 exact-commit
-  local checks, including seven real-PG aggregation tests. Draft publication
-  is not deployed preview scorecards or completed Linux release qualification.
+  Its scorecard candidate record binds Core draft PR #117 and Console draft
+  PR #25 to local evidence, passing Linux CI and a dated production snapshot.
+  Preserve CI skips and zero independently reviewed operators explicitly.
+  Draft publication is not deployed scorecards or independent shadow authority.
 - **`ROLLOUT_2026_09.md`** - controlled release, measured text-fidelity and
   adversarial experiments, proposed capped compensation, and image/video pilot
   acceptance record. Distinguish synthetic attack baselines from live evidence.
