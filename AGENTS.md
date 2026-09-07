@@ -41,8 +41,8 @@ four-platform native handoff/recovery and clean-install checks. Downloaded
 payload and pinned GitHub/Sigstore provenance verification pass. Core admits
 preview.13/.15/.16/.17 without resetting qualification. One owned node runs
 the released preview.17 Linux binary with its config and durable journal
-preserved. Fresh preview.17 evidence and live pending-evidence replay remain
-unproven at this rollout checkpoint. The public download page was observed
+preserved. One fresh report after upgrade has independently verified signature
+and assignment binding; live pending-evidence replay remains unproven. The public download page was observed
 selecting preview.16 on September 7; promotion to preview.17 is separate.
 Preview.16's protected Windows live run `34092210339` passed enrollment,
 accepted evidence, upgrade, outage/recovery and retirement. See

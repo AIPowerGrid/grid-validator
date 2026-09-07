@@ -82,6 +82,8 @@ are unchanged. Shadow observation and validator economics remain off.
 One owned Linux systemd node upgraded from the published preview.15 binary to
 the published preview.17 binary at 15:31:39 UTC. Its config and complete durable
 journal were preserved before restart, with the same registered ID afterward.
+One fresh report at 15:35:53 UTC passed independent signature recovery and
+assignment/nonce/evidence/worker binding checks against production records.
 This is an externally managed service upgrade, not an app-controlled update.
 There were no pending signed reports at cutover, so this does not prove their
 live replay. A first attempt rolled back after the harness's public-status

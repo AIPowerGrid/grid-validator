@@ -153,15 +153,22 @@ request passed preflight before the successful second attempt.
 
 The node was online on an accepted release afterward. Its journal contained
 historical dead-letter assignments but no pending signed reports; none were
-deleted or retried to manufacture a passing test. At the initial database
-follow-up, the fleet had five new verified authoritative reports since the Core
-cutover, but zero signed with preview.17 by this node. Fresh preview.17 evidence
-and real pending-report replay therefore remain open checks. This is an
-externally managed service upgrade, not proof of the app's live one-click path.
+deleted or retried to manufacture a passing test. At 15:35:53 UTC one fresh
+authoritative report was accepted after the confirmed service upgrade. A
+separate read-only production audit recovered its signature against the current
+registered signer and verified the assignment owner, target worker, nonce and
+evidence hash. The complete identity/qualification/review digest remains
+unchanged. There were ten new verified fleet reports since the Core cutover at
+that follow-up. An initial audit query incorrectly expected a software-version
+field in attestation payloads; that field belongs to registration. Its empty
+result is not evidence of missing delivery. The corrected audit uses the
+confirmed service cutover time and independently verified signed records.
+Real pending-report replay remains an open check. This is an externally managed
+service upgrade, not proof of the app's live one-click path.
 
 The public `/validate` page was checked and currently selects preview.16.
 Preview.17 publication is not website promotion or completion of the bounded
-independent paid-beta pilot. The remaining steps are live evidence/replay,
+independent paid-beta pilot. The remaining steps are live pending-report replay,
 operator reviews, public rollout, the frozen pilot and separately approved
 compensation accounting. Do not extend those claims from native fixtures.
 
