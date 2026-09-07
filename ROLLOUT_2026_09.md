@@ -356,8 +356,17 @@ twelve uncached Z-Image/FLUX renders across two seeds, using the owner's active
 image backend. Honest repeats have equal decoded pixels; two cross-model
 pairs are outliers in both directions. Grayscale removal and the wrong FLUX
 seed remain accepted by v1. Keep those misses explicit and do not tune the
-threshold to this scene. Cross-hardware, workflow variants, independent
-references and video source-frame adherence remain open; issuance stays gated.
+threshold to this scene. Cross-hardware, workflow variants and independent
+references remain open; issuance stays gated.
+
+The video report's image-to-video follow-up adds five uncached executions:
+two source images, their repeats and one deliberately bypassed conditioning
+run. Honest repeats match in decoded pixels. First-frame pHash distances to
+the intended source are zero for the conditioned outputs and 32 for the
+bypassed output, yet all five pass the existing structural contract. A
+source-binding policy is not implemented or calibrated by these measurements.
+Broader scene/crop/hardware controls and first-frame-splice attacks remain
+required; this does not enable public media assignments or penalties.
 
 ## Attestation Delivery Follow-Up
 

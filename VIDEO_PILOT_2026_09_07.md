@@ -118,14 +118,83 @@ Private artifact SHA-256:
 
 ## Next Gates
 
-1. Test additional scenes and camera/motion types, source-image adherence,
+1. Test additional scenes and camera/motion types, broader source-image adherence,
    supported hardware and runtime variants before choosing tolerances.
 2. Test actual wrong-model video substitutions; a wrong seed is not one.
 3. Treat structural/motion checks as basic conformance, not semantic temporal
    consistency. Any proposed loop detector needs legitimate-loop controls.
-4. Complete the image pilot and independently controlled reference enrollment.
+4. Extend the [completed first-party image pilot](IMAGE_PILOT_2026_09_07.md)
+   across hardware/workflow variants and qualify independent references.
 5. Establish a governed recipe, immutable witness retention, real assignment
    delivery and fresh media-capable validators before public media issuance.
 
 The full text compatibility, substitution, adversarial and shadow-rollout goal
 remains open. This first-party video pilot does not supersede its gates.
+
+## Image-To-Video Follow-Up
+
+Five fresh executions on the same owned backend test two starting images,
+one repeat of each, and a deliberate bypass of both image-conditioning nodes.
+All use the same seed and the existing LTX-2.3 image-to-video recipe, whose
+metadata still declares `deterministic: false`. Two source frames come from
+the earlier synthetic clips, not independent scenes or user content. Upload
+bytes were read back and verified exactly before generation; source hashes,
+upload receipts, graph bindings, returned prompt IDs and output hashes are
+retained privately. The seven weight hashes and source-tree hash still match
+the earlier video capture.
+
+The private harness normalizes one legacy calculator's flat `a`/`b` inputs to
+the installed KJ `variables.a`/`variables.b` schema. Equivalent integer seed
+expressions force fresh sampling, as before. This is a locally normalized
+backend test, not proof that the unmodified production recipe works through
+the Grid. No production recipe, service, model, account or authority setting
+was changed.
+
+All five outputs decode to 512x512, 49 frames at 24 FPS. Both samplers were
+uncached in every history. Each same-source repeat has identical decoded RGB
+frames. Five backend execution intervals are 50.760, 44.275, 44.060, 43.262
+and 42.577 seconds; they are not Grid latency or independent timing evidence.
+
+First decoded frame compared with the committed input:
+
+| Case | pHash distance | RGB mean absolute error, 0-255 scale | Existing contract |
+| --- | ---: | ---: | --- |
+| Source A, both repeats | 0 | 0.846160 | Healthy |
+| Source B, both repeats | 0 | 1.147732 | Healthy |
+| Source A, conditioning bypassed | 32 | 75.442396 | Healthy: missed source omission |
+
+Comparing either normal output against the other source gives pHash distance
+26 and RGB error 67.161-67.333. The normal first frames are close, not pixel
+identical to their source PNGs. Encoding and reconstruction preclude assuming
+exact source/output byte equality. These are observations, not fitted cutoffs.
+
+The unchanged `video.contract.v1` accepts all five actual-byte witnesses. Its
+contract checks dimensions, timing, blank frames and motion, but does not
+consume a committed source-image witness. This controlled omission therefore
+passes basic conformance. The follow-up does not exercise `video.fidelity.v1`
+reference verdicts or prove a model substitution. Synthetic identity, mocked
+HTTP and fixed 1000ms latency isolate the existing content policy, as above.
+
+The audit verifies parent-frame/source provenance and exact graph/history
+binding, then cross-checks the bounded decoder against ffprobe/PyAV. RGB error
+is independently calculated with NumPy and Pillow. Two complete audits produce
+identical canonical summary bytes. The 37 existing media tests and two private
+graph/metric tests pass; the three new private harness files pass Ruff lint and
+format checks. Both production services remain active, each post-run queue is
+empty, and the owned SSH forward is closed.
+
+Private artifact SHA-256:
+
+- Manifest: `6f6cf1a937b2cce3cb1ab23758b9e2b8cd0c15eb772968401e485eee1f71c6f4`.
+- Provenance: `e302e4e4ed65055d151e3d1f9a82d508739f94413a68bcd1dd66743ce87269a6`.
+- Completed capture index: `95d3db17251f5460a03e527c1ea1a52202db5fe02b142e764fe3823bda4df515`.
+- Independent summary: `7b9aecdd29370a57e037eddd5ef781411d6204d228d77d021fa6b73d276b56fd`.
+
+The next source-adherence policy needs an assignment-bound source commitment,
+bounded fetching/decoding and explicit resize/crop handling. Calibrate normal
+reconstruction, compression, aspect-ratio changes and different scenes before
+setting a tolerance. Also test a copied correct first frame followed by
+unrelated video: passing a first-frame check alone cannot establish subsequent
+identity, requested motion or temporal consistency. Source adherence remains
+a separate preview dimension, not proof of exact model execution or authority
+to penalize workers.

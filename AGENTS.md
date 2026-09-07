@@ -192,6 +192,9 @@ model attestation or use it as sole authority.
   motion checks miss reversed playback and a two-frame oscillation. Preserve
   the failed cached attempt and harness corrections. One owned backend is not
   independent-reference, cross-hardware or governed-media qualification.
+  Its five-run image-to-video follow-up shows that bypassing source conditioning
+  still passes basic video conformance. First-frame distances are measurements,
+  not a shipped source-binding policy or a calibrated penalty threshold.
 
 - **`validator/`** — the whole node (config, stake gate, grid client, canary probing +
   scoring, attestation signing, probe loop, CLI, read-only dashboard, and opt-in
