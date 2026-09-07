@@ -198,6 +198,11 @@ model attestation or use it as sole authority.
   Its offline source-splice follow-up defeats first-frame-only comparison;
   full-clip v1 rejects the tested splices and accepts three codec/resize
   controls. Those owned-reference results are not a fleet tolerance bound.
+  Its actual LTX-2/LTX-2.3 follow-up rejects eight bidirectional/repeated
+  model/workflow substitutions across two seeds on two owned hosts. Basic
+  conformance accepts all clips. Model, workflow and host change together;
+  this is not a same-artifact hardware baseline, eight independent trials,
+  calibrated false-positive rate or exact model identity proof.
 
 - **`validator/`** — the whole node (config, stake gate, grid client, canary probing +
   scoring, attestation signing, probe loop, CLI, read-only dashboard, and opt-in

@@ -120,7 +120,9 @@ Private artifact SHA-256:
 
 1. Test additional scenes and camera/motion types, broader source-image adherence,
    supported hardware and runtime variants before choosing tolerances.
-2. Test actual wrong-model video substitutions; a wrong seed is not one.
+2. Expand the actual model/workflow substitution pilot below to more scenes,
+   same-artifact cross-host controls and independently qualified references.
+   A wrong seed alone is not a wrong-model test.
 3. Treat structural/motion checks as basic conformance, not semantic temporal
    consistency. Any proposed loop detector needs legitimate-loop controls.
 4. Extend the [completed first-party image pilot](IMAGE_PILOT_2026_09_07.md)
@@ -130,6 +132,78 @@ Private artifact SHA-256:
 
 The full text compatibility, substitution, adversarial and shadow-rollout goal
 remains open. This first-party video pilot does not supersede its gates.
+
+## Actual Model/Workflow Substitution
+
+A second owned RTX 5090 host has LTX-2 19B distilled FP8, not the LTX-2.3
+22B Q4_K_M used above. Four fresh renders use the same private synthetic scene,
+two alternating seeds, and the same 512x512/49-frame/24-FPS output contract.
+This changes model, workflow, serving source and host simultaneously. It is
+a real model/workflow substitution experiment, **not** a same-model hardware
+baseline, quant-only comparison or attribution of differences solely to weights.
+
+The LTX-2 revision uses the already-installed built-in AV text encoder loader,
+existing mixed-FP4 Gemma encoder and checkpoint, CFG 1, Euler, and the existing
+distilled eight-step sigma schedule without the two-stage Director upscaler.
+ComfyUI reports 0.25.0 at `0a92ed161e6fa18eb169d96d64b4c279cf280dc5`, Python
+3.13.3 and PyTorch `2.9.0.dev20250731+cu128`. Two referenced weight files and
+1,527 Python source files are privately hashed. No weights, dependencies,
+services, production recipes, validator registration or authority flags changed.
+
+Acceptance criteria were frozen before inference: retain all failures, require
+uncached sampling, preserve exact output/graph/history bindings, evaluate the
+unchanged contract and fidelity policies, and never fit a tolerance to this run.
+Equivalent whitespace in the sigma string changes cache ancestry without
+changing parsed sigma values or effective seed. Offline checks verify that
+equivalence; each of the four terminal histories confirms an uncached sampler.
+
+Two failed preparations remain separate from the successful revision. The
+initial graph preflight found an unavailable custom calculator before dispatch.
+The next attempt reached an old custom text loader but failed on its missing
+external tokenizer before producing a video. The final revision uses the
+installed built-in loader. Neither failure is a worker/model-quality verdict;
+no ambiguous submission was repeated or existing artifact overwritten.
+
+All four new outputs decode to the intended dimensions/timing. Both same-seed
+LTX-2 repeat pairs have identical decoded RGB frames and maximum frame pHash
+distance zero, despite different MP4 container hashes. Execution intervals are
+26.313, 8.791, 8.598 and 8.979 seconds. The different workflow/loading state
+means these are not a comparative throughput benchmark or Grid latency SLA.
+
+| Existing policy / comparison | Observed result |
+| --- | --- |
+| Basic contract, all four new and four earlier clips | Eight healthy results; no model distinction |
+| LTX-2 candidate against same-seed LTX-2.3 reference repeats | Four failed: candidate-outlier |
+| LTX-2.3 candidate against same-seed LTX-2 reference repeats | Four failed: candidate-outlier |
+| Same-stack, same-seed reference repeat pairs | Pixel-identical; reference pHash distance zero |
+
+Cross-stack maximum frame distances are 42 and 44 for the two seeds; means are
+29.347 and 31.673. The reference policy's unchanged pHash tolerance is 12.
+Motion-difference values remain below its tolerance, so motion alone would
+not distinguish these cases. Eight outlier evaluations reuse two seed pairs
+in both directions with repeated outputs: **not eight independent trials**.
+There is no held-out third LTX-2 render per seed here, so repeat consistency
+is not reported as a measured false-positive rate. A same-model cross-host
+baseline still requires identical artifact/workflow availability on both hosts.
+
+The actual-byte scorer uses mocked HTTP, distinct synthetic witness role IDs
+and fixed 1000ms latency to isolate content decisions. All captured work is
+first-party. It does not prove independent references, public signed delivery,
+exact model identity or safe fleet penalties. The audit verifies immutable
+artifacts, uncached history and source hashes, and cross-checks the bounded
+decoder with independent ffprobe/PyAV frame/pixel inspection. Two full audits
+produce identical canonical summary bytes. The 37 existing media tests and two
+private graph-equivalence tests pass. New adapter/auditor/test files pass Ruff;
+the frozen parent capture script retains one import-order advisory. Both image
+host services remain active, its queue is empty and the owned forward is closed.
+
+Private artifact SHA-256:
+
+- Manifest: `720ce94d8a7f7f080ce049f80d8cddc0a5581f0eeeac2c5421af4ffdd3df519f`.
+- Provenance: `d4bc526a6b7c4ec1c5017a5baa2a1506bc3e053312a53f3b954582d4aba59546`.
+- Completed capture index: `7951d968fee94ae339c0e51a3e1b45616a00bfd77d3c52c0e84c755b4ceec7e9`.
+- Scoring manifest: `c94d82cddc3d13dfb8526b08d3dee0663d1b69972e7cb55d36dbcc246437bcdb`.
+- Scoring summary: `100de2d349fdebdf5d3f247965806d6bdbb41343b728e598baeeaf02e355755f`.
 
 ## Image-To-Video Follow-Up
 
