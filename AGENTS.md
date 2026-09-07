@@ -293,6 +293,11 @@ model attestation or use it as sole authority.
   reference pool, future economics, Base anchoring, and Grid-side dependencies.
 - **`ADVERSARIAL_VALIDATION.md`** — attacker model, evidence-dimension boundaries,
   probe-fingerprinting gaps, red-team acceptance tests, and economic gates.
+  Its six-case PG16 collusion experiment distinguishes stolen envelopes from
+  separately signed copied judgments: the former fails binding; three false
+  judgments can form an accepted preview quorum. Known-control exclusion is
+  not hidden-control discovery. Keep the successful attack and zero-economic
+  fixture boundary explicit; do not replace independent scoring with Core echo.
 - **`ROADMAP.md`** — dev-manager build order from V0 preview through targeted
   validation, text/image/video policy work, and Base-anchored economics.
   Its active eleven-item milestone distinguishes published native runtime proof
