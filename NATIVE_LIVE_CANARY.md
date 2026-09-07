@@ -5,7 +5,14 @@ its generated key was revoked and no validator was registered. The harness
 now expects the intended automatic startup, reports only allowlisted app
 errors, and records explicit upgrade versions. This is not a passing .14 proof.
 
-Current status: preview.15 passed protected run
+Current target: preview.16, published from reviewed commit
+`323e0104a8a6a5886b6b58e14bf953dab5b93544`. Its four native builds,
+clean installs and full payload verification passed release run `34090594246`.
+The live harness now pins preview.15 to preview.16. This prepares supervised
+runtime qualification; it does not establish a passing live run or change
+public download recommendations, accepted cohort versions or economic authority.
+
+Last completed live qualification: preview.15 passed protected run
 [33984877376](https://github.com/AIPowerGrid/grid-validator/actions/runs/33984877376)
 on September 5 against Core `6f12de6f`: fresh automatic enrollment, one accepted
 signature-verified report, preserved-identity upgrade, actual outage/recovery,
@@ -27,8 +34,8 @@ a release or enable any Core feature. Human desktop onboarding remains separate.
 - Only manual dispatch on reviewed `master`, with explicit unpaid-canary consent
   and the existing owner-approved `validator-release` environment. No pull
   request, push, schedule or public contribution can start live work.
-- The hosted Windows x64 runner now targets verified immutable preview.13 and
-  preview.15 archives; the earlier passing result tested preview.12 to .13.
+- The hosted Windows x64 runner now targets verified immutable preview.15 and
+  preview.16 archives; the previous passing result tested preview.13 to .15.
   Both archives and manifests require GitHub provenance
   bound to the exact tag, source SHA, release workflow and hosted builder before
   extraction. The harness never builds a substitute binary.
@@ -55,7 +62,7 @@ a release or enable any Core feature. Human desktop onboarding remains separate.
    required: accepting valid failure evidence is also correct protocol behavior.
 5. Redacted diagnostics, stop/start and whole app restart with stable identity.
 6. Invalid credentials fail without changing config.
-7. Preview.13 to preview.15 existing-identity registration using both verified
+7. Preview.15 to preview.16 existing-identity registration using both verified
    binaries; this is binary-switch proof, not an OS installer-upgrade UI test.
 8. An outbound firewall block for only the tested executable produces
    `grid_unavailable`; removing it restores an acknowledged heartbeat on the

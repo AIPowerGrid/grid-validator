@@ -23,11 +23,11 @@ from urllib.parse import urlsplit
 
 REPO = "AIPowerGrid/grid-validator"
 RELEASES = {
-    "v0.1.0-preview.13": "5fa00bff24ce7749fa3316b68cecdb975155339d",
     "v0.1.0-preview.15": "809b357cec6ca51a78cc8fe3f8013543b0522c02",
+    "v0.1.0-preview.16": "323e0104a8a6a5886b6b58e14bf953dab5b93544",
 }
-CURRENT = "v0.1.0-preview.15"
-PREVIOUS = "v0.1.0-preview.13"
+CURRENT = "v0.1.0-preview.16"
+PREVIOUS = "v0.1.0-preview.15"
 GRID = "https://api.aipowergrid.io"
 ASSET = "aipg-validator-windows-x64.zip"
 EXE = "aipg-validator.exe"
