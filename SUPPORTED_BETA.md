@@ -48,6 +48,29 @@ or make operators repeat information already supplied privately.
   Publish one reviewed release with an in-place upgrade guide and rollback
   evidence. Promote it only after artifact and production-pilot gates pass.
 
+## Updater Implementation Evidence
+
+Release discovery is merged; installation is not yet wired. The in-progress
+`release_verify.py` authenticates the manifest using Sigstore 4.5.0, the exact
+GitHub release workflow identity and signed SLSA source/tag/platform bindings.
+On 2026-09-07 it verified the published preview.16 manifest without a GitHub
+login and rejected altered manifest bytes and an altered source commit against
+the real published attestation. Manifest SHA-256:
+`904c279ca6c381c1de75b216d160e9676aa7307ee7f979946e027683233500d0`.
+
+Hermetic policy tests mock the cryptographic transport explicitly. Neither
+those tests nor the live manifest check proves archive extraction, packaged
+trust-root resources, anti-downgrade selection, running-binary replacement,
+identity preservation or successful restart/rollback. Those remain required
+for the one-click updater, which must isolate verification in a killable child
+and must never replace an externally managed service or container.
+
+Local source verification: 372 unittest cases, 366 passed and six optional
+Core/Console integration cases skipped; all 11 new verifier-policy cases pass.
+Ruff, strict mypy on the verifier, frozen-lock resolution with CI's uv 0.12.5,
+staged secret scanning and the all-extras dependency audit pass. These are local
+source checks, not native packaged updater qualification.
+
 ## Capability Boundary
 
 Availability and task-specific correctness are supported evidence dimensions.

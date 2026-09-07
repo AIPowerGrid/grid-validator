@@ -205,6 +205,13 @@ change is deployed; Core still issues no media work by default.
   independent of registration and the inference subprocess. One background
   request at a time, at most once per 30 seconds. It never reads or writes node
   credentials, identity, journal, executable, qualification or service state.
+- **`release_verify.py`** - updater manifest/provenance verification component,
+  not yet wired to installation. Sigstore verifies the exact public GitHub
+  release workflow certificate and DSSE signature before SLSA subject, tag,
+  repository identity and source-commit binding. Reject checksum-only trust,
+  ambiguous metadata, unbounded assets and unsigned stable releases. The future
+  installer must run verification in a bounded killable child, verify archive
+  bytes and perform the owned-process restart/rollback separately.
 - **`dashboard.py`** — read-only localhost operator status page and
   `/status.json`. Uses the Python standard library only; shows Grid validator
   capability flags, the authenticated operator's safe qualification progress,

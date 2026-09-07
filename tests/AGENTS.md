@@ -47,6 +47,11 @@ installer generation.
   rotation.
 - `test_update_check.py` - bounded release selection, stable/preview isolation,
   source builds, and unavailable-versus-current update checks.
+- `test_release_verify.py` - manifest and authenticated-provenance binding policy,
+  platform assets, source/tag/workflow mismatch, duplicate JSON and subject
+  rejection, limits and unsigned-preview/stable separation. Signature transport
+  is mocked in this hermetic suite; it does not prove installation or native
+  cryptographic packaging. Real published-provenance verification is separate.
 - `test_operator_updates.py` - cached-only startup/reads, background discovery,
   concurrency/rate limiting, sanitized failures and close. The operator HTTP
   suite separately covers local session/origin/body guards and no runtime start
