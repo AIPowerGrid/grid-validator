@@ -274,7 +274,7 @@ model attestation or use it as sole authority.
   source preview, verified binary install, versioned public Docker, systemd,
   health checks, and V0
   safety boundaries.
-  Current downloads target preview.15 with confirmed local dedicated-account
+  Current install instructions target preview.17 with confirmed local dedicated-account
   enrollment, the Windows menu, and opt-in operator app; preserve deployed-fleet snapshots
   separately. Do not direct first-time operators to paste private keys or claim
   existing-account pairing is shipped.
@@ -285,7 +285,7 @@ model attestation or use it as sole authority.
   normal runs mount the credential file read-only and only the journal directory
   writable.
   The public Linux cohort path pins the systemd helper to a reviewed immutable
-  source commit and verifies its SHA-256 separately from the frozen preview.15
+  source commit and verifies its SHA-256 separately from the frozen preview.17
   binary. Never replace that with a mutable branch download or pipe-to-shell.
 - **`OPERATORS.md`** — plain-language run guide (install, systemd, troubleshooting, FAQ).
   It owns the signed suspend/resume and account-bound signing-wallet/API-key
@@ -326,7 +326,7 @@ model attestation or use it as sole authority.
   the initial three independent operators, broader five-operator pilot, and
   ten-operator recruitment target, including safe reporting and the
   distinction between node count and independently controlled quorum weight.
-  Its new-operator path is preview.15 automatic dedicated-node enrollment and
+  Its new-operator path is preview.17 automatic dedicated-node enrollment and
   the local app, not manual wallet/key preparation. Keep independent-control
   review and advanced credential rotation separate from first-run setup.
   The exact preview.13 node completes a live signed suspend/resume check so a
@@ -345,7 +345,7 @@ model attestation or use it as sole authority.
   Three recently participating qualified groups unlock only a seven-day Core
   shadow observation, not routing or economic authority. The qualifying client
   must use one frozen baseline during shadow observation. Shadow stays off
-  during the preview.13/preview.15 upgrade overlap.
+  during the multi-version upgrade overlap.
 - **`PRODUCTION_BASELINE.md`** — dated public capability, assignment, quorum,
   independence, and network-capacity snapshots. It is historical evidence, not
   a substitute for the live public status endpoints.
@@ -373,7 +373,7 @@ model attestation or use it as sole authority.
   maintainer test tooling, not onboarding for ordinary operators. It has offline
   safety coverage and a completed first-party Linux ARM64 run; Windows pairing
   remains unproven. It neither deploys Core nor activates the pilot. Public
-  downloads target preview.15; account pairing remains Core-disabled.
+  install instructions target preview.17; account pairing remains Core-disabled.
 - **`LINUX_PAIRING_CANARY_REPORT.json`** - immutable redacted output of the
   first-party Linux ARM64 production pairing canary. Its limits, independent
   database audit and cleanup evidence are in `PRODUCTION_BASELINE.md`; the

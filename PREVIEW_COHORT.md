@@ -28,15 +28,16 @@ slashing are gated on reviewed independent operators and a separate activation
 decision. First-party nodes may keep the telemetry lane healthy, but they never
 fill independent-operator seats.
 
-Enrollment is open for the evidence-only cohort. As checked on 2026-09-05,
+Enrollment is open for the evidence-only cohort. As checked on 2026-09-07,
 production Core runs commit
-`6f12de6fdafa970caae6f5e380fdf72796a920ee` with migrations through `0034`.
+`3714a927733f61abeeeaf709867448cf8d54cb41` with migrations through `0035`.
 New operators must use the immutable public
-[`v0.1.0-preview.15`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.15),
+[`v0.1.0-preview.17`](https://github.com/AIPowerGrid/grid-validator/releases/tag/v0.1.0-preview.17),
 which provides explicit automatic enrollment and a local operator app. Core
-also accepts the exact preview.13 baseline during the preview.15 upgrade
+also accepts the exact preview.13 baseline plus preview.15/.16 during the .17 upgrade
 overlap, preserving qualification history. Older versions are upgrade-required
-and excluded from independent quorum. Three first-party nodes now run preview.15.
+and excluded from independent quorum. First-party nodes are upgrading in place;
+two owned Linux services have passed the .15-to-.17 rollout checks.
 The three first-party nodes share one operator and hypervisor, so they do not
 count toward the five independent-operator exit gate.
 See [PRODUCTION_BASELINE.md](PRODUCTION_BASELINE.md) for dated runtime evidence;
@@ -74,7 +75,7 @@ hostname, or review notes.
 
 ## Join
 
-1. Install the verified preview.15 release using [QUICKSTART.md](QUICKSTART.md).
+1. Install the verified preview.17 release using [QUICKSTART.md](QUICKSTART.md).
    On Windows, extract the ZIP and double-click `aipg-validator.exe`; choose
    menu option **8: Open local operator app**. No PowerShell is needed for the
    menu/app flow. Follow the unsigned-preview and verification guidance before
@@ -128,12 +129,12 @@ the live review, not an independence oracle and not validator authority.
 
 Linux x64 and ARM64 binaries target glibc 2.35 or newer. macOS and Windows
 preview binaries are explicitly unsigned; Linux is the lowest-friction public
-pilot path. The exact `ghcr.io/aipowergrid/validator:v0.1.0-preview.15`
+pilot path. The exact `ghcr.io/aipowergrid/validator:v0.1.0-preview.17`
 container is anonymously pullable on Linux x64 and ARM64; the prerelease does
 not publish `latest`.
 
 ```bash
-curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.15/install-validator.sh
+curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.17/install-validator.sh
 gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator
 bash install-validator.sh
 cd ~/.aipg-validator
@@ -151,7 +152,7 @@ immediately. Do not run a second copy while the app's worker is running.
 
 For headless operation, stop the app's worker first and install the pinned
 systemd service from [QUICKSTART.md](QUICKSTART.md#systemd). Confirm it is
-active and following the same preview.15 identity so the 72-hour observation
+active with the same validator identity so the 72-hour observation
 continues:
 
 ```bash
@@ -159,7 +160,7 @@ sudo systemctl status aipg-validator --no-pager
 sudo journalctl -u aipg-validator -f
 ```
 
-Supported preview.15 registration starts a non-economic observation window
+Supported-version registration starts a non-economic observation window
 automatically. Core samples at most one qualifying heartbeat every five minutes;
 wrong-version heartbeats do not count and missing historical samples are never
 backfilled. After the signed control check and common-control review, the
@@ -211,7 +212,7 @@ The canonical design and review contract lives in Core's
 Completing the run permits a separate routing review only; it does not activate
 validator influence or rewards. Shadow collection uses the existing signed
 evidence contract and does not require a new validator binary. Shadow observation
-stays off during the preview.13/preview.15 overlap; freeze one reviewed baseline
+stays off during the multi-version upgrade overlap; freeze one reviewed baseline
 before starting that separate experiment.
 
 The 72-hour run qualifies basic operation and control separation. It does not

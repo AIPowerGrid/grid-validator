@@ -13,8 +13,8 @@ For the shortest install path, start with [QUICKSTART.md](QUICKSTART.md). This
 file is the longer operator runbook.
 
 Current rollout: sealed assignment-bound shared quorum is live in production
-and the recommended release is `v0.1.0-preview.15`. Core accepts the exact
-preview.13 baseline plus preview.15 during a controlled upgrade overlap.
+and the recommended release is `v0.1.0-preview.17`. Core accepts the exact
+preview.13 baseline plus preview.15/.16/.17 during a controlled upgrade overlap.
 Older preview.9 registrations are upgrade-required and do not count
 toward independent quorum. First-party nodes prove the signed workflow, not
 independence. Public enrollment remains an unpaid evidence-only cohort: current
@@ -61,14 +61,14 @@ If a key was issued but the local write failed, retrying may leave an unused
 key on the dedicated account; revoke unused keys during account recovery.
 
 Older binary users should not export a personal wallet key to complete setup.
-Upgrade to preview.15, preserving existing configuration. New operators can
+Upgrade to preview.17, preserving existing configuration. New operators can
 extract the Windows ZIP, double-click `aipg-validator.exe`, and choose 8 for the
 local app described below. The menu's setup/check/run commands remain available.
 PowerShell is optional.
 
 ### Local Operator App
 
-Preview.15 includes `aipg-validator app` (menu option 8). Native packaged-app
+Preview.17 includes `aipg-validator app` (menu option 8). Native packaged-app
 and clean-install tests pass on Windows x64, macOS ARM64, and Linux x64/ARM64.
 The published preview.15 passed a hosted Windows Server runtime journey through
 accepted signed evidence and recovery. That HTTP-driven test does not replace
@@ -110,7 +110,7 @@ before running it:
 > before accepting the OS warning. Prefer Linux or Docker for pilot nodes.
 
 ```bash
-curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.15/install-validator.sh
+curl -fsSLO https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.17/install-validator.sh
 gh attestation verify install-validator.sh --repo AIPowerGrid/grid-validator
 bash install-validator.sh
 cd ~/.aipg-validator
@@ -126,14 +126,14 @@ The installer places the binary in `$HOME/.local/bin` and creates
 ```bash
 AIPG_VALIDATOR_INSTALL_DIR=/usr/local/bin \
   AIPG_VALIDATOR_CONFIG_DIR=/var/lib/aipg-validator \
-  AIPG_VALIDATOR_VERSION=v0.1.0-preview.15 \
+  AIPG_VALIDATOR_VERSION=v0.1.0-preview.17 \
   ./scripts/install-binary.sh
 ```
 
 For scripted Windows x64 installs, use the native PowerShell installer:
 
 ```powershell
-Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.15/install-validator.ps1 -OutFile install-validator.ps1
+Invoke-WebRequest https://github.com/AIPowerGrid/grid-validator/releases/download/v0.1.0-preview.17/install-validator.ps1 -OutFile install-validator.ps1
 gh attestation verify install-validator.ps1 --repo AIPowerGrid/grid-validator
 .\install-validator.ps1 -AcceptUnsignedPreview
 ```
@@ -145,14 +145,20 @@ remain blocked on signing.
 From a source checkout, select the exact release explicitly:
 
 ```bash
-AIPG_VALIDATOR_VERSION=v0.1.0-preview.15 ./scripts/install-binary.sh
+AIPG_VALIDATOR_VERSION=v0.1.0-preview.17 ./scripts/install-binary.sh
 ```
 
-Running nodes perform a notification-only release check at most every six
-hours. They do not download or execute updates. When notified, set
-`AIPG_VALIDATOR_VERSION` to that exact tag, rerun the verified installer, and
-repeat `aipg-validator check --no-probe`. Disable the check with
-`VALIDATOR_UPDATE_CHECK=false` when outbound GitHub access is not desired.
+The preview.17 app supports **Check for updates** followed by a confirmed
+**Update and restart**. Preparation verifies the release before stopping the
+app-owned node; identity, configuration and queued evidence stay in place.
+See [App Updates](UPDATES.md) for rollback and platform-signing limits. Older
+binaries need one manual upgrade to gain this feature.
+
+Externally managed CLI/systemd/Docker nodes keep the six-hour notification-only
+release check. They never adopt the app updater or replace themselves. Use the
+verified exact-version installer or container, preserve the private config and
+journal, and repeat `check --no-probe`. `VALIDATOR_UPDATE_CHECK=false` disables
+that background notice.
 
 ### Suspend, Resume, Or Rotate
 
@@ -299,7 +305,7 @@ Docker is the easiest server path and can perform first-run enrollment without
 a source checkout. Keep the exact preview tag and a private host directory:
 
 ```bash
-IMAGE=ghcr.io/aipowergrid/validator:v0.1.0-preview.15
+IMAGE=ghcr.io/aipowergrid/validator:v0.1.0-preview.17
 CONFIG_DIR="$HOME/.aipg-validator"
 mkdir -p "$CONFIG_DIR/state"
 chmod 700 "$CONFIG_DIR" "$CONFIG_DIR/state"
@@ -380,7 +386,7 @@ exists.
 
 For released binaries, download the reviewed helper from its immutable source
 commit and verify its SHA-256. This pins the service definition independently
-from the installed preview.15 binary and avoids executing a moving `master`
+from the installed preview.17 binary and avoids executing a moving `master`
 branch:
 
 ```bash
@@ -523,11 +529,11 @@ assignments, then rewards/staking after the evidence loop is boring.
 | attestations remain pending | Check Core reachability; the node retries the durable local outbox automatically |
 | outbox reports dead letters | Stop and inspect Core rejection logs before removing the local state database |
 | registration fails with 403 | Confirm the key purpose is validator and the signing wallet is linked to the same Grid account |
-| Windows `.exe` closes immediately | Upgrade to preview.15, extract the ZIP, and double-click its executable. It opens a persistent menu. Keep existing configuration. |
+| Windows `.exe` closes immediately | Upgrade to preview.17, extract the ZIP, and double-click its executable. It opens a persistent menu. Keep existing configuration. |
 | Windows setup mentions `fchmod` | Known identity-creation bug through preview.9, fixed in preview.11. Upgrade the executable; more API keys will not help. |
 | Console shows a different wallet than `prepare-wallet` | Stop and request enrollment assistance; a public address alone is not proof of control. Never export a funded wallet key to get past registration. |
-| `VALIDATOR_PRIVATE_KEY is required` | New operators: choose Set up and start in the preview.15 app, or menu option 1. Existing operators: restore the correct private config; do not replace the identity or paste a personal wallet key. |
-| Setup asks you to type a private key | You are using an older build. Stop and upgrade to preview.15; automatic enrollment creates its own local signer. |
+| `VALIDATOR_PRIVATE_KEY is required` | New operators: choose Set up and start in the preview.17 app, or menu option 1. Existing operators: restore the correct private config; do not replace the identity or paste a personal wallet key. |
+| Setup asks you to type a private key | You are using an older build. Stop and upgrade to preview.17; automatic enrollment creates its own local signer. |
 | `Setup needs confirmation` | Confirm in the executable menu, or use explicit `enroll --yes` only for deliberate automation. Do not paste credentials into command arguments. |
 | `web3 not installed` | Install stake extras with `./.venv/bin/python -m pip install -e '.[stake]'`, or keep `VALIDATOR_REQUIRE_STAKE=false` for V0 preview |
 | `Stake contract not deployed and REQUIRE_STAKE=true` | Expected in V0; set `VALIDATOR_REQUIRE_STAKE=false` unless you are testing the future stake gate |
