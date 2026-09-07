@@ -42,9 +42,11 @@ accepted evidence, outage/recovery and full retirement in run `33984877376`.
 The public download page now selects preview.15.
 See `ROLLOUT_2026_09.md` for current evidence and release status.
 Preview.16 is published from `323e0104`, with all four native build/clean-install
-lanes and downloaded payload/provenance checks passing. It is not yet promoted
-to the website or production cohort: supervised runtime qualification remains
-pending. See `NATIVE_LIVE_CANARY.md` and `QUALIFICATION_DECISIONS.md`.
+lanes and downloaded payload/provenance checks passing. Protected Windows live
+run `34092210339` passed enrollment, one accepted signed report, upgrade,
+outage/recovery and retirement; an independent read-only database audit passed.
+Website/cohort promotion remains separate. See `NATIVE_LIVE_CANARY.md` and
+`QUALIFICATION_DECISIONS.md`.
 
 The Grid's validator node. In V0 it is a CPU-only distributed audit runner: it sends
 small canary jobs through the normal Grid path, scores replies (`healthy` / `slow` /
@@ -107,8 +109,9 @@ model attestation or use it as sole authority.
   The access follow-up binds deployed Core PR #118 and Console PR #26 to
   account-read aggregate reports; node-only health remains separately gated.
   Preview.16 packages PR #92, but publication and live account-read HTTP checks
-  are not a logged-in production browser test, supervised binary canary or
-  independent shadow authority. Keep those remaining gates explicit.
+  are not a logged-in production browser test or independent shadow authority.
+  The separate preview.16 Windows canary and retirement audit now pass; retain
+  its single first-party sample and no-economic-effect limits.
 - **`ROLLOUT_2026_09.md`** - controlled release, measured text-fidelity and
   adversarial experiments, proposed capped compensation, and image/video pilot
   acceptance record. Distinguish synthetic attack baselines from live evidence.
@@ -322,10 +325,10 @@ model attestation or use it as sole authority.
   suspension plus key revocation. Preview.13 passed run `33110290699` with two
   verified signed reports and confirmed retirement. It is not human double-click
   or independent operator proof. Only its bounded public report may become an artifact.
-  The next harness targets the published preview.15 to preview.16 binaries;
-  updated pins and native package CI are not live runtime qualification.
-  Public download recommendations and cohort versions remain unchanged until
-  the supervised run and its independent cleanup review pass.
+  Published preview.15-to-.16 qualification passed run `34092210339`, with
+  independent signature/binding and zero-economic-row checks after retirement.
+  Public download recommendations and cohort versions are not changed by this
+  evidence record; preserve operator qualification during their separate rollout.
 - **`NATIVE_PAIRING_CANARY.md`** - manual Windows/Linux candidate pairing
   qualification with separate Console approval and local code consent. This is
   maintainer test tooling, not onboarding for ordinary operators. It has offline

@@ -162,8 +162,11 @@ checksummed assets independently passed GitHub provenance verification bound to
 the release workflow, tag, source and hosted builder. Windows and macOS remain
 explicitly unsigned previews; this is not a stable-platform-signing claim.
 
-The native canary pins now prepare preview.15-to-.16 qualification. A passing
-supervised runtime report and independent retirement review are still needed.
+The preview.15-to-.16 Windows canary passed protected run `34092210339`.
+The independent post-run audit verified its stored signature and assignment
+bindings, one vote, suspension, revoked key and no economic rows; see
+[Production baseline](PRODUCTION_BASELINE.md). This is one first-party runtime
+sample, not an independent shadow run or a Responses assignment-policy test.
 Public website recommendations and accepted cohort versions remain unchanged.
 No model-identity claim, independent shadow authority or compensation follows
 from this package release.

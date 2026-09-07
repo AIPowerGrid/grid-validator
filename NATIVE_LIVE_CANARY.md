@@ -8,11 +8,19 @@ errors, and records explicit upgrade versions. This is not a passing .14 proof.
 Current target: preview.16, published from reviewed commit
 `323e0104a8a6a5886b6b58e14bf953dab5b93544`. Its four native builds,
 clean installs and full payload verification passed release run `34090594246`.
-The live harness now pins preview.15 to preview.16. This prepares supervised
-runtime qualification; it does not establish a passing live run or change
-public download recommendations, accepted cohort versions or economic authority.
+The preview.15-to-.16 hosted Windows live run
+[34092210339](https://github.com/AIPowerGrid/grid-validator/actions/runs/34092210339)
+passed on September 7, 06:45:26-06:54:53 UTC, using reviewed harness
+`8750d3bbf6f8684092f1436722d0c967be9e41cf` and unchanged Core `3f0b966a`.
+It enrolled one disposable identity, accepted one signed report, verified
+identity-preserving version switches, recovered from a real executable-scoped
+firewall outage and fully retired. A separate read-only PostgreSQL audit
+recovered the stored signature, matched assignment/nonce/group/evidence/target,
+confirmed suspension and zero active keys, and found no credit, reservation
+or worker-ledger rows. See `PRODUCTION_BASELINE.md` for evidence commitments.
+This does not change public downloads, cohort eligibility or economic authority.
 
-Last completed live qualification: preview.15 passed protected run
+Previous completed live qualification: preview.15 passed protected run
 [33984877376](https://github.com/AIPowerGrid/grid-validator/actions/runs/33984877376)
 on September 5 against Core `6f12de6f`: fresh automatic enrollment, one accepted
 signature-verified report, preserved-identity upgrade, actual outage/recovery,
