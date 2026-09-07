@@ -227,6 +227,11 @@ model attestation or use it as sole authority.
   unchanged v1. Honest cross-stack RGB differs while pHash is identical. One
   scene/two seeds do not qualify fleet tolerances or model identity. Stored
   tensor dtype, recipe labels and runtime compute precision remain distinct.
+  Its twelve-render img2img follow-up covers two recipe-enumerated samplers and
+  two reused seeds. Four matched groups pass, but untouched source copies also
+  pass all four comparisons. This reconstruction-style scene is not an edit
+  instruction test; do not equate visual agreement with execution or treat
+  deliberately mismatched sampler references as worker fraud.
 - **`VIDEO_PILOT_2026_09_07.md`** - first-party LTX video calibration with four
   uncached runs, actual-byte corruption tests and reference-failure checks.
   Same-seed decoded pixels agree despite different container hashes; structural

@@ -188,13 +188,86 @@ Private artifact SHA-256:
 - Audit adapter provenance: `0937b466bd186e83a2063eb970271cd7a6ef8eabe60f513f485f99957e4a9273`.
 - Runtime cleanup: `20a801a8631a8116801835503b6980298d70360a7e6fbf19977812c7050b5062`.
 
+## Img2Img Sampler Follow-Up
+
+Twelve additional uncached Z-Image img2img renders exercise two samplers
+enumerated by the deployed recipe: `res_multistep` and `euler`. Each uses two
+reused seeds and three repeats. The source is one owned synthetic image from
+the first CUDA study, with its original scene description reused as the prompt.
+This is a reconstruction-style calibration, not a held-out edit-instruction
+test or a new independent scene population.
+
+### Provenance And Controls
+
+- The captured `z-image-turbo-i2i.json` bytes match deployed Core
+  `c42dd8d12556267f2c0edda02c1336cfceef6fbc`. Recipe enumeration establishes
+  supported parameter choices, not governed certification or determinism.
+- The same isolated MPS stack and three SHA-256-pinned weight files from the
+  Apple follow-up are reused. Settings are 512x512, eight steps, CFG 1,
+  `simple` scheduler, denoise 0.7 and the recipe's sampling shift 3.
+- The source PNG is hash-bound before upload and retrieved unchanged before
+  inference. Captured graphs preserve source -> VAE encode -> sampler wiring.
+  Only declared generation inputs and the owned output prefix change.
+- Every own history reports successful uncached sampler execution, with empty
+  queues before and after. No public Grid jobs, shared service restarts, worker
+  changes or new model downloads are involved. The owned loopback runtime
+  stopped; postflight weight/source hashes match preflight.
+
+### Results With Unchanged V1
+
+| Comparison | Result |
+| --- | --- |
+| Within-setting repeats | All 12 pair comparisons have identical RGB and pHash distance 0 |
+| Candidate and two references with matching source/seed/sampler | 4/4 healthy, distance 0 |
+| Same source/seed, deliberately wrong sampler for both references | 4/4 healthy; distances 0 or 2 |
+| Return the untouched source PNG instead of running img2img | 4/4 healthy; distances 4 or 6 |
+
+The four matching groups have no observed false flags. Cross-sampler decoded
+pixels differ, but pHash does not reliably distinguish these workflow choices.
+The deliberately mismatched references are a configuration control, not evidence
+of dishonest workers. A real comparison must bind the complete requested recipe
+and parameters before interpreting output disagreement.
+
+Source-copy acceptance demonstrates that this similarity rule cannot establish
+img2img execution. It does not show that a required semantic edit was omitted:
+the prompt described the existing scene, and the scorer has no edit evaluator.
+Blindly rejecting every unchanged source would also need legitimate no-op and
+low-denoise controls. Keep source-copy detection and requested-edit adherence
+separate from model-identity claims.
+
+These twelve scorer cases use actual bytes with mocked witness HTTP, synthetic
+role identities and 1000ms latency. There are only four correlated setting/seed
+groups, two seed values and one source scene, not twelve independent trials.
+Recorded execution intervals are 14.203-15.083 seconds on the shared Mac;
+this is not an exclusive-idle or loaded-fleet benchmark. Tolerance remains 12,
+with no post-hoc tuning or authority change.
+
+### Verification
+
+Two complete offline audits reproduce identical canonical summary bytes. They
+bind the frozen harness, validator sources, recipe, graphs, submission receipts,
+histories, outputs and runtime cleanup; independent Pillow decoding agrees with
+the bounded decoder. Four private graph/input tests and 37 existing media tests
+pass with no skips. New private harness files pass Ruff lint and formatting.
+
+Private artifact SHA-256:
+
+- Manifest: `8976ec580b84cfca4d6202256196cd63827671ce709d04eff0d3ec28a89e7d62`.
+- Provenance: `591aa2f5261875b333d24f7bb172a321d8fde2badec538549b59cc1d7799f859`.
+- Capture index: `3288e2ea16c4d236fb4ce4fe83cffe4501335dcee2b8b699965b0bce3ba7edf8`.
+- Reproduced summary: `189a9d9bb12df9f7e0ad11d99ebdb6e8f5c7f7d1edced589d8f296255a1d2353`.
+- Auditor: `54b2d269824cfaa01fa19342a60faeed89436e1fdee3a1fa22d5aac766ca44f1`.
+- Runtime cleanup: `c02342668f27f19752cb8f244279aaae82cd4ce6eb22e58294734b62eee49b90`.
+- Postflight: `7b60478ba1efe1f76267ee6fb8859df375f7df27044e44d501bb05b047630502`.
+
 ## Next Work
 
 1. Evaluate color-sensitive comparison as a separate observational metric with
    legitimate color/codec variation controls. Do not silently change v1 consensus.
 2. Freeze new evaluation scenes before testing proposed tolerances. Include
-   supported samplers, image-to-image variants, quantizations and real hardware
-   differences; the current one-scene result cannot qualify those cases.
+   additional supported samplers, edit instructions, denoise levels,
+   quantizations and real hardware differences. The two img2img sampler choices
+   above narrow the workflow gap but cannot qualify these broader cases.
 3. Distinguish approximate visual agreement from exact workflow reproduction.
    pHash alone cannot certify a seed, model or quantization.
 4. Review the completed [video source-adherence and splice experiments](VIDEO_PILOT_2026_09_07.md).
