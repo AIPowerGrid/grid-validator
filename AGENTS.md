@@ -101,6 +101,9 @@ model attestation or use it as sole authority.
 - **`SUPPORTED_BETA.md`** - supported paid-beta delivery scope: preserved
   operator reviews, verified in-place upgrades, one bounded production pilot,
   separately approved capped compensation and defensible capability claims.
+- **`UPDATES.md`** - unreleased one-click app update contract, versioned
+  installation, identity preservation, pending-state recovery and remaining
+  native/live qualification gates.
 
 - **`QUALIFICATION_DECISIONS.md`** - eight-part evidence index and frozen
   acceptance criteria for the next text-method evaluation and preview release.
@@ -558,6 +561,13 @@ model attestation or use it as sole authority.
   builds intentionally install the `media` extra; runtime advertisement still
   requires the explicit media-origin gate. `eth-account` remains a default
   dependency because signed V0 attestations are part of the preview.
+- Sigstore is pinned in the optional `update` and native `release` extras.
+  The updater components now stage verified archives in an isolated process;
+  native builds collect Sigstore data and its resource package, then run
+  cache-independent offline packaged readiness with fixed failure codes.
+  The app-controlled versioned handoff is implemented but unreleased; native
+  update, restart/rollback and live identity-continuity qualification remain
+  release gates. Passing old discovery-only builds does not satisfy them.
 - New grid-side endpoint dependencies fail closed when they are required for
   attributable evidence. Read-only dashboard metadata may degrade gracefully.
 

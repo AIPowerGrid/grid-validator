@@ -48,6 +48,88 @@ or make operators repeat information already supplied privately.
   Publish one reviewed release with an in-place upgrade guide and rollback
   evidence. Promote it only after artifact and production-pilot gates pass.
 
+## Updater Implementation Evidence
+
+Release discovery is merged; versioned installation/handoff is now implemented
+in the draft updater PR, but not released. See `UPDATES.md`. The in-progress
+`release_verify.py` authenticates the manifest using Sigstore 4.5.0, the exact
+GitHub release workflow identity and signed SLSA source/tag/platform bindings.
+On 2026-09-07 it verified the published preview.16 manifest without a GitHub
+login and rejected altered manifest bytes and an altered source commit against
+the real published attestation. Manifest SHA-256:
+`904c279ca6c381c1de75b216d160e9676aa7307ee7f979946e027683233500d0`.
+
+Hermetic policy tests mock the cryptographic transport explicitly. Neither
+those tests nor the live manifest check proves archive extraction, packaged
+trust-root resources, anti-downgrade selection, running-binary replacement,
+identity preservation or successful restart/rollback. Those remain required
+for the one-click updater, which must isolate verification in a killable child
+and must never replace an externally managed service or container.
+
+Local source verification: 372 unittest cases, 366 passed and six optional
+Core/Console integration cases skipped; all 11 new verifier-policy cases pass.
+Ruff, strict mypy on the verifier, frozen-lock resolution with CI's uv 0.12.5,
+staged secret scanning and the all-extras dependency audit pass. These are local
+source checks, not native packaged updater qualification.
+
+The next implementation step adds bounded, credential-free child preparation,
+HTTPS download and private archive staging. The real preview.16 macOS archive
+was downloaded (61,383,946 bytes), signature/digest checked and extracted
+(61,845,216 executable bytes), without execution or activation. Executable
+SHA-256: `c096d116b03cc23e991b3f40cecc787883d7834891d85a4af44126368d23699a`.
+The temporary stage was removed. Fixture tests reject path/symlink/device
+entries, CRC corruption, compression bombs, untrusted redirects, interrupted
+downloads and attempts to overwrite an existing executable. Source child tests
+cover cancellation, oversized replies, timeouts and a credential-free environment.
+
+Native build CI now collects Sigstore data and invokes offline packaged
+`_update-worker self-test`, which loads trust roots and app assets. Passing the
+earlier manifest-only build does not prove this newer gate. Installation still
+needs explicit app activation, restart/rollback and cross-platform persistence
+tests. Frozen restart/handoff must use independent PyInstaller state as required
+by the [PyInstaller restart guidance](https://pyinstaller.org/en/stable/common-issues-and-pitfalls.html#using-sys-executable-to-spawn-subprocesses-that-outlive-the-application-process-implementing-application-restart).
+The staging/process source suite passes 394 cases (388 passed, six optional
+Core/Console integration skips), including 14 download/archive and eight process
+tests. Strict type checks pass for the three new modules. Native build results
+for this step must be checked on its own commit, not the earlier verifier-only
+commit.
+
+The first staging native run (`34128664070`) failed: Windows hit a socket reset
+in an early-header-rejection test; the other three packaged readiness checks
+returned a sanitized generic error. Do not count that run as a passing release.
+The follow-up explicitly packages `sigstore._store` and tests embedded trust
+files directly, rather than consulting or populating the user's TUF cache.
+Readiness now distinguishes dependency, trust-file and UI-resource failures
+without exposing exception text. Malformed-header tests check rejection before
+sending a body. Local verification passes 396 cases (390 passed, six optional
+integration skips); cross-platform CI must still verify the follow-up commit.
+
+That follow-up passed all four native build/readiness and clean-install lanes
+in run `34130021821`. The subsequent app-handoff implementation is a new gate:
+source tests pass 410 cases (403 passed, six optional integration skips and one
+explicit native-fixture skip). A separate frozen macOS fixture passed actual
+app readiness, version commit, wrong-version rollback and exit. Browser checks
+at 320/390/768/1280px found no horizontal overflow; Escape issued no install,
+while confirmation submitted one tag-bound request. These checks do not prove
+live registered-node resume, real queued-evidence recovery or the new native
+CI matrix. Keep those remaining release gates explicit.
+
+The app-handoff commit `090f144` passed all four native build/handoff and
+clean-install lanes in run `34132789477`, plus source CI and security checks.
+The follow-up adds same-port/session reconnection, original-shortcut cold
+launches, interrupted-selection fallback, and rollback after readiness when the
+selection write fails. Its new checks must pass on their own commit; the earlier
+green run does not qualify them. Core must admit the exact next version before
+operator promotion, preserving the existing qualification window.
+
+Local follow-up verification passes all 410 source cases (403 passed, seven
+explicit optional/native skips), strict types for the four install/process
+modules, and the actual dual-version macOS frozen fixture. Browser QA at
+320/390/768/1280px verifies consent cancellation, one confirmed install request,
+automatic asset reload on version change and retained same-origin session
+authentication without a repeated installation. Native Windows/Linux CI and
+registered-node evidence replay remain separate checks.
+
 ## Capability Boundary
 
 Availability and task-specific correctness are supported evidence dimensions.

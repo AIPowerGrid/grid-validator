@@ -27,8 +27,12 @@ media = [
 stake = [
   "web3>=6.15",
 ]
+update = [
+  "sigstore==4.5.0",
+]
 release = [
   "pyinstaller>=6.0",
+  "sigstore==4.5.0",
 ]
 
 [project.scripts]

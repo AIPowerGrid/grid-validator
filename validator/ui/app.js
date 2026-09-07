@@ -25,15 +25,22 @@ let configured = false;
 let updateState = {status:"not_checked"};
 let updateBusy = false;
 let nextUpdateCheck = 0;
+let updateConsentTag = null;
+let renderedVersion = null;
 function renderUpdates() {
   const labels = {
     not_checked:"Not checked", checking:"Checking releases...",
+    preparing:"Downloading and verifying the update...",
+    restarting:"Restarting the app...",
+    install_failed:"Update failed. Your installed version and node identity are unchanged. Try again.",
     current:"No newer release found on your release channel.",
     unavailable:"Could not check releases. Try again shortly; your node is unchanged.",
     source_build:"Source build. Update from the reviewed repository using your existing configuration."
   };
   el("updates-status").textContent = updateState.status === "available" ? `${updateState.latest_tag} is available. Keep your existing node configuration when upgrading.` : labels[updateState.status] || labels.unavailable;
-  el("updates-check").disabled = !localAvailable || closed || updateBusy || updateState.status === "checking" || Date.now() < nextUpdateCheck;
+  el("updates-check").disabled = !localAvailable || closed || updateBusy || ["checking","preparing","restarting"].includes(updateState.status) || Date.now() < nextUpdateCheck;
+  el("updates-install").hidden = !updateState.install_supported || !["available","install_failed"].includes(updateState.status);
+  el("updates-install").disabled = !localAvailable || closed || updateBusy;
   const safeURL = typeof updateState.url === "string" && /^https:\/\/github\.com\/AIPowerGrid\/grid-validator\/releases\/tag\/v[0-9]+\.[0-9]+\.[0-9]+(?:-(?:preview|alpha|beta|rc)(?:\.[0-9]+)?)?$/.test(updateState.url);
   el("updates-release").hidden = closed || !localAvailable || updateState.status !== "available" || !safeURL;
   if (safeURL) el("updates-release").href = updateState.url;
@@ -55,6 +62,11 @@ function renderChecks(checks={}) {
   }
 }
 function render(data) {
+  if (renderedVersion !== null && renderedVersion !== data.version) {
+    location.reload();
+    return;
+  }
+  renderedVersion = data.version;
   localAvailable = true;
   configured = data.configured;
   renderPairing();
@@ -79,7 +91,7 @@ function render(data) {
   el("dead").textContent = data.dead === null ? "" : `${data.dead} need review`;
   renderChecks(data.checks);
   el("update").hidden = !data.latest_version;
-  el("update").textContent = data.latest_version ? `Update available: ${data.latest_version}. Stop the node and install the verified release from aipowergrid.io/validate.` : "";
+  el("update").textContent = data.latest_version ? `Update available: ${data.latest_version}` : "";
   el("message").textContent = data.phase === "probing" ? `${data.assignments} assigned checks in progress.` : data.phase === "stopping" ? "Stopping local work. Journaled assignments and evidence remain available for recovery." : data.phase === "waiting" ? "Connected. No new assignment is not a failure. Accepted evidence is counted only after Grid acknowledgement." : data.phase === "enrolling" ? "Creating a dedicated local signer and obtaining a validator-only key." : data.configured ? "Your signing identity stays on this computer." : "No node credentials have been configured.";
   showError(errors[data.error] || (data.dead > 0 ? "Some evidence exhausted its retry policy and needs review. Download diagnostics; do not delete the recovery queue." : ""));
   const items = data.events.slice().reverse().map(event => {
@@ -269,6 +281,27 @@ el("updates-check").addEventListener("click", async () => {
     updateState = await request("/updates", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"check"})});
   } catch (_) { updateState = {status:"unavailable"}; }
   finally { updateBusy = false; renderUpdates(); }
+});
+el("updates-install").addEventListener("click", () => {
+  if (!localAvailable || closed || updateBusy || !updateState.install_supported || !["available","install_failed"].includes(updateState.status)) return;
+  updateConsentTag = updateState.latest_tag;
+  el("update-consent-tag").textContent = updateConsentTag;
+  el("update-consent").returnValue = "";
+  el("update-consent").showModal();
+});
+el("update-consent").addEventListener("close", async () => {
+  const tag = updateConsentTag;
+  updateConsentTag = null;
+  if (el("update-consent").returnValue !== "confirm" || !tag || closed || !localAvailable || updateBusy) return;
+  updateBusy = true;
+  renderUpdates();
+  try {
+    updateState = await request("/updates", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"install",tag,accept_unsigned:true})});
+  } catch (error) { showError(error.message); }
+  finally { updateBusy = false; renderUpdates(); }
+});
+el("update-consent").addEventListener("keydown", event => {
+  if (event.key === "Escape") { event.preventDefault(); el("update-consent").close("cancel"); }
 });
 async function refreshUpdates() {
   if (!localAvailable || closed || updateBusy) return;

@@ -176,12 +176,14 @@ class OperatorHTTPTests(unittest.TestCase):
             {"Transfer-Encoding": "chunked"},
             {"Content-Type": "text/plain"},
         ):
+            # Reject from headers alone. Sending a body after early rejection
+            # can reset the socket on Windows before the client reads the 400.
             self.assertEqual(
                 self.request(
                     "POST",
                     "/pairing",
-                    '{"action":"refresh"}',
-                    {**self.credentials(), **override},
+                    None,
+                    {**self.credentials(), "Content-Length": "20", **override},
                 )[0],
                 400,
             )

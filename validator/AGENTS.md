@@ -201,10 +201,49 @@ change is deployed; Core still issues no media work by default.
   `inspect_update` distinguishes current, available, source-build and unavailable;
   neither metadata discovery nor a checksum alone authenticates an executable.
   It never downloads or executes an update.
-- **`operator_updates.py`** - explicit, cached release discovery for the app,
-  independent of registration and the inference subprocess. One background
-  request at a time, at most once per 30 seconds. It never reads or writes node
-  credentials, identity, journal, executable, qualification or service state.
+- **`operator_updates.py`** - explicit cached discovery and confirmed native
+  installation. One background action at a time; discovery is limited to one
+  per 30 seconds. Installation binds the displayed tag and preview consent,
+  stages in a private attempt directory, checks the actual candidate's health
+  and version, then requests an owned app handoff. Exit cancels preparation;
+  failure removes only that attempt. No identity, journal or service mutation.
+- **`release_verify.py`** - updater manifest/provenance verification component.
+  Sigstore verifies the exact public GitHub
+  release workflow certificate and DSSE signature before SLSA subject, tag,
+  repository identity and source-commit binding. Reject checksum-only trust,
+  ambiguous metadata, unbounded assets and unsigned stable releases. The
+  installer runs verification in a bounded killable child, verifies archive
+  bytes and performs the owned-process restart/rollback separately.
+- **`update_download.py`** - private staging only. Exact GitHub/release-asset
+  HTTPS hosts, no proxies/credentials/encoded responses, bounded redirects,
+  bytes and download time. Signature verification precedes archive fetching;
+  hash and ZIP checks use the same file handle. Extract only one regular
+  executable into an exclusive new file, never paths from ZIP metadata.
+  Failed staging removes only its newly created slot, not existing releases,
+  identity/configuration or queued evidence. Activation remains separate.
+- **`update_worker.py`** / **`update_process.py`** - fixed prepare/self-test
+  subprocess protocol. Allowlisted environment excludes node credentials and
+  proxies; output is bounded to 8 KiB, preparation to 420 seconds, with explicit
+  cancellation and owned-process cleanup. Frozen children reset PyInstaller
+  state. Self-test loads offline Sigstore roots and packaged app assets without
+  importing runtime Settings or consulting a mutable TUF cache. The resource
+  package is explicitly included in frozen builds. Dependency, trust-resource
+  and UI-resource failures have fixed redacted codes. Native release CI executes this check. The app's
+  install action uses these bounded children before any app handoff.
+- **`update_install.py`** - per-config protected version slots and atomic
+  selection. Validate path shape, regular files, ownership, size and SHA-256 on
+  every selection. A pending handoff selects the previous version. Never
+  replace the original executable, config, journal or external service.
+- **`update_handoff.py`** - stop only the old app's owned runtime, release its
+  app lock, start the verified candidate with independent PyInstaller state,
+  validate its authenticated loopback readiness, then commit selection via a
+  nonce-bound pipe. Pre-commit EOF fails closed. Startup failure kills only
+  the owned candidate and restores the previous selection; the old app reopens.
+  Successful handoff reuses the old loopback port and ephemeral token through
+  private stdin, never persisted metadata; the existing tab reloads new assets.
+  Resume only a previously running app-owned loop. Grid availability is not a
+  local app health gate. Interactive launcher/app commands follow a newer
+  selected version; direct run/service commands never do. See `UPDATES.md`.
 - **`dashboard.py`** — read-only localhost operator status page and
   `/status.json`. Uses the Python standard library only; shows Grid validator
   capability flags, the authenticated operator's safe qualification progress,
@@ -225,9 +264,10 @@ change is deployed; Core still issues no media work by default.
   exact start/refresh/cancel/confirm/unlink actions under the same local session
   and origin guards. Pairing metadata never enters `/diagnostics.json` or the
   public read-only dashboard. Identity/key changes remain out of scope.
-  `/updates.json` is an authenticated cached read; `/updates` accepts only
-  `{"action":"check"}` with the same token/origin/body guards. Opening or polling
-  the app never queries GitHub. Exit joins the bounded release-check thread.
+  `/updates.json` is an authenticated cached read; `/updates` accepts check or
+  exact install/tag/accept_unsigned requests under the same token/origin/body
+  guards. Enrollment and install cannot overlap. Opening/polling never queries
+  GitHub or installs. Exit cancels and joins the bounded update child.
 - **`operator_worker.py`** - private child protocol: allowlisted structured
   events, fresh Settings per start, EOF/cancellation cleanup, and sanitized error
   codes. Enrollment is an explicitly confirmed action and uses the existing
@@ -355,9 +395,9 @@ change is deployed; Core still issues no media work by default.
   submission. Core acceptance deletes the envelope; delivery failure keeps it
   for replay. A queued assignment must not be probed again while its envelope is
   pending or dead-lettered.
-- **Updates are notification-only:** a release-feed response may select a newer
-  syntactically valid tag, but it is never execution authority. Installation
-  remains an explicit operator action through checksums and GitHub provenance.
+- **Release discovery is not execution authority:** installation requires
+  explicit consent, signed provenance, archive checks, candidate readiness and
+  owned-process handoff. Source installs use their external package manager.
 - **Lifecycle controls are not magic recovery:** suspension requires the current
   signing key and ordinary registration resumes it. Rotation requires a
   different configured key whose wallet has already been linked to the same

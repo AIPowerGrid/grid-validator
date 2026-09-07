@@ -301,6 +301,16 @@ class OperatorServer(ThreadingHTTPServer):
         self.supervisor = supervisor
         self.token = secrets.token_urlsafe(32)
         self.origin = f"http://127.0.0.1:{self.server_port}"
+        self.restart: tuple[dict[str, Any], bool] | None = None
+        supervisor.updates.configure_install(supervisor.path, self.request_restart)
+
+    def request_restart(self, entry: dict[str, Any]) -> None:
+        with self.supervisor.lock:
+            if self.supervisor.closed:
+                return
+            self.restart = (entry, self.supervisor.action == "run" and self.supervisor.process is not None and self.supervisor.process.poll() is None)
+            self.supervisor.closed = True
+        self.shutdown()
 
     def get_request(self):
         sock, address = super().get_request()
@@ -402,10 +412,14 @@ class OperatorHandler(BaseHTTPRequestHandler):
             self._send(status, result)
             return
         if self.path == "/updates":
-            if body != {"action": "check"}:
+            if body == {"action": "check"}:
+                started = self.server.supervisor.updates.check()
+            elif isinstance(body, dict) and set(body) == {"action", "tag", "accept_unsigned"} and body["action"] == "install" and isinstance(body["tag"], str) and type(body["accept_unsigned"]) is bool:
+                with self.server.supervisor.lock:
+                    started = self.server.supervisor.action != "enroll" and self.server.supervisor.updates.install(body["tag"], body["accept_unsigned"])
+            else:
                 self._send(400, {"error": "invalid_action"})
                 return
-            started = self.server.supervisor.updates.check()
             self._send(202 if started else 429, self.server.supervisor.updates.snapshot())
             return
         if (
@@ -426,11 +440,14 @@ class OperatorHandler(BaseHTTPRequestHandler):
             self.server.supervisor.stop()
             self._send(202, {"ok": True})
         else:
+            if body["action"] == "enroll" and self.server.supervisor.updates.snapshot()["status"] in {"preparing", "restarting"}:
+                self._send(409, {"ok": False})
+                return
             started = self.server.supervisor.start(body["action"])
             self._send(202 if started else 409, {"ok": started})
 
 
-def run_app(port: int = 0, open_browser: bool = True) -> None:
+def run_app(port: int = 0, open_browser: bool = True, *, resume: bool = False) -> None:
     if not 0 <= port <= 65535:
         raise RuntimeError("App port must be between 0 and 65535.")
     path = config_path()
@@ -441,6 +458,8 @@ def run_app(port: int = 0, open_browser: bool = True) -> None:
         print("Local validator app: " + url, flush=True)
         print("Keep this app process open. Do not share its private local URL.")
         try:
+            if resume:
+                supervisor.start("run")
             if open_browser:
                 webbrowser.open(url)
             server.serve_forever()
@@ -448,4 +467,16 @@ def run_app(port: int = 0, open_browser: bool = True) -> None:
             pass
         finally:
             server.server_close()
-            supervisor.close()
+            stopped = supervisor.close()
+    if server.restart is not None:
+        if not stopped:
+            raise RuntimeError("The old validator could not stop; update was not activated.")
+        from .update_handoff import handoff
+
+        entry, resume = server.restart
+        if not handoff(
+            path, entry, resume, open_browser=open_browser,
+            port=server.server_port, token=server.token,
+        ):
+            print("Update could not start. Reopening the previous app; identity is unchanged.")
+            run_app(open_browser=open_browser, resume=resume)

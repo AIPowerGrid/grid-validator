@@ -47,10 +47,37 @@ installer generation.
   rotation.
 - `test_update_check.py` - bounded release selection, stable/preview isolation,
   source builds, and unavailable-versus-current update checks.
+- `test_release_verify.py` - manifest and authenticated-provenance binding policy,
+  platform assets, source/tag/workflow mismatch, duplicate JSON and subject
+  rejection, limits and unsigned-preview/stable separation. Signature transport
+  is mocked in this hermetic suite; it does not prove installation or native
+  cryptographic packaging. Real published-provenance verification is separate.
+- `test_update_download.py` - real ZIP/digest/permission/exclusive-write checks,
+  mocked HTTPX download/redirect/bounds and signature-first staging, failed-stage
+  cleanup and unchanged config/journal fixtures. Windows symlink creation has a
+  separate native policy; no skipped case proves that boundary there.
+- `test_update_worker.py` - private request shape, platform selection, sanitized
+  errors, credential-free environment and real owned-child timeout, output
+  bounds and cancellation. Native release CI also executes the packaged
+  `_update-worker self-test` to exercise bundled offline trust roots and UI
+  resources without falling back to a user cache; source transport mocks do
+  not prove packaged readiness. Only fixed failure codes may escape the child.
 - `test_operator_updates.py` - cached-only startup/reads, background discovery,
   concurrency/rate limiting, sanitized failures and close. The operator HTTP
   suite separately covers local session/origin/body guards and no runtime start
-  or configuration creation. These tests do not prove artifact installation.
+  or configuration creation. Install fixtures cover exact tag/preview consent,
+  candidate health, failed-attempt cleanup and no premature activation.
+- `test_update_install.py` / `test_update_handoff.py` - protected immutable
+  slots, digest/path rejection, atomic selection, pending fallback, and real
+  child/HTTP startup failure, commit and rollback. The child identity in the
+  source handoff tests is simulated; no fixture proves production participation.
+- `test_update_handoff_native.py` - explicit frozen fixture handoff, local
+  authenticated readiness, selection commit, same-port/token reuse, rollback
+  after wrong-version or post-readiness disk failure, cold bootstrap selection,
+  interrupted-selection fallback and exit.
+  Ordinary source runs skip without `TEST_VALIDATOR_UPDATE_BINARY`; native CI
+  supplies both that candidate and `TEST_VALIDATOR_BOOTSTRAP_BINARY`, must run
+  the test and never publish the disposable fixtures.
 - `test_operator_app.py` - real loopback HTTP guards, allowlisted controls and
   diagnostics, invalid-credential child recovery, owned-process stop, OS lock
   exclusion, and runtime acknowledgement/cancellation contracts. No live Grid
@@ -60,6 +87,9 @@ installer generation.
   Enrollment handoff uses two real child processes and the real Settings
   parser to prove saved credentials replace the enrollment-time snapshot;
   stop, close, and failed enrollment must suppress automatic runtime start.
+  Malformed framing/content-type cases send headers without a body, proving
+  rejection without waiting for untrusted input and avoiding a Windows TCP reset
+  from sending bytes after an early rejection. Valid-body and size tests remain.
 - `test_account_pairing.py` - synthetic Core responses with real EIP-191
   signature recovery, exact contract validation, prior-review/fresh-read consent,
   stale/replaced approvals, cancellation, expired attempts, response-loss/restart
