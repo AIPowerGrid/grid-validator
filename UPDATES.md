@@ -1,7 +1,8 @@
 # App Updates
 
-Implementation in progress, not a published operator release. Existing
-preview.13/.16 downloads do not acquire this updater retroactively. Their first
+Published in preview.17 from reviewed commit `aa35fa0a`; public download
+promotion remains separate. Existing preview.13/.16 downloads do not acquire
+this updater retroactively. Their first
 upgrade must preserve the existing configuration and validator ID.
 
 ## Operator Flow
@@ -68,3 +69,24 @@ node through a real released-version upgrade and preserved pending evidence,
 confirm recovery after interrupted startup, and run the bounded production pilot.
 Do not change public download recommendations or operator qualification clocks
 merely because this implementation is merged.
+
+## September 7 Release Checkpoint
+
+Release workflow `34136400434` passed all four native build, frozen handoff and
+clean-install lanes and published preview.17 at 15:15:53 UTC. All downloaded
+assets pass the exact release verifier; the manifest passes both pinned GitHub
+attestation verification and the updater's Sigstore verifier. Core `3714a927`
+admits preview.17 alongside .13/.15/.16; identity/qualification/review digests
+are unchanged. Shadow observation and validator economics remain off.
+
+One owned Linux systemd node upgraded from the published preview.15 binary to
+the published preview.17 binary at 15:31:39 UTC. Its config and complete durable
+journal were preserved before restart, with the same registered ID afterward.
+One fresh report at 15:35:53 UTC passed independent signature recovery and
+assignment/nonce/evidence/worker binding checks against production records.
+This is an externally managed service upgrade, not an app-controlled update.
+There were no pending signed reports at cutover, so this does not prove their
+live replay. A first attempt rolled back after the harness's public-status
+request failed; the restored service stayed healthy. The corrected request
+passed preflight before the successful repeat. Full evidence and remaining
+gates are recorded in `ROLLOUT_2026_09.md`.

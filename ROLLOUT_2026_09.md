@@ -1,6 +1,6 @@
 # September Validator Rollout
 
-Owner: the AIPG maintainer. Updated 2026-09-06. This is the execution record for
+Owner: the AIPG maintainer. Updated 2026-09-07. This is the execution record for
 the controlled rollout, not a declaration of production quality authority.
 
 ## Pre-Rollout Snapshot
@@ -118,7 +118,61 @@ instead of the deployed service's port and rolled back automatically. The
 corrected deployment verified the actual bind address and public health before
 proceeding. Rollback release and environment backup remain available privately.
 
-## Release And Upgrade
+## September 7 Updater Rollout
+
+Preview.17 is published from `aa35fa0a8ddea9087c25da4756bffe7e2e514458`.
+Native workflow `34136400434` and Docker workflow `34136400313` passed.
+The native matrix includes actual frozen fixture startup, same-session handoff,
+cold restart, failed-commit rollback and interrupted-selection recovery on all
+four platforms. These fixtures have synthetic state, not live Grid evidence.
+
+Publication completed at 15:15:53 UTC. All nine downloaded assets pass the
+tag/source/checksum/manifest/archive verifier. The manifest passes GitHub
+attestation verification bound to the exact workflow, tag, source and signer
+commit, and the updater's own Sigstore verifier through the unauthenticated
+public API. The Linux x64 archive's attestation was separately verified before
+execution. Windows is unsigned; macOS is unnotarized. Provenance does not change
+those platform-signing limitations.
+
+Core PR122 (`3714a927`) is deployed with Alembic `0035`. At 15:23:41 UTC only the
+reviewed upgrade-version list expanded to .15/.16/.17, preserving baseline .13
+and every other environment value. All 21 stored validator identity,
+qualification-start and private-review records have the same digest before
+and after. The API and existing payout/backup timers are healthy. Core PR123
+records the deployment and admission checks. No independence review, rewards,
+routing, slashing, media issuance or shadow observation was activated.
+
+One owned Linux x64 systemd node upgraded from released preview.15 to released
+preview.17 at 15:31:39 UTC. The executable was authenticated before staging and
+execution. Service stop, atomic version selection, no-probe registration and
+restart retained its config hash, entire durable journal and registered ID.
+The old binary remains available for rollback. The first attempt rolled back
+after an HTTP error in the harness's public-status request; rollback restored
+the old service with no automatic restart failures. A corrected identified
+request passed preflight before the successful second attempt.
+
+The node was online on an accepted release afterward. Its journal contained
+historical dead-letter assignments but no pending signed reports; none were
+deleted or retried to manufacture a passing test. At 15:35:53 UTC one fresh
+authoritative report was accepted after the confirmed service upgrade. A
+separate read-only production audit recovered its signature against the current
+registered signer and verified the assignment owner, target worker, nonce and
+evidence hash. The complete identity/qualification/review digest remains
+unchanged. There were ten new verified fleet reports since the Core cutover at
+that follow-up. An initial audit query incorrectly expected a software-version
+field in attestation payloads; that field belongs to registration. Its empty
+result is not evidence of missing delivery. The corrected audit uses the
+confirmed service cutover time and independently verified signed records.
+Real pending-report replay remains an open check. This is an externally managed
+service upgrade, not proof of the app's live one-click path.
+
+The public `/validate` page was checked and currently selects preview.16.
+Preview.17 publication is not website promotion or completion of the bounded
+independent paid-beta pilot. The remaining steps are live pending-report replay,
+operator reviews, public rollout, the frozen pilot and separately approved
+compensation accounting. Do not extend those claims from native fixtures.
+
+## Release And Upgrade (September 5)
 
 - [x] Isolate the release work from existing local branches and unfinished edits.
 - [x] Check current source and four-platform build results for reviewed master.
