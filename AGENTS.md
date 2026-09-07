@@ -92,6 +92,11 @@ model attestation or use it as sole authority.
 
 ## Ownership
 
+- **`QUALIFICATION_DECISIONS.md`** - eight-part evidence index and frozen
+  acceptance criteria for the next text-method evaluation and preview release.
+  Keep scheduled case-group denominators, honest claimed-model controls and
+  unavailable outcomes explicit. Its research gates grant no model-possession,
+  population false-positive, deployment or economic authority claim.
 - **`ROLLOUT_2026_09.md`** - controlled release, measured text-fidelity and
   adversarial experiments, proposed capped compensation, and image/video pilot
   acceptance record. Distinguish synthetic attack baselines from live evidence.
