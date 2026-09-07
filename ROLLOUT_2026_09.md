@@ -351,6 +351,14 @@ two harness corrections are retained. This completes a bounded calibration,
 not the governed video, cross-hardware, image or independent-reference gates
 above. No production issuance or economic authority was enabled.
 
+The subsequent [IMAGE_PILOT_2026_09_07.md](IMAGE_PILOT_2026_09_07.md) records
+twelve uncached Z-Image/FLUX renders across two seeds, using the owner's active
+image backend. Honest repeats have equal decoded pixels; two cross-model
+pairs are outliers in both directions. Grayscale removal and the wrong FLUX
+seed remain accepted by v1. Keep those misses explicit and do not tune the
+threshold to this scene. Cross-hardware, workflow variants, independent
+references and video source-frame adherence remain open; issuance stays gated.
+
 ## Attestation Delivery Follow-Up
 
 Local unreleased hardening, September 7 UTC. A client defect treated any

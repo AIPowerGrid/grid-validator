@@ -181,6 +181,11 @@ model attestation or use it as sole authority.
   Copied reference reports yield zero distance in every cross-model comparison;
   this is offline forgery evidence, not a live signed-endpoint exploit.
 
+- **`IMAGE_PILOT_2026_09_07.md`** - twelve uncached first-party image captures
+  across Z-Image/FLUX and two seeds. Existing scoring catches the tested
+  cross-model substitutions but accepts grayscale removal and one wrong-seed
+  pair. One scene and one GPU do not qualify cross-hardware tolerance. Stored
+  tensor dtype, recipe labels and runtime compute precision remain distinct.
 - **`VIDEO_PILOT_2026_09_07.md`** - first-party LTX video calibration with four
   uncached runs, actual-byte corruption tests and reference-failure checks.
   Same-seed decoded pixels agree despite different container hashes; structural
