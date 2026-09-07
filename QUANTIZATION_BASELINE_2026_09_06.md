@@ -314,3 +314,123 @@ Private evidence is under `text-worker-20b/published-quants-20260907/` and
 | Frozen native manifest | `b8a310492de085ba9b018455b9b215a140cf493c89f4646b77d6cd85f971578c` |
 | All 144 native responses | `cdf6e6fa49e99ecc2e8691e7ba8bd04481925f219c53719c4a9aa1bbdfdfbbda` |
 | Independent summary | `3e4a5369a215a0c6591c8d8f0e93890885c27482774420b2a5c2605da9e089b9` |
+
+## Full Answers And Observed Load (2026-09-07 UTC)
+
+The next private study uses the same published Q8/Q4 pair, with 32 fresh
+full-answer cases: eight each for exact extraction, ordered state updates,
+binary constraints and retrieval with superseding records. Sixteen pairs
+change one input and require a changed answer. Calibration/evaluation inputs
+are disjoint, but this is capability calibration, not a fitted detector or a
+fresh held-out detection result. The task templates remain predictable.
+
+Before any generation, a preflight rejected the original retrieval contexts
+because they contained 2,830 native tokens, below the frozen 3,000-token minimum.
+Its generation file is empty and its owned server exited. A read-only context
+preflight measured all lengths; the corrected study appended 140 non-target
+distractor records without changing expected answers, short cases, generation
+settings or schedule. The eight revised retrieval contexts are exactly 4,930
+native tokens. The original attempt remains preserved, not overwritten.
+
+An independent oracle verified all 32 expected answers and 16 changed-answer
+pairs. A separate 100-seed generator exercise verified 3,104 cases across 97
+valid seeds; three other seeds were rejected before inference for duplicate
+prompts. They were not substituted based on model performance. The actual
+frozen study has no duplicate prompts or discarded generated outcomes.
+
+Each model received two repeats under each of two conditions, for 128 calls
+per model and 256 total. Both independently rendered identical chat prompts
+and tokenized/detokenized them to identical IDs. The pinned llama.cpp b10826
+server used two 8,192-token slots, F16 KV cache, greedy temperature zero,
+seed 17, pre-sampling top-20 probabilities, no prompt caching and a fixed
+1,536-token output budget including reasoning. No selective budget increase,
+retry or truncation-based prompt replacement was performed.
+
+The serial condition sends one owned request at a time. The overlap condition
+starts the two variants of a pair together. Slot telemetry, bounded by the
+actual overlapping request intervals, verified two processing slots for
+every one of the 64 overlap batches across both models. All 128 serial batches
+had observed single-slot processing without a competing owned request.
+This is measured modest backend load on a shared Mac, not globally idle
+hardware, simultaneous GPU-kernel proof or a production fleet load test.
+
+### Outcomes
+
+| Artifact / condition | Correct complete / 64 | Output-budget exhaustion / 64 | Median request seconds | Maximum seconds |
+| --- | ---: | ---: | ---: | ---: |
+| Q8 serial | 54 | 10 | 7.36 | 40.22 |
+| Q8 overlap | 54 | 10 | 12.78 | 50.21 |
+| Q4 serial | 54 | 10 | 7.12 | 30.30 |
+| Q4 overlap | 53 | 11 | 11.96 | 57.11 |
+
+All 256 native witnesses passed the independent context, token, probability,
+settings and schedule audit. There were 215 correct completed answers and
+41 output-budget exhaustions, with zero wrong completed answers, invalid
+JSON outputs, context truncations or infrastructure errors. A supplemental
+canonical-JSON guard found no bool/integer or float/integer equality ambiguity
+in the reported classifications. The guard's controlled checks reject such
+coercions while accepting reordered object keys.
+
+| Family | Q8 serial correct / 16 | Q8 overlap correct / 16 | Q4 serial correct / 16 | Q4 overlap correct / 16 |
+| --- | ---: | ---: | ---: | ---: |
+| Extraction | 16 | 16 | 16 | 16 |
+| State updates | 16 | 16 | 16 | 16 |
+| Constraints | 8 | 8 | 6 | 6 |
+| Updated-record retrieval | 14 | 14 | 16 | 15 |
+
+Every non-completion in this table exhausted the fixed output budget. The
+results are not proof that a task is unsolvable, nor permission to label an
+honest worker fraudulent. Q4 was not uniformly worse: the family results
+differ, and a single overall ranking would hide that distinction. Eight
+distinct inputs per family, their paired variants and repeats do not support
+population accuracy or independent-sample confidence claims.
+
+### Repeatability And Paired Changes
+
+Within the serial condition, both artifacts repeated all 32 token sequences
+exactly. Under overlap, each repeated only 29/32 sequences exactly. Matching
+repeat indices across serial/overlap gave 48/64 identical sequences for Q8
+and 59/64 for Q4. These counts include reasoning and budget-limited outputs,
+not just final answers. Temperature zero therefore did not guarantee identical
+full output under these observed conditions.
+
+All 54 Q8 comparisons that completed correctly in both conditions preserved
+their final answer; the remaining ten exhausted the budget in both. For Q4,
+53 preserved correct final answers, ten exhausted the budget in both, and one
+retrieval call changed from correct completion to budget exhaustion under
+overlap. The shared host and schedule do not isolate an exclusive causal
+effect of load, but this is an observed honest-worker difference to retain.
+
+Of 32 paired trials per artifact/condition (16 pairs, two repeats), both
+variants were correct and changed as required in 24 Q8 serial, 24 Q8 overlap,
+26 Q4 serial and 25 Q4 overlap trials. Every remaining pair had at least one
+budget exhaustion, not a wrong completed answer. Pair completion and single
+request completion are different denominators; do not interchange them.
+
+The full-answer summary reproduced byte-for-byte. The paired supplement's
+first replay exposed unstable dictionary-key ordering in its JSON serializer,
+not different results. A separate canonical re-verifier recomputed every
+paired/cross-load count and matched the original report without changing any
+inference record or the original report. The failed preflight,
+context-inspection and two generation servers exited, and all four owned PIDs
+were absent afterward. The public LM Studio backend and worker stayed running;
+no production service, registration, authority, credit or payout setting changed.
+
+This advances honest full-answer/load calibration and capability reporting.
+It does not test another engine under the same load matrix, establish a model
+substitution threshold, refresh the production fleet, or authorize penalties.
+Fresh reference-scored substitution and honest false-flag evaluation remain
+required before any fidelity method can gain authority.
+
+Private evidence: `text-worker-20b/quant-answer-study-20260907-v2/`, with the
+original failed preflight and separate context inspection retained alongside.
+Raw synthetic prompts and outputs remain private.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| Corrected frozen manifest | `4e4a133232171d8ff0034120a70b0cdf1e7e41b1dd8fbda3e7ce447d8dda5839` |
+| All 256 generation records | `f9bdf919f20d968076274566eebdfbd19e65edd41fd6b601c2dbfdf87066f995` |
+| Native slot telemetry | `b6b1fa87e82ddb23dafddbea91a08c7239f94707f948f9415553e809235661b7` |
+| Independent full-answer summary | `4e19942c646ce9f07f559756e5353835e645568a0c1ebe34c402457980eed02e` |
+| Paired/cross-load analysis | `ed7dc27bb67e820803c692a61d24f6c6b8f0925e6783f0fac0a92638d6044f94` |
+| Canonical paired re-verification | `9ef2b4fc0feb4d5a5818f0799338661d01fc7b797c731b68c08b76a557f558bb` |

@@ -156,6 +156,12 @@ model attestation or use it as sole authority.
   numerical equivalence: all 19.11 billion differing experts' decoded values
   match under the pinned GGUF decoder. Keep raw one-token calibration distinct
   from complete chat quality, and published artifacts from Grid-certified tiers.
+  Its full-answer/load follow-up records 256 native calls at 32 fresh paired
+  contexts, including 4,930-token retrieval: 215 correct completions and 41
+  budget exhaustions, no wrong completed answers or infrastructure errors.
+  Every overlapping batch has observed two-slot processing. Temperature-zero
+  token sequences vary under load, including one correct-to-budget transition;
+  this is calibration evidence, not model dishonesty or authority activation.
 - **`TOOL_CAPABILITY_PILOT_2026_09_06.md`** - eight completed local 20B
   multi-step tool episodes with corrected instructions and stockout recovery;
   an unchanged non-LLM solver also passes 400 fresh randomized-value cases.
