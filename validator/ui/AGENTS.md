@@ -55,6 +55,15 @@ package and frozen binary; no CDN, remote font, or third-party script is loaded.
   association, not runtime, credentials, evidence, payout wallets or trust.
   Retry/restart queries Core's current association before attempting another
   confirmation. Do not interpret a failed HTTP reply as proof of no commit.
+- Compensation is separate from account linking and validation verdicts.
+  Show Core's pilot caps as caps, finalized amounts as earned allocations,
+  and pending/review/sent as distinct states. BigInt preserves exact token units.
+  Start with cached reads only; explicit checks recover Core state after restart.
+  A pending request may resume read-only polling, never auto-confirm. The local
+  dialog freezes the reviewed hash, exact amount and full destination. Escape,
+  reload, expiry or unavailable state cancels local confirmation. Fixed Console
+  and BaseScan links use noreferrer; no proof/signature enters diagnostics.
+  This UI is unreleased and the Core API is dark; see `COMPENSATION.md`.
 
 ## Verification
 

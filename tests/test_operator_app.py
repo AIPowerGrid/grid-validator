@@ -21,6 +21,8 @@ from unittest.mock import AsyncMock, Mock, patch
 import httpx
 
 from tests.test_account_pairing import FakeCore
+from tests.test_compensation import FakeCompensation
+from validator.compensation import CompensationController
 from validator import operator_worker
 from validator.account_pairing import PairingController
 from validator.file_lock import AlreadyRunning, exclusive_lock
@@ -104,6 +106,30 @@ class OperatorHTTPTests(unittest.TestCase):
             self.assertFalse(self.supervisor.path.exists())
             check.return_value = False
             self.assertEqual(self.request("POST", "/updates", '{"action":"check"}', self.credentials())[0], 429)
+
+    def test_compensation_http_is_private_explicit_and_excluded_from_diagnostics(self):
+        core = FakeCompensation()
+        self.supervisor.compensation = CompensationController(lambda: core.identity, httpx.MockTransport(core.handle))
+        self.assertEqual(self.request("GET", "/compensation.json")[0], 401)
+        code, headers, body = self.request("GET", "/compensation.json", headers=self.credentials())
+        self.assertEqual(code, 200)
+        self.assertEqual(headers["Cache-Control"], "no-store")
+        self.assertEqual(json.loads(body)["status"], "idle")
+        self.assertEqual(core.calls, [])
+        for override in ({"Origin":"https://evil.example"}, {"Authorization":"Bearer bad"}, {"Host":"evil.example"}):
+            self.assertEqual(self.request("POST", "/compensation", '{"action":"refresh","offset":0}', {**self.credentials(), **override})[0], 403)
+        for form in ('{"action":"sign","message":"raw"}', '{"action":"refresh","action":"refresh","offset":0}', "x"*257):
+            self.assertEqual(self.request("POST", "/compensation", form, self.credentials())[0], 400)
+        self.assertEqual(core.calls, [])
+        code, _, body = self.request("POST", "/compensation", '{"action":"refresh","offset":0}', self.credentials())
+        self.assertEqual(code, 200)
+        self.assertEqual(json.loads(body)["items"][0]["allocation_hash"], core.allocation)
+        diagnostic = self.request("GET", "/diagnostics.json", headers=self.credentials())[2]
+        self.assertNotIn(core.allocation.encode(), diagnostic)
+        self.assertNotIn(core.proof["amount_atomic"].encode(), diagnostic)
+        self.assertNotIn(core.recipient.encode(), diagnostic)
+        self.assertIsNone(self.supervisor.process)
+        self.assertFalse(self.supervisor.path.exists())
 
     def test_pairing_reads_are_cached_and_private_not_diagnostics(self):
         core = FakeCore()

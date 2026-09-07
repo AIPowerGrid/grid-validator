@@ -194,6 +194,13 @@ change is deployed; Core still issues no media work by default.
   an identity only for advanced/manual use. Enrollment ships in preview.11.
   Option 8 opens the operator app, published in preview.12 after native package
   and clean-install checks. Live Windows end-to-end qualification is separate.
+- **`compensation.py`** - unreleased private pilot/allocation status and explicit
+  allocation-bound node payout consent. Reuses official-only pairing transport
+  with a 64 KiB response bound (pairing stays 16 KiB). Reconstructs v1 message
+  locally, pins Base/AIPG, verifies node/signer/amount/expiry and displayed plus
+  freshly fetched review hashes. Non-confirm actions never sign; no transactions,
+  recipient binding, identity changes or reward authority. Browser views omit
+  full proofs, signatures and private control/account fields. See `COMPENSATION.md`.
 - **`update_check.py`** — bounded, notification-only GitHub release check. It
   validates bounded tag syntax, ignores drafts, keeps stable installs off preview
   channels, bypasses environment proxies, and constructs its own canonical release
@@ -268,6 +275,9 @@ change is deployed; Core still issues no media work by default.
   exact install/tag/accept_unsigned requests under the same token/origin/body
   guards. Enrollment and install cannot overlap. Opening/polling never queries
   GitHub or installs. Exit cancels and joins the bounded update child.
+  `/compensation.json` is private cached state, never included in diagnostics;
+  `/compensation` adds bounded explicit refresh/start/inspect/cancel/confirm
+  under the same local-session/origin guard. No arbitrary signing route.
 - **`operator_worker.py`** - private child protocol: allowlisted structured
   events, fresh Settings per start, EOF/cancellation cleanup, and sanitized error
   codes. Enrollment is an explicitly confirmed action and uses the existing

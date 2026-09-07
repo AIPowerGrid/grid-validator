@@ -44,11 +44,25 @@
       <div class="pair-details" id="pair-details" hidden><code id="pair-node"></code><span id="pair-expiry"></span><strong id="pair-code" hidden></strong></div>
       <div class="controls"><a id="pair-open" class="button" target="_blank" rel="noopener noreferrer" hidden>Open Console</a><button id="pair-confirm" hidden>Compare code and confirm</button><button id="pair-cancel" hidden>Cancel request</button><button id="pair-unlink" hidden>Remove account link</button></div>
     </section>
+    <section class="compensation" aria-labelledby="comp-title">
+      <div class="section-title"><h2 id="comp-title">Compensation</h2><button id="comp-refresh" disabled>Check compensation</button></div>
+      <p id="comp-status" role="status" aria-live="polite">Not checked</p>
+      <p id="comp-error" class="error" role="alert" hidden></p>
+      <ul id="comp-campaigns" class="comp-list"></ul>
+      <ul id="comp-items" class="comp-list"></ul>
+      <div class="controls"><button id="comp-prev" hidden>Previous</button><button id="comp-next" hidden>Next</button></div>
+      <div id="comp-request" hidden>
+        <h3>Payout wallet setup</h3><p id="comp-request-status" role="status"></p>
+        <p id="comp-amount"></p><code id="comp-recipient"></code><p id="comp-expiry"></p>
+        <div class="controls"><a id="comp-open" class="button" target="_blank" rel="noopener noreferrer" hidden>Choose wallet in Console</a><button id="comp-confirm" hidden>Review destination</button><button id="comp-cancel" hidden>Cancel wallet setup</button></div>
+      </div>
+    </section>
     <section class="activity"><div class="section-title"><h2>Activity</h2><button id="diagnostics" title="Download redacted diagnostics" disabled>Download diagnostics</button></div><ul id="events"><li class="empty">No activity yet.</li></ul></section>
-    <footer><span>Evidence-only preview<br>No validator rewards, stake, or worker penalties</span><button id="quit" disabled>Exit app</button></footer>
+    <footer><span>Evidence-only validation; no worker penalties<br>Compensation requires an approved pilot</span><button id="quit" disabled>Exit app</button></footer>
   </main>
   <dialog id="consent"><form method="dialog"><h2>Set up and start a dedicated validator?</h2><p>A new signing identity will be saved on this computer, registered with the Grid, and started so the app can verify its heartbeat and evidence flow. No personal private key or funds are required.</p><p>This does not link or merge an existing account. Keep your existing node configuration when upgrading.</p><div class="controls"><button value="cancel">Cancel</button><button value="confirm" id="confirm">Create and start node</button></div></form></dialog>
   <dialog id="pair-consent" aria-labelledby="pair-consent-title"><form method="dialog"><h2 id="pair-consent-title"></h2><p id="pair-consent-text"></p><strong id="pair-consent-code" hidden></strong><p id="pair-consent-boundary">Your node keeps its own identity and keys. No account merging, wallet changes, payments, or validator rewards.</p><div class="controls"><button value="cancel">Cancel</button><button value="confirm" id="pair-consent-confirm">Continue</button></div></form></dialog>
   <dialog id="update-consent" aria-labelledby="update-consent-title"><form method="dialog"><h2 id="update-consent-title">Update validator?</h2><p id="update-consent-tag"></p><p>Your node identity, configuration and queued evidence stay on this computer. The app will restart; a running validator will resume.</p><p>Preview builds are unsigned on Windows and not notarized on macOS. GitHub release provenance and downloaded files are verified before starting the update.</p><div class="controls"><button value="cancel">Cancel</button><button value="confirm">Update and restart</button></div></form></dialog>
+  <dialog id="comp-consent" aria-labelledby="comp-consent-title"><form method="dialog"><h2 id="comp-consent-title">Confirm payout destination?</h2><p id="comp-consent-amount"></p><code id="comp-consent-recipient"></code><p id="comp-consent-campaign"></p><p>This authorizes this earned allocation to this wallet on Base. No transfer or token approval is signed. Maintainer review is still required.</p><div class="controls"><button value="cancel">Cancel</button><button value="confirm">Confirm destination</button></div></form></dialog>
 </body>
 </html>
