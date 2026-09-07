@@ -22,6 +22,7 @@ from typing import Any
 
 from . import __release_tag__
 from .account_pairing import Identity, PairingController, _unique_object
+from .compensation import CompensationController
 from .file_lock import exclusive_lock
 from .launcher import command_prefix, config_path, operator_config
 from .operator_updates import UpdateController
@@ -73,6 +74,9 @@ class Supervisor:
         self.closed = False
         self.updates = UpdateController()
         self.pairing = PairingController(
+            lambda: Identity.from_values(operator_config(self.path))
+        )
+        self.compensation = CompensationController(
             lambda: Identity.from_values(operator_config(self.path))
         )
         self.events: deque[dict[str, Any]] = deque(maxlen=40)
@@ -286,6 +290,7 @@ class Supervisor:
         with self.lock:
             self.closed = True
         self.pairing.close()
+        self.compensation.close()
         self.updates.close()
         self.stop()
         if self.reader:
@@ -366,13 +371,15 @@ class OperatorHandler(BaseHTTPRequestHandler):
         elif self.path in ASSETS:
             name, kind = ASSETS[self.path]
             self._send(200, (Path(__file__).parent / "ui" / name).read_bytes(), kind)
-        elif self.path in {"/status.json", "/diagnostics.json", "/pairing.json", "/updates.json"}:
+        elif self.path in {"/status.json", "/diagnostics.json", "/pairing.json", "/updates.json", "/compensation.json"}:
             if not self._authorized():
                 self._send(401, {"error": "local_session_required"})
                 return
             # Account association metadata never enters shareable diagnostics.
             data = (
-                self.server.supervisor.updates.snapshot()
+                self.server.supervisor.compensation.snapshot()
+                if self.path == "/compensation.json"
+                else self.server.supervisor.updates.snapshot()
                 if self.path == "/updates.json"
                 else self.server.supervisor.pairing.snapshot()
                 if self.path == "/pairing.json"
@@ -386,7 +393,7 @@ class OperatorHandler(BaseHTTPRequestHandler):
         if not self._allowed(write=True) or not self._authorized():
             self._send(403, {"error": "local_session_required"})
             return
-        if self.path not in {"/control", "/pairing", "/updates"}:
+        if self.path not in {"/control", "/pairing", "/updates", "/compensation"}:
             self._send(404, {"error": "not_found"})
             return
         lengths = self.headers.get_all("Content-Length", [])
@@ -395,7 +402,7 @@ class OperatorHandler(BaseHTTPRequestHandler):
             or len(lengths) != 1
             or len(lengths[0]) > 3
             or not lengths[0].isdigit()
-            or not 0 < int(lengths[0]) <= (256 if self.path == "/pairing" else 128)
+            or not 0 < int(lengths[0]) <= (256 if self.path in {"/pairing", "/compensation"} else 128)
             or self.headers.get_all("Content-Type") != ["application/json"]
         ):
             self._send(400, {"error": "invalid_request"})
@@ -406,6 +413,10 @@ class OperatorHandler(BaseHTTPRequestHandler):
             )
         except (ValueError, TimeoutError):
             self._send(400, {"error": "invalid_request"})
+            return
+        if self.path == "/compensation":
+            status, result = self.server.supervisor.compensation.perform(body)
+            self._send(status, result)
             return
         if self.path == "/pairing":
             status, result = self.server.supervisor.pairing.perform(body)

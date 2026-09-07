@@ -156,6 +156,8 @@ def _unique_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
 
 
 class PairingClient:
+    max_response_bytes = 16384
+
     def __init__(
         self,
         identity: Identity,
@@ -210,7 +212,7 @@ class PairingClient:
                 data = bytearray()
                 for chunk in response.iter_raw():
                     if (
-                        len(data) + len(chunk) > 16384
+                        len(data) + len(chunk) > self.max_response_bytes
                         or time.monotonic() > self.deadline
                         or self.closed.is_set()
                     ):

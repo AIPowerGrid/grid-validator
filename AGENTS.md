@@ -112,6 +112,9 @@ model attestation or use it as sole authority.
 - **`UPDATES.md`** - preview.17 one-click app update contract, versioned
   installation, identity preservation, pending-state recovery and remaining
   live rollout gates, with native qualification evidence recorded separately.
+- **`COMPENSATION.md`** - unreleased operator-app pilot/allocation status and
+  explicit node payout consent. Core PR127 provides a dark backend; Console,
+  cross-repo native qualification and release remain gates. No payment approval.
 
 - **`QUALIFICATION_DECISIONS.md`** - eight-part evidence index and frozen
   acceptance criteria for the next text-method evaluation and preview release.

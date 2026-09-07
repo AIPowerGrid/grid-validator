@@ -90,6 +90,14 @@ installer generation.
   Malformed framing/content-type cases send headers without a body, proving
   rejection without waiting for untrusted input and avoiding a Windows TCP reset
   from sending bytes after an early rejection. Valid-body and size tests remain.
+- `test_compensation.py` - synthetic Core compensation states, real node consent
+  signature recovery, exact v1 message/hash, wrong-domain/token/identity/expiry,
+  changed destination, response loss, restart and no implicit signing. The
+  local HTTP suite verifies session/origin/body guards and diagnostic privacy.
+  `compensation_app_fixture.py` plus `compensation_browser.cjs` exercise browser
+  review/Escape/reload/confirmation and responsive layouts using generated
+  identities and synthetic rewards only. Playwright is external test tooling,
+  never a runtime dependency. Core/Console/live-wallet proof is separate.
 - `test_account_pairing.py` - synthetic Core responses with real EIP-191
   signature recovery, exact contract validation, prior-review/fresh-read consent,
   stale/replaced approvals, cancellation, expired attempts, response-loss/restart

@@ -71,6 +71,7 @@ function render(data) {
   configured = data.configured;
   renderPairing();
   renderUpdates();
+  renderCompensation();
   el("version").textContent = data.version;
   el("phase").textContent = phases[data.phase] || "Unknown state";
   el("setup").hidden = data.configured;
@@ -113,6 +114,7 @@ async function refresh() {
     localAvailable = false;
     renderUpdates();
     renderPairing();
+    renderCompensation();
     el("phase").textContent = "Local app unavailable";
     for (const id of ["setup","start","stop","diagnostics","quit"]) el(id).disabled = true;
   }
@@ -134,6 +136,7 @@ async function control(action) {
     localAvailable = false;
     renderUpdates();
     renderPairing();
+    renderCompensation();
     el("phase").textContent = "App closed";
     el("message").textContent = "Local validator work stopped. Configuration and recovery journal were kept.";
     el("connection").textContent = "Not running";
@@ -309,5 +312,115 @@ async function refreshUpdates() {
   catch (_) { updateState = {status:"unavailable"}; }
   renderUpdates();
 }
-async function poll() { await refresh(); await refreshPairing(); await refreshUpdates(); if (!closed) setTimeout(poll,3000); }
+const compensationLabels = {
+  wallet_required:"Payout wallet needed", awaiting_wallet:"Waiting for wallet approval in Console",
+  awaiting_node:"Wallet approved. Review the destination here.", review_required:"Awaiting maintainer review",
+  ready_for_payment:"Recipient approved; payment not sent", pending:"Payment pending confirmation",
+  sent:"Paid", manual_review:"Payment needs maintainer review", no_payment_due:"No payable work",
+  cancelled:"Wallet setup cancelled", expired:"Wallet setup expired", recipient_bound:"Recipient approved",
+  scheduled:"Scheduled", earning:"Pilot in progress", awaiting_finalization:"Work awaiting final review", finalized:"Finalized"
+};
+let compensation = {status:"idle",items:[],campaigns:[],request:null};
+let compensationBusy = false;
+let compensationConsent = null;
+let nextCompensationCheck = 0;
+function aipgAmount(value) {
+  if (typeof value !== "string" || !/^(0|[1-9][0-9]{0,77})$/.test(value)) return "Unavailable";
+  const atomic = BigInt(value), scale = 10n ** 18n;
+  const fraction = (atomic % scale).toString().padStart(18,"0").replace(/0+$/,"");
+  return `${atomic / scale}${fraction ? `.${fraction}` : ""} AIPG`;
+}
+function renderCompensation() {
+  const disabled = closed || !localAvailable || !configured || compensationBusy || compensation.busy;
+  const labels = {idle:"Not checked",ready:compensation.items?.length || compensation.campaigns?.length ? "Reviewed pilot participation" : "No approved compensation pilot for this node.",error:"Compensation unavailable"};
+  el("comp-status").textContent = compensationBusy ? "Checking compensation..." : labels[compensation.status] || "Unavailable";
+  el("comp-refresh").disabled = disabled;
+  el("comp-error").hidden = !compensation.error;
+  const errorLabels = {
+    unavailable:"Compensation is not enabled or the Grid is unreachable. Your validator can keep running. Check again later.",
+    registration_required:"Check this node's registration and Console account link, then retry. Keep this node's identity.",
+    changed:"The request changed or may already have completed. Check compensation and reopen wallet setup before confirming.",
+    invalid_contract:"The payout request could not be verified. Do not sign elsewhere to bypass this error; contact the maintainer.",
+    expired:"Wallet setup expired. Check compensation and start a new wallet request; keep the same validator."
+  };
+  el("comp-error").textContent = errorLabels[compensation.error] || pairingErrors[compensation.error] || (compensation.error ? "Check compensation again. Your validator and stored identity are unchanged." : "");
+  const campaigns = (compensation.campaigns || []).map(campaign => {
+    const li = document.createElement("li"), text = document.createElement("div"), title = document.createElement("strong"), detail = document.createElement("small");
+    title.textContent = `${campaign.campaign_id}: ${compensationLabels[campaign.status] || "Unknown"}`;
+    detail.textContent = `${new Date(campaign.starts_at).toLocaleDateString()} - ${new Date(campaign.ends_at).toLocaleDateString()} | Cap ${aipgAmount(campaign.operator_cap_atomic)} (not earned)${campaign.identity_review_required ? " | Identity review required" : ""}`;
+    text.append(title,detail); li.append(text); return li;
+  });
+  if (compensation.campaigns_has_more) { const li = document.createElement("li"); li.textContent = "Showing the latest 25 pilots."; campaigns.push(li); }
+  el("comp-campaigns").replaceChildren(...campaigns);
+  const items = (compensation.items || []).map(item => {
+    const li = document.createElement("li"), text = document.createElement("div"), title = document.createElement("strong"), detail = document.createElement("small");
+    title.textContent = `${aipgAmount(item.amount_atomic)} | ${compensationLabels[item.status] || "Unknown"}`;
+    detail.textContent = `${item.campaign_id} | ${item.reviewed_units} reviewed work units`;
+    text.append(title,detail); li.append(text);
+    if (["wallet_required","expired","cancelled"].includes(item.status) && item.amount_atomic !== "0") {
+      const button = document.createElement("button"); button.textContent = "Set payout wallet"; button.disabled = disabled;
+      button.addEventListener("click",() => compensationAction({action:"start",allocation_hash:item.allocation_hash})); li.append(button);
+    } else if (item.request_id && ["awaiting_wallet","awaiting_node","review_required"].includes(item.status)) {
+      const button = document.createElement("button"); button.textContent = "Open wallet setup"; button.disabled = disabled;
+      button.addEventListener("click",() => compensationAction({action:"inspect",request_id:item.request_id})); li.append(button);
+    }
+    if (typeof item.transaction_hash === "string" && /^0x[a-f0-9]{64}$/.test(item.transaction_hash)) {
+      const link = document.createElement("a"); link.className = "button"; link.textContent = "View on BaseScan";
+      link.href = `https://basescan.org/tx/${item.transaction_hash}`; link.target = "_blank"; link.rel = "noopener noreferrer"; li.append(link);
+    }
+    return li;
+  });
+  el("comp-items").replaceChildren(...items);
+  el("comp-prev").hidden = !(compensation.offset > 0); el("comp-next").hidden = compensation.next_offset == null;
+  el("comp-prev").disabled = el("comp-next").disabled = disabled;
+  const current = compensation.request;
+  el("comp-request").hidden = !current;
+  if (!current) { if (el("comp-consent").open) el("comp-consent").close("cancel"); return; }
+  const expired = current.expires_at && current.expires_at * 1000 <= Date.now();
+  el("comp-request-status").textContent = expired ? compensationLabels.expired : compensationLabels[current.status] || "Unavailable";
+  el("comp-amount").textContent = current.amount_atomic ? `${aipgAmount(current.amount_atomic)} on Base` : "";
+  el("comp-recipient").textContent = current.recipient || "";
+  el("comp-expiry").textContent = current.expires_at ? `Signing deadline: ${new Date(current.expires_at * 1000).toLocaleString()}` : "";
+  const safeURL = typeof current.approval_url === "string" && /^https:\/\/console\.aipowergrid\.io\/dashboard\/validator-payout\/vpc_[a-f0-9]{64}$/.test(current.approval_url);
+  el("comp-open").hidden = disabled || expired || current.status !== "awaiting_wallet" || !safeURL;
+  if (safeURL) el("comp-open").href = current.approval_url; else el("comp-open").removeAttribute("href");
+  el("comp-confirm").hidden = current.status !== "awaiting_node" || expired;
+  el("comp-cancel").hidden = !["awaiting_wallet","awaiting_node"].includes(current.status) || expired;
+  el("comp-confirm").disabled = el("comp-cancel").disabled = disabled;
+  if (el("comp-consent").open && (disabled || expired || compensationConsent?.review_hash !== current.review_hash)) el("comp-consent").close("cancel");
+}
+async function compensationAction(form) {
+  if (closed || !localAvailable || compensationBusy) return;
+  compensationBusy = true; renderCompensation();
+  try { compensation = await request("/compensation", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(form)}); }
+  catch (error) { compensation = {status:"error",error:"unavailable",items:[],campaigns:[],request:null}; showError(error.message); }
+  finally { compensationBusy = false; nextCompensationCheck = Date.now() + 6000; renderCompensation(); }
+}
+el("comp-refresh").addEventListener("click", () => compensationAction({action:"refresh",offset:0}));
+el("comp-prev").addEventListener("click", () => compensationAction({action:"refresh",offset:Math.max(0,(compensation.offset || 0)-25)}));
+el("comp-next").addEventListener("click", () => { if (compensation.next_offset != null) compensationAction({action:"refresh",offset:compensation.next_offset}); });
+el("comp-cancel").addEventListener("click", () => { if (compensation.request) compensationAction({action:"cancel",request_id:compensation.request.request_id}); });
+el("comp-confirm").addEventListener("click", () => {
+  const current = compensation.request;
+  if (closed || !localAvailable || compensationBusy || current?.status !== "awaiting_node") return;
+  compensationConsent = {action:"confirm",request_id:current.request_id,review_hash:current.review_hash};
+  el("comp-consent-amount").textContent = `${aipgAmount(current.amount_atomic)} on Base`;
+  el("comp-consent-recipient").textContent = current.recipient;
+  el("comp-consent-campaign").textContent = `Pilot: ${current.campaign_id}`;
+  el("comp-consent").returnValue = ""; el("comp-consent").showModal();
+});
+el("comp-consent").addEventListener("close", () => {
+  const form = compensationConsent; compensationConsent = null;
+  if (el("comp-consent").returnValue === "confirm" && form) compensationAction(form);
+});
+el("comp-consent").addEventListener("keydown", event => { if (event.key === "Escape") { event.preventDefault(); el("comp-consent").close("cancel"); } });
+async function refreshCompensation() {
+  if (closed || !localAvailable || compensationBusy || el("comp-consent").open) return;
+  try {
+    compensation = await request("/compensation.json"); renderCompensation();
+    const current = compensation.request;
+    if (current && ["awaiting_wallet","awaiting_node"].includes(current.status) && current.expires_at * 1000 > Date.now() && Date.now() >= nextCompensationCheck && !compensation.busy) await compensationAction({action:"inspect",request_id:current.request_id});
+  } catch (error) { showError(error.message); }
+}
+async function poll() { await refresh(); await refreshPairing(); await refreshUpdates(); await refreshCompensation(); if (!closed) setTimeout(poll,3000); }
 poll();

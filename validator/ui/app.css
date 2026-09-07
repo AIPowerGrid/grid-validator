@@ -23,6 +23,15 @@ button:focus-visible { outline:2px solid var(--cyan); outline-offset:3px; }
 .button:hover { background:#2d3035; }.button:focus-visible { outline:2px solid var(--cyan); outline-offset:3px; }
 .account { border-bottom:1px solid var(--line); padding-bottom:28px; margin-bottom:32px; }
 .optional { color:var(--muted); font-size:12px; font-weight:400; margin-left:8px; }
+.compensation { border-bottom:1px solid var(--line); padding-bottom:28px; margin-bottom:32px; }
+.comp-list { padding:0; margin:0 0 16px; list-style:none; }
+.comp-list li { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; border-top:1px solid var(--line); padding:16px 0; }
+.comp-list li>div { flex:1 1 220px; min-width:0; overflow-wrap:anywhere; }
+.comp-list strong,.comp-list small { display:block; }
+.comp-list small,#comp-status,#comp-request-status,#comp-expiry { color:var(--muted); }
+#comp-request { margin-top:20px; border-top:1px solid var(--line); padding-top:20px; }
+#comp-request h3 { font-size:14px; margin:0 0 12px; }
+#comp-recipient,#comp-consent-recipient { display:block; overflow-wrap:anywhere; margin:12px 0; color:var(--green); }
 #pair-status { color:var(--muted); min-height:24px; }
 .pair-details { display:flex; flex-wrap:wrap; gap:12px 24px; margin:16px 0; align-items:center; }
 .pair-details code { overflow-wrap:anywhere; min-width:0; font-size:12px; }

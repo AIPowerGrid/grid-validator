@@ -37,8 +37,12 @@ As checked September 7, 2026:
   prove registered-node recovery or independent-operator qualification.
 - Core PR124 (`f7c981c2`) merged the private, approved-campaign allocation ledger
   and migration `0036`, with PostgreSQL concurrency and restored-migration CI.
-  It is not deployed and has no recipient selection or payment sender. No live
-  campaign or total pilot budget has been approved.
+  PR125 adds reviewed dual-signed recipients (`0037`); PR126 adds a default-off
+  nonce-bound sender (`0038`); PR127 (`2d16a019`) adds private operator status
+  and wallet/node signature collection (`0039`). The node app now consumes that
+  contract in unreleased source. Console wallet setup, cross-repo qualification,
+  release and production rollout remain. No live campaign or total pilot budget
+  has been approved. See `COMPENSATION.md`.
 
 See `UPDATES.md` and `ROLLOUT_2026_09.md` for release and failure evidence.
 
