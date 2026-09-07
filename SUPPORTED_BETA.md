@@ -13,11 +13,16 @@ or make operators repeat information already supplied privately.
 
 As checked September 7, 2026:
 
-- Preview.17 is published from `aa35fa0a`, including the verified app updater.
+- Preview.18 is published from `fef5e924` with operator compensation consent;
+  native run `34160189029` passed all four build and clean-install targets.
+  Downloaded assets and pinned provenance passed verification. Core admitted
+  only the new exact tag; an owned service upgraded with config/journal intact.
+  Live human consent and website promotion remain. See `PREVIEW18_ROLLOUT.md`.
+- Preview.17 was published from `aa35fa0a`, including the verified app updater.
   Release workflow `34136400434` passed four-platform native handoff, recovery
   and clean-install checks. Downloaded assets and pinned provenance passed
   verification. Old installed binaries do not gain the updater retroactively.
-- Production Core `874f7407` / Alembic `0039` admits preview.13/.15/.16/.17 while preserving
+- Production Core `84fe0fd6` / Alembic `0039` admits preview.13/.15/.16/.17/.18 while preserving
   identity, qualification history and review records. Shadow observation and
   validator economics remain off.
 - An owned Linux service upgraded from .15 to .17 with config and durable
@@ -40,13 +45,13 @@ As checked September 7, 2026:
   PR125 adds reviewed dual-signed recipients (`0037`); PR126 adds a default-off
   nonce-bound sender (`0038`); PR127 (`2d16a019`) adds private operator status
   and wallet/node signature collection (`0039`). The node app now consumes that
-  contract in unreleased source. Console PR27 (`28dbf5f3`) and node PR107/108
+  contract in published preview.18. Console PR27 (`28dbf5f3`) and node PR107/108
   are merged; Core PR128 (`874f7407`) passed real-PG/Core/Console/node handoff
   CI. PR108 and merged-master run `34157734708` passed all four native builds,
   frozen update handoffs and clean installs. The September 7 19:57 UTC dark
   Core deployment passed restored-backup migration/schema checks, preserved all
   21 validator identity/review records and environment bytes, and left all six
-  compensation tables empty. Native publication, live consent and paid-pilot
+  compensation tables empty. Live consent and paid-pilot
   activation remain. No live campaign or total pilot budget has been approved.
   See `COMPENSATION.md` and Core's deployment record
   `deploy/VALIDATOR_COMPENSATION_DARK_2026_09_07.md`.
@@ -63,16 +68,16 @@ As checked September 7, 2026:
   independence. Issue #5 now recommends .17 and preserves existing observation
   history instead of telling operators to restart after intake.
 - An external .15 node remains active. Do not remove its supported version to
-  make room for a successor release. The current four-version admission cap
-  needs a separately reviewed compatibility transition before publishing an
-  automatically discovered successor; native build success alone is not that
-  admission decision.
+  make room for a successor release. Core PR130 is deployed and permits at most
+  seven exact upgrades plus the baseline. Only .15/.16/.17/.18 are configured;
+  additional tags still require explicit review. Freeze one version before
+  starting the bounded shadow observer.
 
 See `UPDATES.md` and `ROLLOUT_2026_09.md` for release and failure evidence.
 
 ## Remaining Delivery Order
 
-1. Help existing operators use the now-published preview.17 downloads and
+1. Promote and help existing operators use the now-published preview.18 downloads and
    confirm fresh accepted evidence. Preserve configs, IDs and qualification clocks.
    App updates never replace externally managed services or containers.
 2. Complete reviews for three independently controlled operators using existing
