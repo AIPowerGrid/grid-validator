@@ -43,7 +43,35 @@ completion of the corresponding research experiment.
 | 5. Attacks | [Adversarial design](ADVERSARIAL_VALIDATION.md), [initial live fidelity study](TEXT_FIDELITY_EXPERIMENT_2026_09_05.md), fixed-context and answer-scoring reports above | Probe-aware switching/proxying and fabricated probabilities remain trust limitations, not solved problems. Cross-check copied/common-control evidence tests before declaring the complete attack matrix covered |
 | 6. Correctness | [Rollout evidence and delivery tests](ROLLOUT_2026_09.md): 55 real PostgreSQL 16 binding/race/retry/terminal tests, including killed transaction backends and strict matching receipts | Linux release CI, migrated-database and authenticated production integration; worker-ledger atomicity is not a validator compensation send |
 | 7. Media | [Image pilot](IMAGE_PILOT_2026_09_07.md), including six actual same-artifact Apple/NVIDIA renders; [video pilot](VIDEO_PILOT_2026_09_07.md) | Broader scenes, workflow/quant variants and qualified references; one image scene/two seeds do not establish fleet tolerance; measured misses and source-binding limits remain |
-| 8. Shadow rollout | Core sampling metadata and Console preview context are implemented on local qualification branches | Reviewed release/deployment, fresh live operator qualification and an observed shadow run; local UI tests are not publication |
+| 8. Shadow rollout | Core sampling metadata is under review in [Core PR #117](https://github.com/AIPowerGrid/grid-core/pull/117); Console preview context remains a local candidate | Reviewed release/deployment, fresh live operator qualification and an observed shadow run; local UI tests and a draft PR are not publication |
+
+## Scorecard Release Candidate
+
+Core `b843b8dd3e8ce69cfd7f3cbc286f2561419d27cc` is pushed to draft PR #117,
+not merged or deployed. Seven added real-PostgreSQL scorecard cases cover signed
+shared-group votes, missing/future/incomplete probe times, receipt-window
+filtering, real foreign-key pruning and a read-only evidence snapshot. Three
+registered validators remain one probe group, never three independent samples.
+
+The exact clean commit passed 106 tests with no skips/failures on an isolated
+PostgreSQL 16.15 runtime: 62 real-PG cases, 14 SQLite/utility terminal cases and
+30 offline compensation cases. All captured sources remained unchanged and
+the owned database stopped. This is synthetic evidence/storage qualification,
+not live inference, production HTTP auth or a payment send. New tests pass
+configured Ruff/Black; branch-history and staged secret scans pass. Console's
+six metadata tests also pass without any frontend changes in this pass.
+
+Private result commitments:
+
+- Manifest: `bed5cf9ad36ba4c4909352c099e17b0044b12fb000abd1b5e2b9739cd23fb60c`.
+- JUnit: `26c09515dfcf4cbc4523f49cd30567f8f6ca971bc9d47df29de6991ec24bbc9f`.
+- Summary: `a954ed0690433b9c7b43041756c5dd3a7c4d800312dc5b4986bb5c5ce1602982`.
+
+GitHub Linux/Python 3.12 CI must independently pass the production dependency
+lock/audit, full Grid suite and PostgreSQL migration/restore gates before this
+draft can be considered merge-ready. Do not infer success from local tests or
+the existence of a workflow run. No automatic merge, deployment, new public
+Responses assignment policy, compensation or penalty activation is enabled.
 
 ## Next Text Experiment: Frozen Acceptance
 
