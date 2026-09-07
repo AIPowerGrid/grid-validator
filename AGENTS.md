@@ -107,6 +107,9 @@ model attestation or use it as sole authority.
   deletion, real-PostgreSQL response-loss/receipt-corruption recovery, and
   unavailable work producing no signed failure. It does not add a Responses
   scoring policy, compensation entitlement or deployment claim.
+  Its PostgreSQL 16 follow-up records 55 real-PG tests plus 44 SQLite/offline
+  tests, including actual transaction-backend termination and duplicate terminal
+  races. Local PG16 proof is not Linux release CI or an on-chain payment.
 - **`TEXT_FIDELITY_EXPERIMENT_2026_09_05.md`** - first real backend calibration,
   captured-logprob forgery and live probe-aware routing evidence. Its successful
   pair separation is not proof of exact weights, cross-quant tolerance or safe

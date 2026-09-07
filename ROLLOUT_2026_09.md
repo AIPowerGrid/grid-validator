@@ -422,6 +422,62 @@ does not make a dishonest coordinator trustworthy. No public Responses
 assignment policy, capability advertisement, automatic penalty or deployment
 is introduced by this change.
 
+## PostgreSQL 16 Terminal Qualification
+
+Local Core `2cc536dd34900a44f1c0c6dfba0fadf6b51e116e` passed a fresh
+PostgreSQL 16.15 qualification run with **99 tests, zero failures or skips**.
+The final manifest records a clean Core worktree and unchanged Core/validator
+Python source hashes. A preceding source-bound working-tree run also passed.
+The database was built in a private prefix from the checksum-verified
+[official PostgreSQL source archive](https://ftp.postgresql.org/pub/source/v16.15/).
+Neither an existing database nor a production service was changed.
+
+The count is deliberately split by what it proves:
+
+- 49 real-PostgreSQL evidence, signature/binding, common-control, budget,
+  shadow-run and cross-repo receipt-recovery tests, previously run on PG14.
+- Six new real-PostgreSQL worker-ledger/audit-terminal cases. Three modality
+  cases each race twenty completions after observing at least two genuinely
+  blocked database backends: one settles and nineteen return duplicate, with
+  one ledger row and one charge against each of four budget scopes.
+- One of those six cases races release against success and checks that the
+  resulting state is either charged/paid or released/unpaid, never both. It
+  does not claim to enumerate every possible database interleaving.
+- The other two cases terminate the actual transaction backend after the
+  ledger insert, either before or after budget writes but before commit. Both
+  return an error, retain the original hold, and leave no ledger row or spent
+  budget. A subsequent retry settles once; the following retry is duplicate.
+- 14 existing terminal/utility tests using SQLite or no database, plus 30
+  pure/offline compensation-preview tests. These 44 are not PG concurrency
+  proofs. The 99-test total must not be described as 99 PostgreSQL tests.
+
+The new fixture creates and drops only its generated schema. The harness
+starts a new loopback-only cluster with production environment stripped,
+records immutable sources/results, and stops that cluster in cleanup. Tests
+use synthetic completed probes and worker outputs. Killing a database backend
+tests transaction rollback, not every possible whole-Core crash or network
+partition. The worker completion ledger is not a sent on-chain payment or a
+validator compensation entitlement.
+
+Private final-run SHA-256:
+
+- Manifest: `5ebb0d0c54192a22afe359ef2f75059010ebc579673c4106be9f71ea334be32f`.
+- JUnit: `6940a79a09d11f83a906833b38e201ff3e1ce8dd930aef4a54ba671cb9730d02`.
+- Summary: `7b1404458e40e47af34dfc43c10ee938fb196d7442cc088f41f1cb93bbc04786`.
+- Stopped-server record: `2ed7d5ebca33929df5b21f41d1b710aef81e6f4992a848b9e471f3c2179281eb`.
+
+This closes the local PostgreSQL-major-version evidence gap for these cases,
+not the required Linux/Python-3.12 PR CI, migration/restore proof, authenticated
+HTTP integration, public shadow deployment or compensation sends. The local
+runtime is macOS/Python 3.13 and disables ICU/readline/zlib at PG build time.
+No feature flag, scheduler, policy, routing or economic authority was enabled.
+
+The changed-source secret scan and the tested Core branch's complete reachable
+history passed. A broader all-local-refs scan flagged 14 entries outside that
+history, including archived/remotely tracked branches. Their redacted metadata
+is retained for separate review; this is not an all-refs secret-clean claim.
+No history or scan exclusions were rewritten to suppress findings.
+
 ## Immediate Operator Follow-Up
 
 - Ask existing operators to install preview.15 while preserving configuration
