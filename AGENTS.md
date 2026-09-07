@@ -316,6 +316,10 @@ model attestation or use it as sole authority.
   suspension plus key revocation. Preview.13 passed run `33110290699` with two
   verified signed reports and confirmed retirement. It is not human double-click
   or independent operator proof. Only its bounded public report may become an artifact.
+  The next harness targets the published preview.15 to preview.16 binaries;
+  updated pins and native package CI are not live runtime qualification.
+  Public download recommendations and cohort versions remain unchanged until
+  the supervised run and its independent cleanup review pass.
 - **`NATIVE_PAIRING_CANARY.md`** - manual Windows/Linux candidate pairing
   qualification with separate Console approval and local code consent. This is
   maintainer test tooling, not onboarding for ordinary operators. It has offline
