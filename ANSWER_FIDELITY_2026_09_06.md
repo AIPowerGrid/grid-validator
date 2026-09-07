@@ -3,7 +3,16 @@
 Private exploratory study, 2026-09-06. This measures a proposed detector;
 it does not ship a scoring policy or change production authority.
 
-## Result
+## Current Decision
+
+Do not promote this final-answer likelihood rule into a model-identity policy.
+The fresh quant/load follow-up below detects **0/88 scorable held-out 20B
+observations** against the pinned 120B reference, with **0/13 scorable 120B
+control flags**. Absence of false alarms does not rescue absence of detection.
+This is a measured limitation of this particular rule and task set, not a
+claim that all logprob-based methods are ineffective.
+
+## Initial Result
 
 The complete 96-generation run and 165 unique reference-scoring calls passed
 the independent audit. **The proposed rule is not a qualified substitution
@@ -228,10 +237,103 @@ Private follow-up SHA-256:
 | Candidate/reference bindings | `3c5fbefefaf854f90529e6b74f32a888d189dd5ba9a3c32bba9d5e734d73a305` |
 | Independently audited result | `dd04871a4cddf569dc5b62968faa6dc5a69f23b59e9258373c7822f070f2705a` |
 
+## Fresh Quant/Load Answer Evaluation (2026-09-07 UTC)
+
+The follow-up retains all 256 actual 20B generations from the
+[published quant/load study](QUANTIZATION_BASELINE_2026_09_06.md) and generates
+one fresh actual 120B control for each of its 32 cases. No outcome-based
+selection, discarded budget stops, threshold search or production inference
+request was involved. The same earlier cutoff, `1.5497254021389634e-6`, was
+frozen before any new reference inference.
+
+The 32 contexts are disjoint from the initial answer study and span extraction,
+state tracking, constraints and 4,930-token retrieval. They retain the parent
+study's sixteen calibration and sixteen evaluation labels. Here the former
+are diagnostic inputs only: **neither subset refits the historical threshold**.
+Shared task templates, pairs, repeats and quant variants remain correlated.
+
+| Actual source | All generations | Correct | Budget stops | Scorable | Flagged |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Published 20B Q8 artifact | 128 | 108 | 20 | 96 | 0 |
+| Published 20B Q4 artifact | 128 | 107 | 21 | 95 | 0 |
+| Pinned 120B control | 32 | 30 | 2 | 27 | 0 |
+
+Every completed answer is correct. The published Q4/Q8 pair changes selected
+attention/embedding tensors, not the MXFP4 experts; these labels must not imply
+full-model four/eight-bit quantization. Candidate outputs include two repeats
+under serial and observed two-slot load. The 120B controls are one serial run
+per case, not a matching loaded/cross-quant honest reference population.
+
+Held-out evaluation, kept separate from diagnostic rows:
+
+| Actual source | Runs | Scorable | Distinct scorable cases | Flagged |
+| --- | ---: | ---: | ---: | ---: |
+| 20B Q8 evaluated as 120B | 64 | 44 | 11 | 0 |
+| 20B Q4 evaluated as 120B | 64 | 44 | 11 | 0 |
+| Same-artifact 120B control | 16 | 13 | 13 | 0 |
+
+Both diagnostic and evaluation subsets produce zero flags. Evaluation
+ineligibility is twelve budget stops and eight too-short answers per 20B
+artifact; the 120B has one budget stop and two too-short answers. Across the
+whole study, 43 budget stops and 27 answers with fewer than two semantic tokens
+remain unavailable, never a detected substitution or evidence of honesty.
+
+The complete native-prefix check preserves all candidate reasoning and verifies
+every selected token ID against reference-decoded token bytes. It excludes
+JSON keys and formatting-only positions and derives the feature solely from
+reference probabilities, not the candidate's reported probabilities. All 678
+selected positions have native top-20 coverage; explicit prefix caching reduces
+them to 276 unique reference calls. There are no reference HTTP failures.
+
+All eligible Q8 evaluation features are exactly zero as returned/computed from
+the captured finite-precision scores. The maximum Q4 evaluation feature is
+`1.5156690226701488e-6`; the maximum 120B evaluation feature is
+`5.960464477539063e-8`. These are observed numeric values, not mathematical
+certainty. They do not separate the actual model sources under the fixed rule.
+Do not lower the cutoff after seeing these evaluation answers.
+
+This is consistent with the already documented conditioning weakness: the
+candidate's reasoning can make the final answer highly predictable to the
+reference. It does not by itself prove that mechanism caused every miss.
+The earlier four flags therefore do not establish generalization. Unflagged
+answer likelihood cannot substantiate which weights produced an answer.
+
+Both models use pinned llama.cpp b10826 and canonical explicit prompt IDs;
+the 120B tokenizer independently reproduced every prompt and token prefix.
+The current context allocation is 8192 versus the original threshold study's
+4096, with the same 1536-token generation budget. This expanded workload tests
+generalization, not an isolated experiment attributing differences to one
+factor. Engine/quant/hardware false-positive bounds remain unqualified.
+
+Independent verification checks all 288 source rows, complete schedules,
+correctness oracles, semantic selection, context/token bindings and the unchanged
+rule. The runtime/model/binary/library hashes and owned-server cleanup are
+checked separately from the result counts. Independent audit and descriptive
+analysis each reproduce their saved report byte-for-byte on rerun.
+The six native-parser/scorer regressions also pass. Summed reference HTTP time is
+1041.35 seconds; new control generation time is 385.19 seconds. These exclude
+loading/hashing overhead and are not a production throughput estimate.
+The owned 120B server stopped; the existing public LM Studio worker was left
+running. No account, registration, authority, penalty or economic setting changed.
+
+Private evidence SHA-256:
+
+| Artifact | SHA-256 |
+| --- | --- |
+| Frozen follow-up manifest | `0040fa72ec1093e1339d7cfe6c3fc4783190cc67c180795d66bd50a016039154` |
+| Fresh native 120B controls | `e86456dcc0a39606b8c3cd7a0d86acef26745381d3d1f08261d60570b5415333` |
+| Native reference calls | `dc3eedba11278d3733f8a268d08e1aab07867a0957e1206e8a5cd190cec080bd` |
+| Candidate/reference bindings | `b6357af848fb04dbaa3a0dae13a33bb5fe1c033d200544b893a93465a02a40fd` |
+| Reference token-byte witnesses | `d64b0c701f7e666e1e6de677393c18b6b7736cfffb3fb6343abe59aa51615bc2` |
+| Independently audited summary | `014a247517d69452ba1c35aac2a314a3d575c62085dd2902e7e089dac72b02a5` |
+| Post-run descriptive metrics | `e7b8bc0881c9bfc45729104e823be3c325a69a39dce60f08b81af96aa0d3a9a2` |
+
 ## Next Gates
 
-1. Establish honest cross-engine/quant scoring controls before interpreting
-   tiny likelihood differences. Same-artifact control success is insufficient.
+1. Reject promotion of the tested final-answer likelihood rule. Establish
+   honest cross-engine/quant scoring controls before interpreting tiny
+   likelihood differences in any replacement method. Zero control flags
+   alongside zero detections is insufficient.
 2. Broaden the fixed manufactured-reasoning test to production-shaped inputs,
    adaptive strategies with fresh held-out evaluation, and correct-model-only
    probe service. The one recipe above is measured, not an exhaustive defense.

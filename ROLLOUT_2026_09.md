@@ -219,6 +219,12 @@ dated observations.
   seven plain and six primed correct outputs are scorable/unflagged without
   candidate inference; all 24 primed wrong mutations are flagged. This tests a
   private proposed metric, not an authoritative production attestation path.
+  The September 7 UTC follow-up evaluates all 256 captured quant/load 20B
+  answers plus 32 fresh 120B controls against the unchanged cutoff. It flags
+  0/88 scorable held-out smaller-model observations and 0/13 scorable controls.
+  Do not promote this final-answer likelihood rule: zero false alarms with zero
+  detections is not useful model-identity discrimination. See the linked report
+  for complete denominators, unavailable cases and 276 native reference calls.
 
 Core's local `48f772ef` includes 20 additional signed-evidence tests. The exact
 committed suite plus four existing validator concurrency suites passed on a

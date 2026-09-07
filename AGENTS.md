@@ -140,6 +140,12 @@ model attestation or use it as sole authority.
   correct outputs unflagged without candidate LLM execution, while all 24
   primed wrong-answer mutations are flagged. Preserve both caught and missed
   attacks; this private metric test does not establish a live endpoint exploit.
+  Its fresh quant/load follow-up retains 256 actual 20B answers and adds 32
+  actual 120B controls. The unchanged cutoff flags 0/88 scorable held-out 20B
+  observations and 0/13 scorable controls. Do not promote this final-answer
+  likelihood rule or interpret zero false alarms as successful detection.
+  All 276 unique reference calls and 678 token bindings are independently
+  audited; unavailable evidence and correlated repeats remain explicit.
 - **`QUANTIZATION_BASELINE_2026_09_06.md`** - private attention-only Q8-to-Q4
   stress variant with per-tensor provenance and a completed 24-request
   same-engine comparison: budget exhaustion remains separate from wrong answers.
