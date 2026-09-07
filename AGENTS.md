@@ -36,7 +36,17 @@ concrete detail in children. Delete stale notes instead of explaining history.
 
 ## Purpose
 
-Preview.17 is published from `aa35fa0a` with the verified app updater and passing
+Preview.18 is published from `fef5e924` with explicit operator compensation
+consent. Its complete payload and pinned GitHub provenance are verified;
+Core `84fe0fd6` admits .18 alongside .13/.15/.16/.17. An owned Linux service
+upgraded with identity/config/journal preserved at 20:55 UTC September 7.
+Fresh accepted report `123657` passed independent signature, commitment,
+assignment-binding and zero-economic-row checks at 21:03 UTC. This is not
+human wallet-consent proof. Compensation and
+shadow observation remain off; the website still recommends .17 pending
+promotion. See `PREVIEW18_ROLLOUT.md`.
+
+Preview.17 introduced the verified app updater from `aa35fa0a` with passing
 four-platform native handoff/recovery and clean-install checks. Downloaded
 payload and pinned GitHub/Sigstore provenance verification pass. Core admits
 preview.13/.15/.16/.17 without resetting qualification. One owned node runs
@@ -56,9 +66,9 @@ accepted evidence, upgrade, outage/recovery and retirement. See
 The Grid's validator node. In V0 it is a CPU-only distributed audit runner: it sends
 small canary jobs through the normal Grid path, scores replies (`healthy` / `slow` /
 `failed`), and submits signed attestations. Shared-quorum text validation is
-production-live on Core commit `874f7407` as checked on 2026-09-07, with
+production-live on Core commit `84fe0fd6` as checked on 2026-09-07, with
 migrations through `0039`. Compensation remains dark. Core accepts the exact preview.13 baseline plus
-preview.15/.16/.17 upgrades during a controlled
+preview.15/.16/.17/.18 upgrades during a controlled
 overlap, preserving qualification timestamps and samples. It reports older nodes as
 `upgrade_required`. Multiple external preview.13 nodes are participating in the
 qualification pipeline, but independent status still requires the maintainer's
@@ -112,12 +122,13 @@ model attestation or use it as sole authority.
 - **`UPDATES.md`** - preview.17 one-click app update contract, versioned
   installation, identity preservation, pending-state recovery and remaining
   live rollout gates, with native qualification evidence recorded separately.
-- **`COMPENSATION.md`** - unreleased operator-app pilot/allocation status and
+- **`PREVIEW18_ROLLOUT.md`** - immutable .18 release, exact Core admission and
+  owned-service upgrade evidence; website promotion and live consent limits.
+- **`COMPENSATION.md`** - released operator-app pilot/allocation status and
   explicit node payout consent. Core PR127 and Console PR27 provide the matching
   backend/page; Core PR128 adds pinned real-PG client integration. Core is
-  deployed dark at `874f7407` / `0039`; PR108 and its merged-master run pass
-  four-platform native compensation qualification. Publication, live consent
-  and activation remain gates.
+  deployed dark at `84fe0fd6` / `0039`; tagged .18 passed four-platform native
+  compensation qualification. Live consent and activation remain gates.
   No payment approval or funded pilot.
 
 - **`QUALIFICATION_DECISIONS.md`** - eight-part evidence index and frozen

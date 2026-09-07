@@ -1,11 +1,12 @@
 # Operator Compensation
 
-Status: node app merged in PR107 (`1c3b8122`), not yet released or production-live.
+Status: node app released in preview.18 (`fef5e924`), September 7, 2026.
 Core PR127 (`2d16a019`, migration `0039`) provides the default-off API; Console
-PR27 (`28dbf5f3`) provides the matching wallet page. Core `874f7407` / `0039`
-deployed dark at 19:57 UTC September 7 after a restored-backup migration proof.
-All six compensation tables remained empty and production configuration was
-unchanged. Native publication and the live operator journey remain required.
+PR27 (`28dbf5f3`) is deployed with the matching wallet page. Production Core
+`84fe0fd6` / `0039` admits the exact .18 release alongside older supported nodes.
+All six compensation tables remain empty and the operator/sender gates remain
+off. Publication and owned-service upgrade pass; live human consent remains
+required. See `PREVIEW18_ROLLOUT.md`.
 No live campaign, budget or transfer is approved by this implementation.
 
 ## Operator Flow
@@ -86,4 +87,5 @@ records and nonce storage are synthetic; no recipient binding, transfer,
 credit or worker payment is made. PR108 (`00949bfc`) and merged-master run
 `34157734708` explicitly passed compensation tests, frozen operator-app checks,
 update handoff and clean installs on all four platforms. Neither proves a funded
-or independent live pilot. Current public downloads are still preview.17.
+or independent live pilot. Preview.18 is now an immutable GitHub release;
+website promotion from preview.17 remains separate.
