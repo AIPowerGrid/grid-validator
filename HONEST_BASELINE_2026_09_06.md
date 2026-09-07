@@ -460,3 +460,48 @@ Private numeric-run evidence manifest SHA-256:
 `2bda345151d979c6b15a1bd601b289312d82b3cdf4243f9685a122bfb29f77d0`.
 Independent observation auditor SHA-256:
 `640377179198ea004482e8dfb0934bf1ad109782eb100e914531a79fed70a77a`.
+
+## Rendered-Input Trace Resolves The Count Discrepancy
+
+Two further one-token requests reused the same private prefix: SDK
+`complete_stream` with numeric neutral repetition/min-p settings, followed by
+streaming `/v1/completions`. A short-lived model-log reader kept only input
+events containing this experiment's synthetic marker and discarded unrelated
+traffic. Each call produced exactly one matching input event; both readers
+stopped after their calls.
+
+**Both paths added the same outer Harmony system/user conversation around the
+already-rendered prefix.** The original 144-token prefix appears once inside
+that wrapper. Native tokenization of the actual logged input gives 211 tokens,
+matching the SDK prediction count. An independent offline `o200k_harmony`
+encoding reproduced both complete token-ID sequences, not just their lengths.
+The outer wrapper accounts for all 67 added tokens. This resolves the earlier
+count discrepancy for the captured setup as input wrapping, not a tokenizer
+disagreement or merely a displayed-count anomaly.
+
+This observed GPT-OSS behavior differs from the generic
+[legacy completion documentation](https://lmstudio.ai/docs/developer/openai-compat/completions),
+which describes an unapplied prompt template. The SDK also reported a
+pass-through Jinja template. Neither generic API semantics nor that metadata
+was sufficient to establish the actual input on this model/runtime. This is
+one pinned setup, not a claim about every LM Studio model or version.
+
+The REST request asked for logprobs but returned none and stopped at its
+intentional one-token limit. That result is unavailable for probability
+comparison, not evidence of worker failure. No new probability range, detector
+threshold or same-context model comparison follows from this trace.
+
+For subsequent comparisons, send ordinary messages to chat/Responses endpoints
+and capture the complete rendered input. Reference-side scoring must use that
+input plus the actual preceding generated tokens. Do not send a pre-rendered
+Harmony prefix through these completion paths and assume it remains unchanged.
+The earlier standalone native-token-ID experiments are separate and are not
+invalidated by this SDK/legacy-completion wrapping result. Historical REST
+sampling parameters and hidden generation token traces remain unproven.
+
+Private capture commitment SHA-256:
+`1ada8028b8885728ea9d3f21cffd1484a64769d733d30ea885ca337ed980a18b`.
+Independent auditor SHA-256:
+`739b0964eb18e9f4c804502f80480dda7c2a8e457b7bff88a5180782d9864d9d`.
+The physical model and loaded configuration remained unchanged. No public
+worker restart, model load/unload, Grid job, scoring or economic change occurred.

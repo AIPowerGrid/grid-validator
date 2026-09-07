@@ -161,6 +161,11 @@ model attestation or use it as sole authority.
   native-tokenize versus 211-token prediction-count discrepancy. Reported
   sampler settings are not historical REST settings or exact-context proof;
   preserve the failed alignment audit and do not derive a fraud threshold.
+  A subsequent marked-input capture resolves that discrepancy: SDK and legacy
+  completion both wrap the already-rendered prefix in another Harmony
+  conversation. Independently encoded logged inputs account for all 67 added
+  tokens. Use captured rendered input for alignment; completion metadata is not
+  a raw-input guarantee. Missing legacy logprobs stay unavailable.
 - **`ANSWER_FIDELITY_2026_09_06.md`** - native-context candidate-answer
   reference-scoring study and retained failed raw-completion attempt. The new
   frozen method preserves candidate reasoning, excludes formatting-only score
