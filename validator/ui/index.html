@@ -18,6 +18,7 @@
     <section class="activity" aria-labelledby="updates-title">
       <div class="section-title"><h2 id="updates-title">Software updates</h2><button id="updates-check" disabled>Check for updates</button></div>
       <p id="updates-status" role="status" aria-live="polite">Not checked</p>
+      <button id="updates-install" hidden>Update and restart</button>
       <a id="updates-release" class="button" target="_blank" rel="noopener noreferrer" hidden>Open release</a>
     </section>
     <section class="metrics" aria-label="Participation">
@@ -48,5 +49,6 @@
   </main>
   <dialog id="consent"><form method="dialog"><h2>Set up and start a dedicated validator?</h2><p>A new signing identity will be saved on this computer, registered with the Grid, and started so the app can verify its heartbeat and evidence flow. No personal private key or funds are required.</p><p>This does not link or merge an existing account. Keep your existing node configuration when upgrading.</p><div class="controls"><button value="cancel">Cancel</button><button value="confirm" id="confirm">Create and start node</button></div></form></dialog>
   <dialog id="pair-consent" aria-labelledby="pair-consent-title"><form method="dialog"><h2 id="pair-consent-title"></h2><p id="pair-consent-text"></p><strong id="pair-consent-code" hidden></strong><p id="pair-consent-boundary">Your node keeps its own identity and keys. No account merging, wallet changes, payments, or validator rewards.</p><div class="controls"><button value="cancel">Cancel</button><button value="confirm" id="pair-consent-confirm">Continue</button></div></form></dialog>
+  <dialog id="update-consent" aria-labelledby="update-consent-title"><form method="dialog"><h2 id="update-consent-title">Update validator?</h2><p id="update-consent-tag"></p><p>Your node identity, configuration and queued evidence stay on this computer. The app will restart; a running validator will resume.</p><p>Preview builds are unsigned on Windows and not notarized on macOS. GitHub release provenance and downloaded files are verified before starting the update.</p><div class="controls"><button value="cancel">Cancel</button><button value="confirm">Update and restart</button></div></form></dialog>
 </body>
 </html>

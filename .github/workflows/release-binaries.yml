@@ -104,6 +104,11 @@ jobs:
           uv run --frozen --extra media --extra release python -m unittest discover -s tests -p test_media_prober.py
           uv run --frozen --extra media --extra release python -m unittest discover -s tests -p test_update_download.py
           uv run --frozen --extra media --extra release python -m unittest discover -s tests -p test_update_worker.py
+          uv run --frozen --extra media --extra release python -m unittest tests.test_update_install tests.test_update_handoff tests.test_operator_updates
+
+      - name: Prove frozen app update handoff
+        timeout-minutes: 10
+        run: uv run --frozen --extra media --extra release python scripts/smoke-update-handoff.py
 
       - name: Smoke-test binary
         timeout-minutes: 5

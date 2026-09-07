@@ -32,7 +32,11 @@ package and frozen binary; no CDN, remote font, or third-party script is loaded.
   stopped or unconfigured. Cached polls do not issue external traffic. Display
   unavailable separately from current; keep stable installs off previews. The
   release link is constrained to this repo's canonical GitHub tag URL and never
-  opens automatically. This is discovery only, not one-click verified installation.
+  opens automatically. Native app updates have a separate confirmation binding
+  the displayed tag and unsigned-preview disclosure. Cancel, Escape and reload
+  never submit installation. Show preparing/restarting/failure distinctly;
+  source builds retain the external release link. A committed update may open
+  only its new authenticated loopback app, never a release-supplied URL.
 - Preserve the separate read-only dashboard. This UI ships in preview.12;
   native offline package checks do not replace live end-to-end qualification.
 - Existing-account linking is newer, unreleased work. Require explicit start,

@@ -613,6 +613,34 @@ def main(argv=None) -> int:
     from . import __release_tag__
 
     argv = sys.argv[1:] if argv is None else argv
+    if argv == ["_updated-app"]:
+        from .update_handoff import updated_app
+
+        try:
+            return updated_app()
+        except Exception:
+            print('{"error":"update_start_failed"}')
+            return 1
+    if getattr(sys, "frozen", False) and ((not argv and sys.stdin.isatty()) or (argv and argv[0] in {"app", "menu"})):
+        from .launcher import config_path
+        from .update_install import InstallStore
+        from .update_check import _version_key
+
+        try:
+            config = config_path()
+            store = InstallStore(config)
+            selected = store.selected()
+            if selected is not None:
+                executable = store.executable(selected)
+                selected_version, current_version = _version_key(selected["tag"]), _version_key(__release_tag__)
+                if selected_version is not None and current_version is not None and selected_version > current_version and (not current_version[3] or selected_version[3]) and executable.resolve() != Path(sys.executable).resolve():
+                    import subprocess
+
+                    env = os.environ.copy()
+                    env.update(VALIDATOR_ENV=str(config), PYINSTALLER_RESET_ENVIRONMENT="1")
+                    return subprocess.call([str(executable), *argv], env=env)
+        except (OSError, ValueError):
+            print("Saved update is unavailable. Opening this installed version; configuration is unchanged.")
     if argv and argv[0] == "_update-worker":
         from .update_worker import main as update_main
 

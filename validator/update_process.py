@@ -12,6 +12,7 @@ import signal
 import subprocess
 import threading
 import time
+from pathlib import Path
 from typing import Any
 
 from .launcher import command_prefix
@@ -56,6 +57,9 @@ def stop_owned(process: subprocess.Popen[bytes]) -> None:
             env=child_environment(),
         )
     else:
+        # Reap an exited leader before signalling its remaining group. Darwin
+        # can reject a signal to a group containing only an unreaped zombie.
+        process.poll()
         with contextlib.suppress(ProcessLookupError):
             os.killpg(process.pid, signal.SIGKILL)
     if process.poll() is None:
@@ -69,6 +73,7 @@ def run_worker(
     *,
     timeout: float = 420,
     cancelled: threading.Event | None = None,
+    executable: Path | None = None,
 ) -> dict[str, Any]:
     if action not in {"prepare", "self-test"} or not 0 < timeout <= 420:
         raise ReleaseVerificationError("invalid_update_action")
@@ -89,7 +94,8 @@ def run_worker(
         else {"start_new_session": True}
     )
     process = subprocess.Popen(
-        command_prefix() + ["_update-worker", action],
+        ([str(executable)] if executable is not None else command_prefix())
+        + ["_update-worker", action],
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.DEVNULL,

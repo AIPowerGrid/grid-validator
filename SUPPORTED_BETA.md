@@ -50,7 +50,8 @@ or make operators repeat information already supplied privately.
 
 ## Updater Implementation Evidence
 
-Release discovery is merged; installation is not yet wired. The in-progress
+Release discovery is merged; versioned installation/handoff is now implemented
+in the draft updater PR, but not released. See `UPDATES.md`. The in-progress
 `release_verify.py` authenticates the manifest using Sigstore 4.5.0, the exact
 GitHub release workflow identity and signed SLSA source/tag/platform bindings.
 On 2026-09-07 it verified the published preview.16 manifest without a GitHub
@@ -102,6 +103,16 @@ Readiness now distinguishes dependency, trust-file and UI-resource failures
 without exposing exception text. Malformed-header tests check rejection before
 sending a body. Local verification passes 396 cases (390 passed, six optional
 integration skips); cross-platform CI must still verify the follow-up commit.
+
+That follow-up passed all four native build/readiness and clean-install lanes
+in run `34130021821`. The subsequent app-handoff implementation is a new gate:
+source tests pass 410 cases (403 passed, six optional integration skips and one
+explicit native-fixture skip). A separate frozen macOS fixture passed actual
+app readiness, version commit, wrong-version rollback and exit. Browser checks
+at 320/390/768/1280px found no horizontal overflow; Escape issued no install,
+while confirmation submitted one tag-bound request. These checks do not prove
+live registered-node resume, real queued-evidence recovery or the new native
+CI matrix. Keep those remaining release gates explicit.
 
 ## Capability Boundary
 

@@ -65,7 +65,16 @@ installer generation.
 - `test_operator_updates.py` - cached-only startup/reads, background discovery,
   concurrency/rate limiting, sanitized failures and close. The operator HTTP
   suite separately covers local session/origin/body guards and no runtime start
-  or configuration creation. These tests do not prove artifact installation.
+  or configuration creation. Install fixtures cover exact tag/preview consent,
+  candidate health, failed-attempt cleanup and no premature activation.
+- `test_update_install.py` / `test_update_handoff.py` - protected immutable
+  slots, digest/path rejection, atomic selection, pending fallback, and real
+  child/HTTP startup failure, commit and rollback. The child identity in the
+  source handoff tests is simulated; no fixture proves production participation.
+- `test_update_handoff_native.py` - explicit frozen fixture handoff, local
+  authenticated readiness, selection commit, wrong-version rollback and exit.
+  Ordinary source runs skip without `TEST_VALIDATOR_UPDATE_BINARY`; native CI
+  builds a disposable version fixture and must run it, never publish it.
 - `test_operator_app.py` - real loopback HTTP guards, allowlisted controls and
   diagnostics, invalid-credential child recovery, owned-process stop, OS lock
   exclusion, and runtime acknowledgement/cancellation contracts. No live Grid
