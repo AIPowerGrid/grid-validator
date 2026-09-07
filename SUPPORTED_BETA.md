@@ -30,9 +30,11 @@ As checked September 7, 2026:
   report survived .15-to-.17, and a same-record duplicate acknowledgment drained
   it. Independent Core signature/binding, zero-economic-row and cleanup checks
   passed. This is a service upgrade, not a human desktop one-click test.
-- The public download page still recommends preview.16. The preview.17 website
-  candidate passes 112 unit tests and nine local browser tests, but has not
-  been promoted. Website tests do not prove registered-node recovery.
+- Website PR77 (`c23f9281`) promoted preview.17 after the recovery check.
+  Its production deployment is Ready and `aipowergrid.io/validate` serves the
+  new release links. The candidate passed 112 unit tests and nine local browser
+  tests; production browser verification also passed. Website tests do not
+  prove registered-node recovery or independent-operator qualification.
 - Core PR124 (`f7c981c2`) merged the private, approved-campaign allocation ledger
   and migration `0036`, with PostgreSQL concurrency and restored-migration CI.
   It is not deployed and has no recipient selection or payment sender. No live
@@ -42,8 +44,8 @@ See `UPDATES.md` and `ROLLOUT_2026_09.md` for release and failure evidence.
 
 ## Remaining Delivery Order
 
-1. Promote verified preview.17 downloads after the now-passing owned-node
-   pending-report recovery check. Preserve configs, IDs and qualification clocks.
+1. Help existing operators use the now-published preview.17 downloads and
+   confirm fresh accepted evidence. Preserve configs, IDs and qualification clocks.
    App updates never replace externally managed services or containers.
 2. Complete reviews for three independently controlled operators using existing
    records and IDs. Diagnose outages and missing coverage rather than restarting

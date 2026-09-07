@@ -1,7 +1,7 @@
 # App Updates
 
-Published in preview.17 from reviewed commit `aa35fa0a`; public download
-promotion remains separate. Existing preview.13/.16 downloads do not acquire
+Published in preview.17 from reviewed commit `aa35fa0a`; the public download
+page now recommends that release. Existing preview.13/.16 downloads do not acquire
 this updater retroactively. Their first
 upgrade must preserve the existing configuration and validator ID.
 

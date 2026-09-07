@@ -46,8 +46,9 @@ and assignment bindings. A second owned service passed accepted-response-loss,
 pending-report preservation across .15-to-.17, and same-record duplicate
 acknowledgment at 17:04:11 UTC on September 7. Independent record, signature,
 binding, zero-economic-row and cleanup checks passed. This is service-upgrade
-recovery, not a human desktop one-click test. The public download page was observed
-selecting preview.16 on September 7; promotion to preview.17 is separate.
+recovery, not a human desktop one-click test. Website PR77 (`c23f9281`) promoted
+preview.17 on September 7; the production deployment is Ready and the custom
+domain serves its release links. Promotion does not activate the paid beta.
 Preview.16's protected Windows live run `34092210339` passed enrollment,
 accepted evidence, upgrade, outage/recovery and retirement. See
 `ROLLOUT_2026_09.md`, `NATIVE_LIVE_CANARY.md` and `QUALIFICATION_DECISIONS.md`.
@@ -574,8 +575,8 @@ model attestation or use it as sole authority.
   cache-independent offline packaged readiness with fixed failure codes.
   The app-controlled versioned handoff is published in preview.17. Native
   update/restart/rollback fixtures pass all four platforms; real pending-evidence
-  replay now passes on an owned Linux service. Public promotion and independent
-  operator journeys remain separate checks. Old discovery-only
+  replay now passes on an owned Linux service, and public downloads recommend
+  preview.17. Independent operator journeys remain a separate check. Old discovery-only
   binaries do not acquire the updater retroactively.
 - New grid-side endpoint dependencies fail closed when they are required for
   attributable evidence. Read-only dashboard metadata may degrade gracefully.

@@ -166,7 +166,7 @@ confirmed service cutover time and independently verified signed records.
 At that first checkpoint pending-report replay remained open. This is an externally managed
 service upgrade, not proof of the app's live one-click path.
 
-The public `/validate` page was checked and currently selects preview.16.
+At that initial checkpoint the public `/validate` page selected preview.16.
 Preview.17 publication is not website promotion or completion of the bounded
 independent paid-beta pilot. At that checkpoint the remaining steps were pending-report replay,
 operator reviews, public rollout, the frozen pilot and separately approved
@@ -198,8 +198,19 @@ evidence remains on the owned host; identifiers and credentials are not public.
 
 This closes the first-party Linux pending-report service-upgrade check. Native
 four-platform app handoff fixtures remain separate evidence, not a live human
-desktop journey. Public website promotion, independent-operator reviews and
-the bounded paid pilot remain separate milestones.
+desktop journey. Independent-operator reviews and the bounded paid pilot remain
+separate milestones.
+
+### Public Download Promotion
+
+Website PR77 merged as `c23f9281` at 17:12:05 UTC on September 7. Its final-head
+checks passed, including browser CI; Vercel's production deployment reached
+Ready. The custom domain `aipowergrid.io/validate` was independently checked for
+preview.17 native archives, installers, checksums and SBOM links. Production
+browser verification completed successfully after deployment. Local candidate
+verification comprised 112 unit tests, a production build and nine onboarding/
+responsive-browser checks. This changes the recommended download, not Core
+flags, operator review, qualification clocks or payment authorization.
 
 ## Release And Upgrade (September 5)
 
@@ -563,7 +574,7 @@ No history or scan exclusions were rewritten to suppress findings.
 
 ## Immediate Operator Follow-Up
 
-- Ask existing operators to install preview.15 while preserving configuration
+- Ask existing operators to install preview.17 while preserving configuration
   and their `val_*` ID. Confirm fresh accepted evidence after each upgrade.
 - Obtain the owned text-serving host and a non-disruptive test allocation. Its
   bridge was located on the chat frontend VM and upgraded to v0.3.8 while
