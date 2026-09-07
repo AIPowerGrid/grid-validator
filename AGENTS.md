@@ -156,6 +156,11 @@ model attestation or use it as sole authority.
   inputs. This narrows current tokenizer uncertainty but does not reconstruct
   the historical prediction trace or effective sampler. No new inference or
   production change is part of that check.
+  Its subsequent one-prefix SDK prediction-settings check records three
+  one-token completions, one rejected boolean configuration, and a 144-token
+  native-tokenize versus 211-token prediction-count discrepancy. Reported
+  sampler settings are not historical REST settings or exact-context proof;
+  preserve the failed alignment audit and do not derive a fraud threshold.
 - **`ANSWER_FIDELITY_2026_09_06.md`** - native-context candidate-answer
   reference-scoring study and retained failed raw-completion attempt. The new
   frozen method preserves candidate reasoning, excludes formatting-only score
