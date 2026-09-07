@@ -56,8 +56,8 @@ accepted evidence, upgrade, outage/recovery and retirement. See
 The Grid's validator node. In V0 it is a CPU-only distributed audit runner: it sends
 small canary jobs through the normal Grid path, scores replies (`healthy` / `slow` /
 `failed`), and submits signed attestations. Shared-quorum text validation is
-production-live on Core commit `3714a927` as checked on 2026-09-07, with
-migrations through `0035`. Core accepts the exact preview.13 baseline plus
+production-live on Core commit `874f7407` as checked on 2026-09-07, with
+migrations through `0039`. Compensation remains dark. Core accepts the exact preview.13 baseline plus
 preview.15/.16/.17 upgrades during a controlled
 overlap, preserving qualification timestamps and samples. It reports older nodes as
 `upgrade_required`. Multiple external preview.13 nodes are participating in the
@@ -114,8 +114,10 @@ model attestation or use it as sole authority.
   live rollout gates, with native qualification evidence recorded separately.
 - **`COMPENSATION.md`** - unreleased operator-app pilot/allocation status and
   explicit node payout consent. Core PR127 and Console PR27 provide the matching
-  dark backend/page; Core PR128 adds pinned real-PG client integration. Native
-  compensation qualification, coordinated deployment and release remain gates.
+  backend/page; Core PR128 adds pinned real-PG client integration. Core is
+  deployed dark at `874f7407` / `0039`; PR108 and its merged-master run pass
+  four-platform native compensation qualification. Publication, live consent
+  and activation remain gates.
   No payment approval or funded pilot.
 
 - **`QUALIFICATION_DECISIONS.md`** - eight-part evidence index and frozen

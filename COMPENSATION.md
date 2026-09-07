@@ -2,8 +2,10 @@
 
 Status: node app merged in PR107 (`1c3b8122`), not yet released or production-live.
 Core PR127 (`2d16a019`, migration `0039`) provides the default-off API; Console
-PR27 (`28dbf5f3`) provides the matching wallet page. Coordinated deployment and
-the live operator journey remain required.
+PR27 (`28dbf5f3`) provides the matching wallet page. Core `874f7407` / `0039`
+deployed dark at 19:57 UTC September 7 after a restored-backup migration proof.
+All six compensation tables remained empty and production configuration was
+unchanged. Native publication and the live operator journey remain required.
 No live campaign, budget or transfer is approved by this implementation.
 
 ## Operator Flow
@@ -81,5 +83,7 @@ reviewed clients in required CI. Both its local September 7 run and GitHub run
 scoped routes and both signatures; a discarded node acknowledgement recovered
 the committed review state without another confirmation. Earning/independence
 records and nonce storage are synthetic; no recipient binding, transfer,
-credit or worker payment is made. Native build/clean-install checks on PR107
-passed all four platforms. Neither proves a funded or independent live pilot.
+credit or worker payment is made. PR108 (`00949bfc`) and merged-master run
+`34157734708` explicitly passed compensation tests, frozen operator-app checks,
+update handoff and clean installs on all four platforms. Neither proves a funded
+or independent live pilot. Current public downloads are still preview.17.
