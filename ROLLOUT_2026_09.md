@@ -225,6 +225,12 @@ dated observations.
   Do not promote this final-answer likelihood rule: zero false alarms with zero
   detections is not useful model-identity discrimination. See the linked report
   for complete denominators, unavailable cases and 276 native reference calls.
+- [Fixed-context distributions](FIXED_CONTEXT_FIDELITY_2026_09_07.md): 384
+  native calls without candidate reasoning, 64 fresh contexts and three pinned
+  artifacts. No actual 20B/120B comparison reaches the current anomaly band;
+  most remain in match, while some honest quant pairs are gray. Copying the
+  reference distribution defeats the offline metric on all 256 cross-model
+  observations. This is not public assignment/quorum or model-identity proof.
 
 Core's local `48f772ef` includes 20 additional signed-evidence tests. The exact
 committed suite plus four existing validator concurrency suites passed on a

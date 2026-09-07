@@ -173,6 +173,13 @@ model attestation or use it as sole authority.
   an unchanged non-LLM solver also passes 400 fresh randomized-value cases.
   Capability evidence only, not model identity, a live assignment bypass or a
   shipped expansion of the two-stage tool-chain policy.
+- **`FIXED_CONTEXT_FIDELITY_2026_09_07.md`** - 384 native calls across 64 fresh
+  raw-text contexts, without candidate reasoning. Existing distance bands put
+  most actual 20B/120B pairs inside match and none inside anomaly; honest Q8/Q4
+  controls also include gray observations. Keep raw metric bands distinct from
+  public assignment verdicts and pooled-tail proxies from full-vocabulary JSD.
+  Copied reference reports yield zero distance in every cross-model comparison;
+  this is offline forgery evidence, not a live signed-endpoint exploit.
 
 - **`validator/`** — the whole node (config, stake gate, grid client, canary probing +
   scoring, attestation signing, probe loop, CLI, read-only dashboard, and opt-in
