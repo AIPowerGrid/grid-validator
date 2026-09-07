@@ -119,6 +119,11 @@ model attestation or use it as sole authority.
   raw contexts. All four word-level comparisons fall inside the unchanged
   scorer match band. This records a measured limitation, not held-out detector
   accuracy, full-answer likelihood or permission to tighten production thresholds.
+  Its decoded-context follow-up captures identical LM Studio inputs/outputs
+  across six endpoint controls and scores six word positions twice with the
+  same GGUF in standalone llama.cpp. The maximum chosen-token gap is 1.766401
+  percentage points. Native LM token IDs and effective sampler settings remain
+  unobserved; this is neither an exact-context proof nor an acceptance threshold.
 - **`ANSWER_FIDELITY_2026_09_06.md`** - native-context candidate-answer
   reference-scoring study and retained failed raw-completion attempt. The new
   frozen method preserves candidate reasoning, excludes formatting-only score

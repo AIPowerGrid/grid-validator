@@ -113,3 +113,11 @@ The subsequent frozen 48-request same-GGUF comparison is complete; see
 [Honest Baseline](HONEST_BASELINE_2026_09_06.md) for measured correct, wrong and
 truncated outcomes, shared-load limitations and the 120B timeout follow-up.
 It does not establish logprob context alignment or cross-quantization tolerance.
+
+That report's subsequent decoded-context follow-up records six identical
+rendered LM Studio input/output controls and twelve same-GGUF standalone-engine
+score calls. It measures chosen-token probability gaps up to 1.766401 percentage
+points at six word positions. Native LM Studio token IDs and effective sampler
+settings remain unavailable, so exact conditional-context equivalence and safe
+thresholds are still unproven. This does not close the public assignment/outbox
+integration gate or make partial Responses evidence a chat first-token witness.

@@ -290,3 +290,92 @@ uses fresh paired calibration/evaluation inputs and scores actual complete
 answers while preserving their full reasoning context. It records weak
 substitution separation and explicit coverage limits; neither its tiny fitted
 threshold nor this first-token baseline qualifies a production trust score.
+
+## Decoded-Context Cross-Engine Follow-Up
+
+A separate completed run on September 7 UTC narrows the prompt-construction
+uncertainty for one new synthetic answer. It does not retroactively establish
+context equality in the earlier LM Studio/Ollama experiment.
+
+Three alternating pairs of LM Studio Responses and Chat streaming requests
+used identical messages, temperature 0, top-p 1, seed 17, low reasoning and a
+256-token output budget. An owned model-log reader retained only records
+containing this experiment's synthetic marker, not other users' traffic.
+All six logged rendered inputs were identical, including injected system text
+and Harmony channel markers. All six logged outputs, reasoning and final
+answers were identical. Every response ended normally.
+
+| Endpoint | Completed requests | Native final-text probability positions per request | Missing final-text deltas per request |
+| --- | ---: | ---: | ---: |
+| Responses | 3 | 21 | 1 |
+| Chat completions | 3 | 0 | Not applicable: no probability coverage |
+
+The Responses coverage is partial, not a complete sequence likelihood. One
+selected token per Responses run ranked below an alternative in the reported
+distribution despite requested temperature zero. It repeated identically;
+this is not evidence of random sampling, a dishonest worker or a specific
+backend defect. Native versus effective sampling distributions, penalties and
+other hidden settings remain possible confounders. The API request is not
+proof of the effective sampler configuration.
+
+### Same File, Second Engine
+
+Standalone llama.cpp b10826 loaded the exact original 20B GGUF described above.
+The capture and independent audit rehashed the file. An OS mapped-file check
+also identified that artifact in LM Studio's running backend; the catalogue's
+model alias and displayed size are not substitutes for loaded-file provenance.
+
+Six available single-token alphabetic final-text positions were selected in
+order before querying the second engine. Each native request included the
+complete decoded LM Studio input, captured reasoning, channel markers and
+preceding final text. Native tokenization/detokenization round-tripped that
+prefix exactly. Each position was scored twice with native pre-sampling top 20,
+temperature zero, seed 17, one output token and no repetition/frequency/presence
+penalty. All twelve calls completed; every selected token was in the top 20.
+Both native repeats agreed exactly. Each of the six selected LM Studio token
+probabilities also agreed across its three Responses repeats.
+
+| Selected position | LM Studio probability | Native probability of the same token bytes | Absolute gap (percentage points) |
+| --- | ---: | ---: | ---: |
+| 1 | 0.983095 | 0.983060 | 0.003433 |
+| 2 | 0.959495 | 0.959875 | 0.038046 |
+| 3 | 0.265655 | 0.247991 | 1.766401 |
+| 4 | 0.822086 | 0.830539 | 0.845373 |
+| 5 | 0.127839 | 0.131854 | 0.401497 |
+| 6 | 0.993478 | 0.994579 | 0.110126 |
+
+These are six correlated positions in one answer, not independent challenges,
+full-distribution distances or a calibrated normal-variation bound. The maximum
+observed gap is 1.766401 percentage points, not a proposed acceptance threshold.
+No 120B substitution, supported-quant comparison or loaded-condition probability
+experiment was conducted in this follow-up.
+
+**Decoded context is not native token-ID equality.** LM Studio's input retokenizes
+to 95 tokens, matching its reported prompt count. Its logged output retokenizes
+to 68 while the reported prediction count is 69; an omitted terminal token is
+compatible with this difference, but does not prove its cause or segmentation.
+LM Studio does not expose the native input/output token-ID trace or effective
+sampler settings in these captured logs. Numerical engine causality and exact
+conditional-context equivalence therefore remain unproven. Do not use these
+measurements to excuse arbitrary mismatches or punish workers.
+
+The first native scoring runner failed on its own incorrect response-field
+assumption after one inference response. That attempt is retained as failed,
+not a backend error or part of the twelve-call result. A separately frozen
+corrected runner saves raw responses before parsing and uses the actual
+`top_logprobs`/`logprob` schema. The independent audit reproduced its saved
+summary, verified source/model/binary/library hashes, token-byte and context
+bindings, complete repeats, native settings and owned-process cleanup.
+
+Private evidence SHA-256:
+
+| Artifact | SHA-256 |
+| --- | --- |
+| Endpoint-control manifest | `688357ae42e7bc1d708181503482877f79a32450440cace452c92dbb591abd69` |
+| Corrected cross-engine scoring manifest | `7f4faae6beb0830a23ad9b8e0eae2bfb7d64e1cf595c2ebffeac2623de3209e8` |
+| Independently audited summary | `fbc52c9623d33a2a3414fae468842502abf2d93e27e9258a7fb0ad5ea5e627a7` |
+| Independent auditor source | `99d565d668e06841ef7b82bc7d018995fa30e4f57c8f4b2e3c0dc919877472ae` |
+
+The owned log readers and standalone model processes stopped. The existing
+public worker was not reconfigured or restarted. No assignments, capabilities,
+production policies, compensation or automatic penalties changed.
