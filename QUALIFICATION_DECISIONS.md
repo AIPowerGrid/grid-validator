@@ -1,7 +1,8 @@
 # Validator Qualification Decisions
 
-Local qualification checkpoint, 2026-09-07. This is an evidence index and a
-preregistered gate for the next experiment, not a deployment or activation.
+Qualification and staged rollout checkpoint, 2026-09-07. This is an evidence
+index and a preregistered gate for the next experiment. The deployment record
+below is non-economic and does not activate new validation authority.
 The full compatibility, baseline, substitution, capability, adversarial,
 correctness, media and shadow-rollout objective remains open.
 
@@ -41,14 +42,15 @@ completion of the corresponding research experiment.
 | 3. Substitution | [Answer scoring](ANSWER_FIDELITY_2026_09_06.md), [fixed contexts](FIXED_CONTEXT_FIDELITY_2026_09_07.md): real 20B/120B comparisons, reference-side scoring, fresh evaluation and honest controls; tested methods fail to reliably distinguish models | These reports do not qualify a detector for authority. Any new candidate method needs separate matched controls and fresh evaluation; retain the current negative results |
 | 4. Useful work | [Tool pilot](TOOL_CAPABILITY_PILOT_2026_09_06.md), [full-answer/load study](QUANTIZATION_BASELINE_2026_09_06.md) | Broader independent workload coverage and public per-capability reporting; existing template tests do not certify intelligence |
 | 5. Attacks | [Adversarial design](ADVERSARIAL_VALIDATION.md), [initial live fidelity study](TEXT_FIDELITY_EXPERIMENT_2026_09_05.md), fixed-context and answer-scoring reports above | Probe-aware switching/proxying and fabricated probabilities remain trust limitations, not solved problems. Cross-check copied/common-control evidence tests before declaring the complete attack matrix covered |
-| 6. Correctness | [Rollout evidence and delivery tests](ROLLOUT_2026_09.md): 55 real PostgreSQL 16 binding/race/retry/terminal tests, including killed transaction backends and strict matching receipts | Linux release CI, migrated-database and authenticated production integration; worker-ledger atomicity is not a validator compensation send |
+| 6. Correctness | [Rollout evidence and delivery tests](ROLLOUT_2026_09.md): 55 real PostgreSQL 16 binding/race/retry/terminal tests, plus seven PG scorecard tests; Linux release CI and production backup/restore proof passed | Complete authenticated production validator/Console integration remains separate; worker-ledger atomicity is not a validator compensation send |
 | 7. Media | [Image pilot](IMAGE_PILOT_2026_09_07.md), including six actual same-artifact Apple/NVIDIA renders; [video pilot](VIDEO_PILOT_2026_09_07.md) | Broader scenes, workflow/quant variants and qualified references; one image scene/two seeds do not establish fleet tolerance; measured misses and source-binding limits remain |
-| 8. Shadow rollout | [Core PR #117](https://github.com/AIPowerGrid/grid-core/pull/117) and [Console PR #25](https://github.com/AIPowerGrid/grid-frontend/pull/25) have passing CI; current fleet snapshot below | Reviewed merge/deployment and an observed shadow run; zero reviewed independent operators in the snapshot. Passing CI and draft PRs are not deployed scorecards |
+| 8. Shadow rollout | [Core PR #117](https://github.com/AIPowerGrid/grid-core/pull/117) and [Console PR #25](https://github.com/AIPowerGrid/grid-frontend/pull/25) merged and deployed; dated verification below | Authenticated end-user scorecard render and an observed shadow run; zero reviewed independent operators in the pre-rollout snapshot. Deployment is not independent shadow authority |
 
 ## Scorecard Release Candidate
 
-Core `b843b8dd3e8ce69cfd7f3cbc286f2561419d27cc` is pushed to draft PR #117,
-not merged or deployed. Seven added real-PostgreSQL scorecard cases cover signed
+Core candidate `b843b8dd3e8ce69cfd7f3cbc286f2561419d27cc` was tested in
+PR #117 before the merged deployment recorded below. Seven added
+real-PostgreSQL scorecard cases cover signed
 shared-group votes, missing/future/incomplete probe times, receipt-window
 filtering, real foreign-key pruning and a read-only evidence snapshot. Three
 registered validators remain one probe group, never three independent samples.
@@ -75,7 +77,7 @@ skip reasons; do not describe this as zero skipped coverage. CodeQL and
 secret/infra-string checks also pass. These checks qualify the candidate, not
 live model identity, independent operators or deployed behavior.
 
-Console draft #25 pins `005a1a849628fd370b5ae208ddc1a1cf38be1575` and adds the
+Console PR #25 tested `005a1a849628fd370b5ae208ddc1a1cf38be1575` and adds the
 six evidence-metadata tests to required CI. [Run 34087765631](https://github.com/AIPowerGrid/grid-frontend/actions/runs/34087765631)
 passed the pinned pnpm frozen install, formatting, strict lint, six metadata
 tests, production build and account/key-management/OAuth/pairing smoke tests.
@@ -84,8 +86,47 @@ Faker has no app/script imports in this checkout; selector-parser is transitive
 CSS build tooling. No vulnerable API use was found in this scorecard diff;
 this is scoped triage, not remediation or a general dependency security claim.
 
-Both PRs remain drafts. No automatic merge, deployment, new public Responses
-assignment policy, compensation or penalty activation is enabled.
+### Controlled Deployment
+
+All three PRs merged through their required checks without an admin bypass:
+
+- Core #117: `8e1b65f2ebbe6bf1b796933fbdd5800b31f1ec95`, deployed to the
+  production API. Its tree equals the tested candidate. Main-branch
+  [run 34088430917](https://github.com/AIPowerGrid/grid-core/actions/runs/34088430917)
+  also passed. A fresh production backup restored into a disposable database,
+  the candidate passed schema parity at Alembic `0034`, and the scratch database
+  was removed. No production migration was needed.
+- Console #25: `bfdee8eb55eb0315232c0651d843a0153848d811`, deployed on Vercel
+  and assigned to `console.aipowergrid.io`. Its tree equals the tested candidate.
+  The public sign-in page returns 200; anonymous dashboard access redirects to
+  sign-in, and the scorecard proxy retains its 404 no-account response.
+- Validator [#92](https://github.com/AIPowerGrid/grid-validator/pull/92):
+  `95b593f19d1d7e98ef68150694fe495fb2f1df43`, merged source only.
+  [CI 34088187721](https://github.com/AIPowerGrid/grid-validator/actions/runs/34088187721)
+  passed the supported Python matrix and dependency audit: 344 tests passed and
+  six opt-in pairing integrations skipped per matrix entry. Those six passed
+  separately against the exact local Core/Console candidates.
+  [Native run 34088187606](https://github.com/AIPowerGrid/grid-validator/actions/runs/34088187606)
+  passed four-platform builds and clean installs: Linux x64/ARM64, macOS ARM64
+  and Windows x64. Publication was intentionally skipped on this PR build.
+  No new release tag, downloadable binary or cohort version was activated.
+
+After Core cutover, public health reported the exact merged SHA, healthy Redis
+and all nine workers reconnected. An authenticated account read returned 200;
+anonymous assignments returned 401 and the retired heartbeat route returned
+410. A read-only production service query at
+`2026-09-07T06:02:43.202544+00:00` returned 69 scorecard groups with sampling,
+probe freshness and uncertainty. All independent sample counts remained null.
+This query was not an authenticated scorecard HTTP or browser test. The
+Console view still depends on an account permitted to read validator data;
+ordinary account access and the complete live browser flow are not established
+by the deployment smoke checks.
+
+Configuration remained byte-identical, payout and backup timers retained their
+states, and the prior releases remain available for rollback. No paid inference
+was submitted. Fidelity, media, rewards and independent shadow authority remain
+off. The next validator binary still needs protected publication, staged live
+delivery/recovery checks and a compatible operator upgrade plan.
 
 ### Pre-Rollout Fleet Snapshot
 
