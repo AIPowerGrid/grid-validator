@@ -36,7 +36,8 @@ prevent exact answer replay; they do not prevent template recognition.
 - Preview quorum requires three matching votes from five registrations.
 - Evidence has no routing, reward, strike, payout, bond, or slashing authority.
 
-These guarantees prove attributable protocol execution. They do not prove an
+These guarantees make submitted evidence attributable. They do not prove that
+each signer independently evaluated it, or establish an
 exact model, parameter count, quantization, general intelligence, or independent
 operator control.
 
@@ -84,7 +85,7 @@ cases were rechecked. Mock completed probes do not prove live inference.
 | Probe-only model switching/proxy | Isolated live router sends 100 recognizable probes to the configured reference backend, ten ordinary controls to another backend | All probes pass; forwarding valid output remains possible. Configured backend names were not weight proofs in that experiment |
 | Specialized solver | Public-template CI and separate tool pilot with 400 fresh generated-value cases | No-model solvers pass; these are capability results, never proof of a particular model |
 | Known common control | Real-PG `test_concurrent_common_control_gets_one_shared_probe_seat` and reference-pool control test | Two recorded common-control identities receive one group seat; known common control cannot fill the reference quorum |
-| Conflicting/colluding verdicts | Real-PG conflicting-vote and disagreement tests | One validator cannot multiply votes; distinct signed disagreement remains disputed. Signatures do not prove that each signer independently computed a verdict |
+| Conflicting/colluding verdicts | Real-PG conflicting-vote/disagreement tests and the separately signed collusion experiment below | One identity cannot multiply votes and dissent stays disputed, but three correctly bound false judgments form an accepted preview quorum |
 
 The common-control tests supply reviewed control-group metadata. They do not
 discover a concealed shared operator. A malicious operator may create unlinked
@@ -92,6 +93,64 @@ identities or coordinate individually signed verdicts; identifying that control
 relationship remains an external-review trust assumption. Do not describe
 nonce/signature binding, apparent wallet diversity or matching votes as Sybil
 resistance or proof of independent computation. Economic authority remains off.
+
+### Separately Signed Collusion Experiment
+
+Six isolated PostgreSQL 16.15 cases ran against the exact deployed Core source
+`c42dd8d12556267f2c0edda02c1336cfceef6fbc`, with no production connection.
+Four new cases distinguish copied credentials/envelopes from copied judgments;
+two existing controls exercise known shared-operator seat and reference exclusion.
+
+The fixture issues three real assignments in one group, then synthesizes their
+completed-probe records with `healthy` verdicts. Each node has its own account,
+signing key, assignment and nonce. No operator-control groups are recorded and
+all three identities remain unreviewed. This models concealed coordination; it
+does not enroll Sybils or perform inference on the public network.
+
+| Submitted evidence | Observed Core result |
+| --- | --- |
+| Another node submits the first node's complete signed envelope | Rejected; no vote inserted; its own correctly bound control then succeeds |
+| Three individually signed healthy judgments | Three stored votes, accepted/healthy |
+| Three copies of a false failed judgment, each signed over its own correct assignment bindings | Three stored votes, accepted/failed |
+| Two failed judgments and one healthy dissent | Three stored votes, disputed/disputed |
+| Two identities explicitly recorded under one control group | Only one receives a shared-group assignment seat |
+| Two reference identities explicitly recorded under one control group | Cannot fill a two-reference requirement |
+
+The three false judgments carry distinct valid signatures and nonces and retain
+the assigned evidence commitments. Signature recovery is checked independently
+in the test. Copying a judgment is therefore different from replaying another
+identity's envelope. The fixture's known `healthy` result makes this a controlled
+false-judgment test, not evidence that a real worker was incorrectly classified.
+
+All six cases passed their stated assertions, including the expected successful
+collusion. That is an attack **miss**, not six successful defenses. The four new
+cases leave worker/credit ledgers, reservations, payouts, audit jobs and audit
+budget counters empty; public-health logic reports economic effect `none`.
+Known-control exclusion does not discover undisclosed coordination. Matching
+three votes still cannot establish truth or independent computation.
+
+Do not fix this by requiring validators to repeat Core's private verdict: that
+would remove the independent check. Keep preview consensus non-economic, retain
+dissent, review operator control before granting weight, and evaluate collusion
+against any future blind-work/reference or dispute policy separately.
+
+The runner pins Core and private test sources before execution, strips production
+environment variables, starts its own loopback database and stops it in cleanup.
+Core and captured sources remain unchanged. Results are six passed, zero skipped
+or failed, with five retained harness/dependency warnings: four pytest warnings
+about custom properties under xunit2 and one websockets deprecation. The custom
+observations are present in the inspected XML. This is synthetic storage-service
+qualification, not HTTP authentication, live worker output, independent operator
+qualification or an economic-path activation.
+
+Private artifact SHA-256:
+
+- Frozen extra sources/test selection: `b1b4a61aa735c57f55f5d0747a09ad80b86b93c261197500de0c0e42e684daee`.
+- Core/runtime manifest: `88c33d10a0becc2c714aa6ef1d53de7d38b6016aa0cb99c04d509216f1536654`.
+- JUnit observations: `6fbb6fafbe2ae8ef0f52adf0d0c25938a4383bea8592766f215cd70653dd72a0`.
+- Summary: `00a936b6bf8a289cf8588d20d14e2842f50a53f2e55c00c0d366a3fda02973fa`.
+- Cleanup: `2ed7d5ebca33929df5b21f41d1b710aef81e6f4992a848b9e471f3c2179281eb`.
+- Private-source postflight: `5b2afaa51028d2bb5d6e753268326cf8f9705456ea0cf463daa95cc1b10b6beb`.
 
 ### Dimension Boundaries
 
