@@ -41,10 +41,14 @@ as a prerequisite for independently scoring a completed, verified empty string.
 Missing/null output, unavailable transport and bad commitments remain skips.
 Existing dead letters must not be revived automatically. The correction ships
 in immutable preview.20, not .19. All three owned nodes run the verified .20
-binary with preserved identities/journals. Fresh ordinary, v2 and fully empty
+binary with preserved identities/journals. Fresh ordinary, v2 and empty-visible
 reports now have independently verified live delivery. V2 reasoning-only
 failures remain failures; they are not substitution findings. Public upgrade
 promotion and operator/payment review remain separate. See `PREVIEW20_ROLLOUT.md`.
+The stop follow-up reproduces premature stopping inside reasoning on the owned
+Qwen backend. Core omits reasoning from stored non-token-limit evidence, so a
+null field does not prove zero generated reasoning. Preserve this distinction
+and the unchanged historical scores; see `STOP_REASONING_DIAGNOSIS.md`.
 
 September 13 checkpoint: Core `d606e4d8` / Alembic `0042` supports versioned
 token-limit v2. Both remaining owned .17 services have upgraded to .18 with
@@ -153,6 +157,13 @@ model attestation or use it as sole authority.
 - **`EMPTY_COMPLETION_DELIVERY.md`** - production dead-letter audit and
   committed-empty delivery correction, source regression/recovery proof and
   explicit not-in-preview.19 release boundary. Historical jobs remain closed.
+- **`STOP_REASONING_DIAGNOSIS.md`** - six direct owned-backend calls across two
+  retained stop cases, with no-stop and non-streaming controls. Empty visible
+  evidence is not zero backend reasoning; qualification of a revised versioned
+  stop policy remains separate from the completed .20 delivery fix.
+  Four follow-up calls show correct stopping with reasoning disabled on this
+  backend, including no-stop controls that continue through the marker. This
+  is not a fleet-wide provider-option compatibility claim or deployed fix.
 - **`PREVIEW20_ROLLOUT.md`** - combined corrective release, exact artifact
   provenance, Core admission, three preserved-identity owned upgrades and
   controlled lane-selection canary. Ordinary reports, captured replay and
