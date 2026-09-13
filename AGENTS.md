@@ -124,6 +124,10 @@ model attestation or use it as sole authority.
   live rollout gates, with native qualification evidence recorded separately.
 - **`PREVIEW18_ROLLOUT.md`** - immutable .18 release, exact Core admission and
   owned-service upgrade evidence; website promotion and live consent limits.
+  Its September 13 follow-up records the two remaining owned Linux .17-to-.18
+  upgrades, preserved identities/journals, the staging-permissions preflight
+  correction and the separate outstanding fresh-report verification. Existing
+  dead letters are retained, not upgrade regressions or replay-test evidence.
 - **`COMPENSATION.md`** - released operator-app pilot/allocation status and
   explicit node payout consent. Core PR127 and Console PR27 provide the matching
   backend/page; Core PR128 adds pinned real-PG client integration. Core is
