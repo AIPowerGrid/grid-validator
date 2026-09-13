@@ -93,9 +93,17 @@ At each cutover the journal contained 160 already-dead assignments and no
 pending assignments or signed reports. Dead letters were preserved, not
 silently retried or deleted. This is not a pending-report replay test; retain
 the separately recorded September 7 lost-response experiment as its own proof.
-An initial post-upgrade database check found no new reports from these nodes
-yet. Fresh signed-report/assignment-binding checks remain outstanding for this
-particular rollout; a heartbeat is not sufficient evidence of delivery.
+An initial post-upgrade database check found no new reports. The subsequent
+bounded, read-only production audit verified fresh reports `127667` and
+`127668`, created at 02:57:04.905716 and 02:57:05.889384 UTC respectively.
+Both concerned Qwen3-27B and reported healthy. Independent EIP-191 recovery,
+canonical envelope hashes, assignment/node/account/nonce/worker/model/capability
+and evidence bindings matched, with verified authoritative storage. Both probe
+jobs have zero worker-ledger, reservation and matching credit-ledger rows.
+The audit checks only these owned identities after the upgrade boundary; it
+does not prove external independence, pending-report replay or human consent.
+Private aggregate audit SHA-256:
+`4a8e531e23f5a1d7b79fd7dea030d95ed0c975d2b3eecae15f8d2a69a8f9cc5e`.
 
 The subsequent production snapshot showed nine active registrations with a
 heartbeat in the preceding five minutes: four preview.18, four preview.13 and
@@ -108,7 +116,6 @@ in validator PR112 is newer than preview.18 and is not in these binaries.
 ## Still Outstanding
 
 - Help external operators upgrade and confirm their fresh evidence.
-- Verify fresh accepted reports from both September 13 owned-service upgrades.
 - Retain the existing .15-to-.17 lost-response replay proof separately rather
   than relabeling it as a .18 upgrade-replay test.
 - Exercise the production human wallet/node consent journey under a separately

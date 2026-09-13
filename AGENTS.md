@@ -36,6 +36,12 @@ concrete detail in children. Delete stale notes instead of explaining history.
 
 ## Purpose
 
+September 13 checkpoint: Core `d606e4d8` / Alembic `0042` supports versioned
+token-limit v2. Both remaining owned .17 services have upgraded to .18 with
+preserved identity/journal and fresh signature/assignment-bound reports
+`127667` and `127668`, without economic rows. These are first-party proofs,
+not operator independence or compensation consent. See `PREVIEW18_ROLLOUT.md`.
+
 Preview.18 is published from `fef5e924` with explicit operator compensation
 consent. Its complete payload and pinned GitHub provenance are verified;
 Core `84fe0fd6` admits .18 alongside .13/.15/.16/.17. An owned Linux service
@@ -126,7 +132,7 @@ model attestation or use it as sole authority.
   owned-service upgrade evidence; website promotion and live consent limits.
   Its September 13 follow-up records the two remaining owned Linux .17-to-.18
   upgrades, preserved identities/journals, the staging-permissions preflight
-  correction and the separate outstanding fresh-report verification. Existing
+  correction and completed fresh-report signature/binding verification. Existing
   dead letters are retained, not upgrade regressions or replay-test evidence.
 - **`COMPENSATION.md`** - released operator-app pilot/allocation status and
   explicit node payout consent. Core PR127 and Console PR27 provide the matching
@@ -256,6 +262,12 @@ model attestation or use it as sole authority.
   Copied reference reports yield zero distance in every cross-model comparison;
   this is offline forgery evidence, not a live signed-endpoint exploit.
 
+- **`BATCH_FIDELITY_2026_09_13.md`** - 192 fresh native calls with a threshold
+  frozen from earlier calibration-only quant controls. Each 20B/120B pair
+  flags three of four scheduled batches; the fourth is unavailable. Honest
+  20B Q8/Q4 has no flags in its three eligible batches. This single-engine,
+  shared-context experiment is not population accuracy or authority; copied
+  probability reports still bypass the metric. Keep prior negative results.
 - **`IMAGE_PILOT_2026_09_07.md`** - twelve uncached first-party image captures
   across Z-Image/FLUX and two seeds. Existing scoring catches the tested
   cross-model substitutions but accepts grayscale removal and one wrong-seed
