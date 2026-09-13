@@ -39,8 +39,10 @@ concrete detail in children. Delete stale notes instead of explaining history.
 The empty-completion delivery correction removes the optional worker-error flag
 as a prerequisite for independently scoring a completed, verified empty string.
 Missing/null output, unavailable transport and bad commitments remain skips.
-Existing dead letters must not be revived automatically. Source tests are not
-proof of released or production delivery; preview.19 does not contain this fix.
+Existing dead letters must not be revived automatically. The correction ships
+in immutable preview.20, not .19. All three owned nodes run the verified .20
+binary with preserved identities/journals. Fresh ordinary reports passed;
+lane-specific v2/empty live proof remains separate. See `PREVIEW20_ROLLOUT.md`.
 
 September 13 checkpoint: Core `d606e4d8` / Alembic `0042` supports versioned
 token-limit v2. Both remaining owned .17 services have upgraded to .18 with
@@ -149,6 +151,10 @@ model attestation or use it as sole authority.
 - **`EMPTY_COMPLETION_DELIVERY.md`** - production dead-letter audit and
   committed-empty delivery correction, source regression/recovery proof and
   explicit not-in-preview.19 release boundary. Historical jobs remain closed.
+- **`PREVIEW20_ROLLOUT.md`** - combined corrective release, exact artifact
+  provenance, Core admission, three preserved-identity owned upgrades and
+  controlled lane-selection canary. Ordinary reports, captured replay and
+  lane-specific live evidence remain distinct; no payment activation.
 - **`PREVIEW19_ROLLOUT.md`** - published token-limit v2 release, exact-source
   checksums/provenance and native qualification; separate remaining Core
   admission, owned v2 canary and public-promotion gates. No private research
