@@ -41,6 +41,10 @@ token-limit v2. Both remaining owned .17 services have upgraded to .18 with
 preserved identity/journal and fresh signature/assignment-bound reports
 `127667` and `127668`, without economic rows. These are first-party proofs,
 not operator independence or compensation consent. See `PREVIEW18_ROLLOUT.md`.
+Preview.19 is published from `7bbda889` with all-platform qualification and
+downloaded exact-source artifact provenance verified. Exact Core admission,
+an owned live v2 canary and public promotion remain outstanding; see
+`PREVIEW19_ROLLOUT.md`. No economic flags changed.
 
 Preview.18 is published from `fef5e924` with explicit operator compensation
 consent. Its complete payload and pinned GitHub provenance are verified;
@@ -134,6 +138,10 @@ model attestation or use it as sole authority.
   upgrades, preserved identities/journals, the staging-permissions preflight
   correction and completed fresh-report signature/binding verification. Existing
   dead letters are retained, not upgrade regressions or replay-test evidence.
+- **`PREVIEW19_ROLLOUT.md`** - published token-limit v2 release, exact-source
+  checksums/provenance and native qualification; separate remaining Core
+  admission, owned v2 canary and public-promotion gates. No private research
+  scorer, compensation campaign or stable-platform signing claim.
 - **`COMPENSATION.md`** - released operator-app pilot/allocation status and
   explicit node payout consent. Core PR127 and Console PR27 provide the matching
   backend/page; Core PR128 adds pinned real-PG client integration. Core is
