@@ -66,9 +66,49 @@ verified-independent operators. FoggyFinder and h0me1ca75 pass time/coverage
 checks but remain unreviewed; Donli and peteq are offline. Do not replace their
 identities or reinterpret technical readiness as operator-control proof.
 
+## September 13 Owned-Service Rollout
+
+The two remaining owned Linux services moved from the immutable preview.17
+payload to the existing preview.18 release at 02:34:38 and 02:35:42 UTC.
+Manifest and Linux archive provenance were reverified against the exact tag,
+source commit and GitHub-hosted release workflow. The archive and extracted
+binary hashes match the published values above. No new release was published.
+
+Both candidates passed their version check and offline media-decoder self-test
+under the existing unprivileged service user. Each service was stopped
+separately; its configuration hash and entire stopped journal were unchanged
+when the versioned binary symlink switched. Read-only authenticated registration
+then confirmed the same validator ID, active status and preview.18. Running
+process executable paths independently matched the intended release. Existing
+service hardening, credentials and prior binaries were retained.
+
+The first preflight failed because the rollout harness's restrictive umask
+made its newly staged release directories inaccessible to the service user.
+This happened before stopping or switching the old service. The corrected
+harness explicitly sets traversal permissions on the non-secret binary
+directories and verifies any existing candidate against the pinned archive
+before reuse. The failure remains part of this rollout record.
+
+At each cutover the journal contained 160 already-dead assignments and no
+pending assignments or signed reports. Dead letters were preserved, not
+silently retried or deleted. This is not a pending-report replay test; retain
+the separately recorded September 7 lost-response experiment as its own proof.
+An initial post-upgrade database check found no new reports from these nodes
+yet. Fresh signed-report/assignment-binding checks remain outstanding for this
+particular rollout; a heartbeat is not sufficient evidence of delivery.
+
+The subsequent production snapshot showed nine active registrations with a
+heartbeat in the preceding five minutes: four preview.18, four preview.13 and
+one preview.15. These are version/heartbeat counts, not independently controlled
+operators or qualified compensation participants. No Core deployment, payment
+activation, media activation, qualification reset or public threshold change
+was made by this service rollout. The versioned token-limit correction merged
+in validator PR112 is newer than preview.18 and is not in these binaries.
+
 ## Still Outstanding
 
 - Help external operators upgrade and confirm their fresh evidence.
+- Verify fresh accepted reports from both September 13 owned-service upgrades.
 - Retain the existing .15-to-.17 lost-response replay proof separately rather
   than relabeling it as a .18 upgrade-replay test.
 - Exercise the production human wallet/node consent journey under a separately
