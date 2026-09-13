@@ -32,6 +32,7 @@ class AttestationTests(unittest.TestCase):
                 "text.tool_chain.v1",
                 "text.stop_sequence.v1",
                 "text.token_limit.v1",
+                "text.token_limit.v2",
             ],
         )
         self.assertEqual(payload["software_version"], __release_tag__)
@@ -44,6 +45,7 @@ class AttestationTests(unittest.TestCase):
             payload = attest.build_registration(123456)
 
         self.assertNotIn("text.token_limit.v1", payload["capabilities"])
+        self.assertNotIn("text.token_limit.v2", payload["capabilities"])
 
     def test_lifecycle_payloads_bind_stable_id_and_wallets(self):
         replacement = "0x" + "34" * 20

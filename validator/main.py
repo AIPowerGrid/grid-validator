@@ -48,7 +48,7 @@ def _response_commitment_text(assignment: dict, result: dict) -> str:
         return _canonical({"text": text, "tool_calls": result.get("tool_calls")})
     if kind == "tool.chain":
         return _canonical({"steps": result.get("tool_chain")})
-    if kind == "token.limit":
+    if kind in {"token.limit", "token.limit.v2"}:
         return _canonical({
             "text": text,
             "reasoning": str(result.get("reasoning_text") or ""),
@@ -334,6 +334,7 @@ async def _probe_assignment(
         *attest.TEXT_VALIDATOR_CAPABILITIES,
         "text.basic.v1",
         "text.token_limit.v1",
+        "text.token_limit.v2",
     ):
         logger.info("unsupported assignment capability; skipping")
         return 0

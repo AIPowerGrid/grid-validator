@@ -302,6 +302,31 @@ class ProberTests(unittest.TestCase):
                 "failed",
             )
 
+    def test_token_limit_v2_terminal_fragment_and_legacy_judgment(self):
+        token = "repeat_marker"
+        canary = {"kind": "token.limit.v2", "max_tokens": 192,
+                  "expected_hash": hashlib.sha256(token.encode()).hexdigest()}
+        body = self._repeat_to_tokens(token, 100)
+        for fragment in ("r", "repeat", "repeat_marke"):
+            for finish in ("length", "max_tokens"):
+                with self.subTest(fragment=fragment, finish=finish):
+                    output = body + " " + fragment
+                    self.assertEqual(prober.score_committed(canary, output, 0.1, finish_reason=finish), "healthy")
+                    self.assertEqual(prober.score_committed({**canary, "kind": "token.limit"}, output, 0.1, finish_reason=finish), "failed")
+        for output, finish in (
+            (body + " WRONG", "length"),
+            (body.replace(token, "WRONG", 1) + " repeat_", "length"),
+            (token + " repeat_", "length"),
+            (body + " repeat_", "stop"),
+            (self._repeat_to_tokens(token, 260) + " repeat_", "length"),
+        ):
+            with self.subTest(finish=finish, length=len(output)):
+                self.assertEqual(prober.score_committed(canary, output, 0.1, finish_reason=finish), "failed")
+        wrong = {**canary, "expected_hash": hashlib.sha256(b"other_marker").hexdigest()}
+        self.assertEqual(prober.score_committed(wrong, body + " repeat_", 0.1, finish_reason="length"), "failed")
+        self.assertEqual(prober.score_committed(canary, body + " repeat_", 0.1,
+            reasoning_text=self._repeat_to_tokens("reason", 192), finish_reason="length"), "failed")
+
     def test_score_committed_token_limit_counts_reasoning_output(self):
         token = "visible_marker"
         max_tokens = 160

@@ -59,7 +59,13 @@ change is deployed; Core still issues no media work by default.
   its token-limit scorer independently counts visible plus reasoning output
   with `o200k_base`, requires a length-style finish, and applies the same
   cross-tokenizer tolerance as Core. Runtime registration withholds that
-  capability when the local encoding cannot be loaded;
+  capability when the local encoding cannot be loaded. Both token-limit
+  versions are advertised only with the encoding ready. V1 retains its original
+  exact-repetition rule. Explicit `text.token_limit.v2` / `token.limit.v2`
+  permits one terminal proper prefix after at least two complete identical
+  committed markers at a length-style finish; all original output still counts
+  toward the budget and response hash. This is protocol conformance, not model
+  identity proof. Old release artifacts do not gain this scorer retroactively;
   legacy local canary helpers remain for isolated tests. `is_text_model`
   heuristic skips media models in v0; `_strip_think` ignores reasoning-model
   chain-of-thought. Do not reintroduce static QA answer lists.
