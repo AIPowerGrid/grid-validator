@@ -55,8 +55,8 @@ Fresh signed reports independently verified after upgrade:
 
 Independent recovery of signer addresses, canonical envelope hashes and
 assignment/nonce/evidence/target bindings passed. No correlated credit,
-reservation or worker-ledger rows existed. These ordinary reports prove live
-delivery, not the outstanding v2 or committed-empty lane-specific canaries.
+reservation or worker-ledger rows existed. Ordinary reports alone do not prove
+lane-specific delivery; the additional canaries below establish that boundary.
 
 ## Controlled Lane Selection
 
@@ -69,23 +69,62 @@ create nonces, bypass cooldowns, execute a probe or submit evidence itself.
 The helper restores the complete capability list and starts the exact released
 binary to journal, execute, score and sign the issued assignment. It preserves
 the stopped journal/configuration, polls at most once per minute for twelve
-attempts, and has a separate service-restart cleanup hook. Seven local helper
-tests cover selection, time bounds, existing work and recovery failures.
+attempts, and has a separate service-restart cleanup hook. The subsequent
+one-poll variant waits at most thirty seconds for an existing cooldown boundary.
+Ten local helper tests cover selection, time bounds, existing work and recovery
+failures; both selected capability variants passed the same suite.
 This is controlled release testing, not an unbiased workload sample.
 
 The first bounded attempt did not obtain v2: another node created a different
 capability group in the next eligible slot. It was deliberately interrupted
 after seven minutes, and both API restoration and service cleanup succeeded.
 The node was active again with all fourteen original capabilities. No selected
-assignment, probe or report is claimed from that attempt. Lane-specific live
-results remain pending. No result is declared healthy by the selector or
-inferred from the published unit tests.
+assignment, probe or report is claimed from that attempt. No result is declared
+healthy by the selector or inferred from published unit tests.
+
+## Fresh Lane Canaries
+
+At **04:48:02 UTC**, the bounded timed selector obtained a sealed
+`text.token_limit.v2` assignment through the normal API. It restored all fourteen
+capabilities and the official runtime after 2.393 seconds. Three owned nodes
+subsequently delivered reports `127710`, `127711` and `127712` against
+gpt-oss-120b. All remained failed with finish length and reasoning-only output.
+This is not the corrected terminal-prefix case or proof of model substitution.
+
+Independent signature and binding verification passed for all three. An
+additional retained-body audit of `127710` and `127711` recomputed original
+assignment disclosure seals and prompt/response/evidence hashes, then reproduced
+the failed verdicts using the exact-release-equivalent source. Their visible
+outputs were empty but reasoning lengths were 1082 and 978 characters, so they
+do not exercise the fully empty delivery correction.
+
+At **04:56:45 UTC**, a second one-poll selector advertised the already supported
+`text.stop_sequence.v1`, obtained a sealed assignment, then restored the full
+runtime/capabilities after 7.159 seconds. Reports `127713` and `127714` arrived
+from two owned nodes at 04:56:51 against qwen3-27b. Both contained an explicit
+empty output, no reasoning or tool calls, finish stop and **no worker-error
+flag**. The released nodes signed and delivered failed verdicts instead of
+skipping those completed replies. This was actual assigned worker output,
+not a fabricated empty response or historical replay.
+
+Both empty reports passed independent signature/binding checks, original-field
+disclosure-seal recomputation, prompt/response/evidence commitment checks and
+local verdict reproduction. No probe-linked credit, reservation or worker
+reward rows were created by either canary. Private retained-body captures have
+SHA-256 `b80b1699a6307a364330ff6fc550f1fe47ebb223a4ecfe049bdd424a4189a3b3`
+(v2) and `2f2ca60bcd7d22ffd2cea45eaf41e644e7f4d754e20a83862bf5c6627806ebed`
+(empty); raw private challenges and response bodies are not public artifacts.
+
+These checks qualify live delivery, not worker model identity, independent
+operator control or acceptable false-positive rates. In particular, empty
+stop-sequence replies warrant separate backend/transport diagnosis; a validly
+delivered failed report does not by itself locate the cause of that failure.
 
 ## Remaining Gates
 
-- Verify fresh v2 and committed-empty reports end to end; preserve legitimate
-  failures and unavailable results instead of making the canary pass.
-- Promote the combined public upgrade once qualified; preserve each operator's
+- Fresh v2 and committed-empty delivery checks passed as detailed above;
+  preserve failures and unavailable results rather than making the worker pass.
+- Promote the now-qualified combined public upgrade; preserve each operator's
   identity, configuration and journal. Never overwrite .19 assets.
 - Finalize practical operator-control reviews and obtain real payout consent.
   Uptime already observed does not need to restart merely because review is late.
