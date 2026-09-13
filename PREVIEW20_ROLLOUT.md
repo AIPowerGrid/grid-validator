@@ -102,7 +102,7 @@ At **04:56:45 UTC**, a second one-poll selector advertised the already supported
 `text.stop_sequence.v1`, obtained a sealed assignment, then restored the full
 runtime/capabilities after 7.159 seconds. Reports `127713` and `127714` arrived
 from two owned nodes at 04:56:51 against qwen3-27b. Both contained an explicit
-empty output, no reasoning or tool calls, finish stop and **no worker-error
+empty output, no retained reasoning or tool calls, finish stop and **no worker-error
 flag**. The released nodes signed and delivered failed verdicts instead of
 skipping those completed replies. This was actual assigned worker output,
 not a fabricated empty response or historical replay.
@@ -117,15 +117,18 @@ SHA-256 `b80b1699a6307a364330ff6fc550f1fe47ebb223a4ecfe049bdd424a4189a3b3`
 
 These checks qualify live delivery, not worker model identity, independent
 operator control or acceptable false-positive rates. In particular, empty
-stop-sequence replies warrant separate backend/transport diagnosis; a validly
-delivered failed report does not by itself locate the cause of that failure.
+stop-sequence replies were subsequently compared directly against the owned
+backend. The paired calls point to stop matching during reasoning, which Core
+does not retain for this lane. See `STOP_REASONING_DIAGNOSIS.md`; these captures
+do not establish zero backend reasoning or a dishonest worker.
 
 ## Remaining Gates
 
 - Fresh v2 and committed-empty delivery checks passed as detailed above;
   preserve failures and unavailable results rather than making the worker pass.
-- Promote the now-qualified combined public upgrade; preserve each operator's
-  identity, configuration and journal. Never overwrite .19 assets.
+- Public upgrade promotion completed through website PR79, merge `fac30c86`.
+  External operators still need to upgrade while preserving their identity,
+  configuration and journal. Never overwrite .19 assets.
 - Finalize practical operator-control reviews and obtain real payout consent.
   Uptime already observed does not need to restart merely because review is late.
 - Approve the exact capped compensation campaign separately. Its backend stays

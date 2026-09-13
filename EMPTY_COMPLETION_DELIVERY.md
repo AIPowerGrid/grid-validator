@@ -60,13 +60,15 @@ leaving 47 unavailable captures unsigned. Delivery was mocked; no expired
 assignment or historical production report was changed.
 
 Fresh reports `127713` and `127714` at 04:56:51 UTC on September 13 exercised
-this exact bug: completed empty stop-sequence results without reasoning, tool
+this exact bug: completed empty stop-sequence results without retained reasoning, tool
 calls or the optional worker-error flag. Two released .20 nodes delivered
 signed failed evidence. Independent signature, assignment, disclosure-seal,
 prompt/response/evidence hash and local-score checks passed, with no correlated
 economic rows. These are real new assignments, not replayed historical work.
 V2 delivery was separately checked at 04:48 UTC. Neither test establishes model
-identity or determines why the backend returned empty output.
+identity. The follow-up in `STOP_REASONING_DIAGNOSIS.md` reproduces stop matching
+during reasoning: Core does not retain reasoning for this lane. These reports
+prove empty-visible-result delivery, not a backend with zero generated output.
 
 Keep .19 artifacts immutable. The live delivery gates for public promotion are
 now satisfied. Do not automatically revive
