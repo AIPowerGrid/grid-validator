@@ -48,9 +48,18 @@ fresh report `127676` at 03:20:23 UTC, a failed SmolLM instruction result, with
 independently verified signature/bindings and zero economic rows. This is valid
 failure reporting, not proof of fraud or live token-limit v2 execution.
 
-Before public promotion, review and package the empty-completion fix with the
-token-limit correction so external operators need one recommended update.
+The correction and token-limit update are now packaged together in immutable
+preview.20, with verified four-platform builds, clean installs and source-bound
+artifact provenance. Core admitted .20 and all three owned nodes upgraded;
+see `PREVIEW20_ROLLOUT.md`. Ordinary fresh reports passed, but live lane-specific
+canaries remain separate from release qualification.
+
+Offline replay of the original sealed assignments and retained response bodies
+verified, locally scored and signed all 114 completed-empty captures, while
+leaving 47 unavailable captures unsigned. Delivery was mocked; no expired
+assignment or historical production report was changed.
+
 Keep .19 artifacts immutable. Verify a fresh committed-empty delivery and v2
-assignment after the fixed release is admitted. Do not automatically revive
+assignment before public promotion. Do not automatically revive
 expired historical work, backdate reports or manufacture compensation for it.
 Operator review, payout consent and the total budget remain separate gates.

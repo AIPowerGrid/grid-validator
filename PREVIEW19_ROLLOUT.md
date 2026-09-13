@@ -1,5 +1,9 @@
 # Preview.19 Rollout
 
+Historical checkpoint. The combined correction is published as .20 and all
+three owned nodes now run it; see `PREVIEW20_ROLLOUT.md` for the newer admission,
+upgrade and remaining live-canary gates. Preview.19 artifacts remain unchanged.
+
 ## Published Artifact
 
 `v0.1.0-preview.19` was published as a prerelease at
