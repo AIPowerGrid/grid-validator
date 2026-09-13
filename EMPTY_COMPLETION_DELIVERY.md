@@ -51,15 +51,24 @@ failure reporting, not proof of fraud or live token-limit v2 execution.
 The correction and token-limit update are now packaged together in immutable
 preview.20, with verified four-platform builds, clean installs and source-bound
 artifact provenance. Core admitted .20 and all three owned nodes upgraded;
-see `PREVIEW20_ROLLOUT.md`. Ordinary fresh reports passed, but live lane-specific
-canaries remain separate from release qualification.
+see `PREVIEW20_ROLLOUT.md`. Ordinary and lane-specific fresh reports now passed
+independent delivery audits; this is distinct from worker quality qualification.
 
 Offline replay of the original sealed assignments and retained response bodies
 verified, locally scored and signed all 114 completed-empty captures, while
 leaving 47 unavailable captures unsigned. Delivery was mocked; no expired
 assignment or historical production report was changed.
 
-Keep .19 artifacts immutable. Verify a fresh committed-empty delivery and v2
-assignment before public promotion. Do not automatically revive
+Fresh reports `127713` and `127714` at 04:56:51 UTC on September 13 exercised
+this exact bug: completed empty stop-sequence results without reasoning, tool
+calls or the optional worker-error flag. Two released .20 nodes delivered
+signed failed evidence. Independent signature, assignment, disclosure-seal,
+prompt/response/evidence hash and local-score checks passed, with no correlated
+economic rows. These are real new assignments, not replayed historical work.
+V2 delivery was separately checked at 04:48 UTC. Neither test establishes model
+identity or determines why the backend returned empty output.
+
+Keep .19 artifacts immutable. The live delivery gates for public promotion are
+now satisfied. Do not automatically revive
 expired historical work, backdate reports or manufacture compensation for it.
 Operator review, payout consent and the total budget remain separate gates.

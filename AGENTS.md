@@ -41,8 +41,10 @@ as a prerequisite for independently scoring a completed, verified empty string.
 Missing/null output, unavailable transport and bad commitments remain skips.
 Existing dead letters must not be revived automatically. The correction ships
 in immutable preview.20, not .19. All three owned nodes run the verified .20
-binary with preserved identities/journals. Fresh ordinary reports passed;
-lane-specific v2/empty live proof remains separate. See `PREVIEW20_ROLLOUT.md`.
+binary with preserved identities/journals. Fresh ordinary, v2 and fully empty
+reports now have independently verified live delivery. V2 reasoning-only
+failures remain failures; they are not substitution findings. Public upgrade
+promotion and operator/payment review remain separate. See `PREVIEW20_ROLLOUT.md`.
 
 September 13 checkpoint: Core `d606e4d8` / Alembic `0042` supports versioned
 token-limit v2. Both remaining owned .17 services have upgraded to .18 with
