@@ -161,6 +161,9 @@ model attestation or use it as sole authority.
   retained stop cases, with no-stop and non-streaming controls. Empty visible
   evidence is not zero backend reasoning; qualification of a revised versioned
   stop policy remains separate from the completed .20 delivery fix.
+  Four follow-up calls show correct stopping with reasoning disabled on this
+  backend, including no-stop controls that continue through the marker. This
+  is not a fleet-wide provider-option compatibility claim or deployed fix.
 - **`PREVIEW20_ROLLOUT.md`** - combined corrective release, exact artifact
   provenance, Core admission, three preserved-identity owned upgrades and
   controlled lane-selection canary. Ordinary reports, captured replay and
