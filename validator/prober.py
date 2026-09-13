@@ -201,7 +201,7 @@ def score_committed(
     if not re.fullmatch(r"[0-9a-f]{64}", expected_hash):
         raise ValueError("canary expected_hash must be a lowercase SHA-256 digest")
     kind = str(canary.get("kind") or "")
-    if kind == "token.limit":
+    if kind in {"token.limit", "token.limit.v2"}:
         candidate = _normalized_token_limit_answer(
             canary,
             text,
@@ -370,7 +370,16 @@ def _normalized_token_limit_answer(
 
     answer = _strip_think(text)
     pieces = answer.split()
-    if len(pieces) < 2 or any(piece != pieces[0] for piece in pieces):
+    # Preserve v1 judgments; v2 admits only a terminal prefix at a length cutoff.
+    complete = pieces
+    if (
+        canary.get("kind") == "token.limit.v2"
+        and len(pieces) >= 3
+        and pieces[-1] != pieces[0]
+        and pieces[0].startswith(pieces[-1])
+    ):
+        complete = pieces[:-1]
+    if len(complete) < 2 or any(piece != complete[0] for piece in complete):
         return None
 
     observed = _count_tokens(text) + _count_tokens(reasoning_text)

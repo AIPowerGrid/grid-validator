@@ -2,6 +2,12 @@
 
 ## Purpose
 
+Token-limit v2 regression coverage preserves v1 verdicts, requires the exact
+committed marker, a length cutoff and the existing output budget, and accepts
+only a final proper prefix after two or more complete repetitions. Assignment
+tests hash the unmodified response; registration withholds both versions when
+the tokenizer is unavailable. No fixture changes historical signed evidence.
+
 Unit and contract coverage for configuration, dynamic probes, assignment-bound
 attestations, fail-closed Grid capability handling, CLI/dashboard behavior, and systemd
 installer generation.

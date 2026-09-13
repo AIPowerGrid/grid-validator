@@ -53,6 +53,7 @@ def runtime_capabilities() -> list[str]:
 
     if token_limit_available():
         capabilities.append("text.token_limit.v1")
+        capabilities.append("text.token_limit.v2")
     from .media_prober import media_dependencies_available, video_dependencies_available
 
     if Settings.MEDIA_ALLOWED_ORIGINS and media_dependencies_available():

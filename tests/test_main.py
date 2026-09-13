@@ -550,15 +550,23 @@ class ProbeRoundTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(payload["response_hash"], response_hash)
 
     async def test_assignment_probe_scores_and_commits_token_limit_evidence(self):
+        await self._check_token_limit_evidence("v1")
+
+    async def test_v2_assignment_commits_truncated_output_without_rewriting_it(self):
+        await self._check_token_limit_evidence("v2")
+
+    async def _check_token_limit_evidence(self, version):
         token = "limit_marker"
         max_tokens = 192
+        kind = "token.limit" if version == "v1" else "token.limit.v2"
+        capability = "text.token_limit." + version
         assignment = {
             **self._assignment(),
-            "capability": "text.token_limit.v1",
-            "canary_kind": "token.limit",
+            "capability": capability,
+            "canary_kind": kind,
         }
         assignment["challenge"] = {
-            "kind": "token.limit",
+            "kind": kind,
             "prompt": f"Repeat {token} until the generation limit stops you.",
             "expected_hash": hashlib.sha256(token.encode()).hexdigest(),
             "max_tokens": max_tokens,
@@ -567,6 +575,8 @@ class ProbeRoundTests(unittest.IsolatedAsyncioTestCase):
         while main.prober._count_tokens(" ".join(pieces)) < max_tokens // 2:
             pieces.append(token)
         output_text = " ".join(pieces)
+        if version == "v2":
+            output_text += " limit_"
         result = {
             "status": "completed",
             "output_text": output_text,
@@ -628,7 +638,7 @@ class ProbeRoundTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(await main.probe_round(grid, 0, self.outbox), 1)
 
         payload = grid.submitted[0]["payload"]
-        self.assertEqual(payload["capability"], "text.token_limit.v1")
+        self.assertEqual(payload["capability"], capability)
         self.assertEqual(payload["verdict"], "healthy")
         self.assertEqual(payload["response_hash"], response_hash)
         self.assertEqual(main._assignment_canary(assignment)["max_tokens"], max_tokens)
