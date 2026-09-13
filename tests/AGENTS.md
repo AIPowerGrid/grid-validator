@@ -14,6 +14,11 @@ installer generation.
 
 ## Ownership
 
+- `test_empty_completion_delivery.py` - sealed/unsealed completed empty strings
+  without an error flag reach local scoring, real signing and durable delivery.
+  Tampered or absent commitments and non-completed/null output cannot sign;
+  response-loss recovery sends the same envelope without probing or signing
+  again. Mock transport proves this component boundary, not production delivery.
 - `test_prober.py`, `test_media_prober.py`, `test_text_fidelity.py`,
   `test_attest.py`, `test_main.py` - challenge, bounded reference-distribution
   scoring, signed evidence, and assignment loop.

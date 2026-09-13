@@ -347,7 +347,7 @@ async def _probe_assignment(
     t0 = time.time()
     res = await grid.probe_assignment(str(assignment_id))
     latency = time.time() - t0
-    if not res:
+    if not res or res.get("status") != "completed":
         logger.info("assignment %s probe unavailable; skipping", str(assignment_id)[:12])
         return 0
     hydrated = _hydrate_assignment_disclosure(assignment, res)
@@ -368,16 +368,17 @@ async def _probe_assignment(
     tool_chain = res.get("tool_chain")
     reasoning_text = str(res.get("reasoning_text") or "")
     finish_reason = res.get("finish_reason")
-    probe_failed = bool((res.get("grid") or {}).get("probe_failed"))
+    # A verified empty string is a scored response, not a missing response.
+    # Keep absent/null output unavailable; commitments are checked below.
     if (
         not text
         and not reasoning_text
         and not tool_calls
         and not tool_chain
-        and not probe_failed
+        and not any(isinstance(res.get(key), str) for key in ("output_text", "text"))
     ):
         logger.info(
-            f"[{str(worker_id)[:8]} {model}] assignment probe returned no committed output; skipping"
+            f"[{str(worker_id)[:8]} {model}] assignment probe omitted output; skipping"
         )
         return 0
     latency = _probe_latency_seconds(res, latency)

@@ -42,13 +42,28 @@ The live retained-response audit corrected 35 terminal-fragment false failures
 across nine groups without changing stored v1 evidence or other real failures.
 That counterfactual is separate from fresh v2 execution.
 
-At this publication checkpoint Core still admits .13 and .15/.16/.17/.18;
-preview.19 has not been added to the reviewed overlap. The three owned services
-remain on .18, and the website recommendation remains .18. Do not claim a live
-v2 assignment or ask public operators to update based on publication alone.
+At publication Core still admitted .13 and .15/.16/.17/.18. At 03:16:03 UTC
+the exact .19 tag joined that overlap through a drained, compare-and-swap
+configuration restart. All earlier versions, billing controls and the payout
+timer were preserved; the running process environment independently matched
+the new list. Core remained `d606e4d8` / `0042` with eight connected workers.
 
-Next, preserve every admitted version and qualification record while adding
-the exact .19 tag to the bounded upgrade list. Stage the verified candidate,
+One owned service upgraded to the verified .19 Linux binary with its same
+identity, configuration hash and entire stopped journal. Its 161 existing dead
+assignments and empty pending-report queue were retained. Registration became
+active on .19 at 03:18:20.966431 UTC. Fresh report `127676` at 03:20:23 UTC
+passed independent signature recovery, canonical hash and assignment binding,
+with no credit/reservation/worker-ledger rows. It reported a failed SmolLM
+instruction result, not token-limit v2. The other two owned services and the
+website recommendation remain on .18.
+
+The retained journal exposed the separate completed-empty delivery bug in
+`EMPTY_COMPLETION_DELIVERY.md`. Qualify that correction before public promotion
+so operators receive one recommended upgrade. Do not claim that this canary
+proves fresh v2 scoring or that .19 contains the empty-completion fix.
+
+For the corrected release, preserve every admitted version and qualification
+record while extending the bounded upgrade list. Stage the verified candidate,
 preserve each node's configuration, signing identity and durable journal, then
 upgrade one owned service. Independently verify a new v2 assignment, signed
 report, commitment and zero credit/reservation/worker-ledger side effects.
