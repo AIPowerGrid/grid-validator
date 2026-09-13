@@ -126,6 +126,10 @@ change is deployed; Core still issues no media work by default.
   Tool-chain assignments verify and commit both hard-targeted stages before
   signing. A target worker's accepted-but-empty completion is failed evidence,
   not a transport error; coordinator dispatch failures remain inconclusive.
+  A completed reply with an explicit empty string must still pass terminal
+  disclosure and all commitment checks, then be scored locally. Do not require
+  the optional worker-error flag to recognize it. Missing/null output, absent
+  or non-completed replies and invalid commitments remain unavailable.
   `probe_round` returns the number of attestations accepted by Core, including
   recovered outbox deliveries; one-shot checks reject a zero-delivery result.
   Optional structured observer events report actual registration/heartbeat
@@ -401,8 +405,9 @@ change is deployed; Core still issues no media work by default.
   disclosure is a skip and must never produce signed evidence. Continue to
   accept an older unsealed Core response during the staged rollout.
 - **No false targeted failures:** if a targeted probe endpoint is missing,
-  disabled, or returns no committed output at all, skip attestation instead of
-  recording `failed`. A verified token-limit result containing reasoning but no
+  disabled, or returns no verifiable completion, skip attestation instead of
+  recording `failed`. A verified explicit empty string is still committed
+  evidence and must reach the local scorer. A verified token-limit result containing reasoning but no
   required visible output is still independently scorable failed evidence.
 - **No green no-op checks:** `aipg-validator check` must fail clearly when no
   compatible text target exists and therefore no V0 canary was submitted.

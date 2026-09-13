@@ -36,14 +36,22 @@ concrete detail in children. Delete stale notes instead of explaining history.
 
 ## Purpose
 
+The empty-completion delivery correction removes the optional worker-error flag
+as a prerequisite for independently scoring a completed, verified empty string.
+Missing/null output, unavailable transport and bad commitments remain skips.
+Existing dead letters must not be revived automatically. Source tests are not
+proof of released or production delivery; preview.19 does not contain this fix.
+
 September 13 checkpoint: Core `d606e4d8` / Alembic `0042` supports versioned
 token-limit v2. Both remaining owned .17 services have upgraded to .18 with
 preserved identity/journal and fresh signature/assignment-bound reports
 `127667` and `127668`, without economic rows. These are first-party proofs,
 not operator independence or compensation consent. See `PREVIEW18_ROLLOUT.md`.
 Preview.19 is published from `7bbda889` with all-platform qualification and
-downloaded exact-source artifact provenance verified. Exact Core admission,
-an owned live v2 canary and public promotion remain outstanding; see
+downloaded exact-source artifact provenance verified. Core admitted .19 at
+03:16 UTC, preserving the prior overlap; one owned node upgraded and delivered
+fresh instruction report `127676`. A live v2 canary and public promotion remain
+outstanding, with the empty-completion correction to qualify first; see
 `PREVIEW19_ROLLOUT.md`. No economic flags changed.
 
 Preview.18 is published from `fef5e924` with explicit operator compensation
@@ -138,6 +146,9 @@ model attestation or use it as sole authority.
   upgrades, preserved identities/journals, the staging-permissions preflight
   correction and completed fresh-report signature/binding verification. Existing
   dead letters are retained, not upgrade regressions or replay-test evidence.
+- **`EMPTY_COMPLETION_DELIVERY.md`** - production dead-letter audit and
+  committed-empty delivery correction, source regression/recovery proof and
+  explicit not-in-preview.19 release boundary. Historical jobs remain closed.
 - **`PREVIEW19_ROLLOUT.md`** - published token-limit v2 release, exact-source
   checksums/provenance and native qualification; separate remaining Core
   admission, owned v2 canary and public-promotion gates. No private research
