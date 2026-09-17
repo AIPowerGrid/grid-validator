@@ -14,6 +14,10 @@ not produce a quality score or prove an exact model. See
 [ADVERSARIAL_VALIDATION.md](ADVERSARIAL_VALIDATION.md) for the attacker model
 and economic gates.
 
+For the latest bounded research result and next test gates, see
+[context fidelity](CONTEXT_FIDELITY_2026_09_16.md): the Qwen/Mac study found
+unavailable strict comparisons, not a proven model-substitution detector.
+
 Start with [QUICKSTART.md](QUICKSTART.md) if you just want to run a preview node.
 Read [PREVIEW_COHORT.md](PREVIEW_COHORT.md) to join the first independent
 operator cohort and complete the 72-hour qualification run.

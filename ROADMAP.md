@@ -7,6 +7,10 @@ exist.
 
 For the evidence-only rollout sequence, use [RELEASE_V0.md](RELEASE_V0.md).
 
+The dated [September 16 context study](CONTEXT_FIDELITY_2026_09_16.md) records
+the latest negative calibration result and a bounded September 17-24 follow-up.
+It does not extend historical qualification windows or grant validator authority.
+
 ## Active Milestone: Usable Independent Preview
 
 The current maintainer-authorized execution record is
