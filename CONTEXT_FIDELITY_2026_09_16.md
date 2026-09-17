@@ -124,3 +124,55 @@ research, propose a narrowly evidenced next method, or stop this approach.
 Even a positive bounded result requires a separate review before any economic
 or routing authority. Customer launch and useful capability monitoring do not
 wait for a model-identity proof that this experiment may never provide.
+
+## September 17 follow-up: probability gate unavailable
+
+**Decision: stop this Mac SDK/Completions/Chat probability-comparison path.**
+The input wrapper can now be observed, but the tested interfaces do not expose
+the probability evidence required by the comparator. This is an adapter/runtime
+capability limitation, not a failed worker or a finding of model substitution.
+It does not negate the narrower Responses observations in the earlier study.
+
+The second owned reference is running. The physical model files on the Mac
+and NVIDIA host have matching full SHA-256 hashes. The NVIDIA reference passed
+two local serving checks and separate authentication/origin checks. It remains
+private, with the replaced worker stopped and its original configuration
+retained for rollback. This is reference readiness, not production assignment
+delivery or an independently operated witness.
+
+| Follow-up stage | Native requests | Result |
+| --- | --- | --- |
+| NVIDIA reference startup | 2 | Raw-token and bounded chat serving checks passed |
+| Marked Mac SDK input capture | 2 | Both rendered inputs encode to 94 native tokens, matching usage; repeated inputs are identical |
+| Mac legacy Completions with requested logprobs | 1 | HTTP 200, natural stop, 19 output tokens, no logprobs |
+| Mac Chat Completions with requested logprobs | 1 | HTTP 200, natural stop, 19 output tokens, no logprobs |
+
+Each REST call's captured rendered input encodes to 92 native tokens, matching
+its reported prompt usage. The SDK's plain-completion input was also wrapped
+in a conversation, rather than used verbatim. Capturing that wrapper explains
+the token-count discrepancy; neither an echoed template nor a nominal raw
+endpoint name establishes the model's actual input. SDK fragments supplied
+text/reasoning labels and counts, not per-token probabilities or a complete
+native token-ID trace. REST requests allowed up to 128 output tokens, so the
+missing probabilities were not merely an inference from a one-token cutoff.
+
+Six of the 192 additional native calls were used, including startup checks;
+186 remain unused. The 24-case calibration/held-out matrix was not dispatched
+because its probability-availability prerequisite failed. There are **zero
+comparable cross-backend fidelity pairs in this follow-up**, not zero honest
+false positives or a successful substitution rate. Existing substitution and
+offline evasion results above remain unchanged. No thresholds were tuned.
+
+The captures and frozen source hashes were checked independently of the
+summary: both REST responses lack logprobs, usage matches the native input IDs,
+and the marked log readers stopped. Only synthetic marked input was retained;
+model load settings were unchanged. The private REST gate summary SHA-256 is
+`bde7fb3519a16e3bb57ec3f3790b56fb959cdf2ddcd806ed2b7c444093923af0`.
+As above, this hash is an evidence binding, not third-party certification.
+
+No inference credits, production verdicts, worker penalties, routing changes
+or compensation changes resulted. The protected client backend was not used.
+Do not make logprob support mandatory for otherwise useful workers based on
+this result. Any further method needs a separately frozen comparable-context
+and probability-coverage gate within the original time/call bounds, not an
+automatic repeat of the failed interface path.

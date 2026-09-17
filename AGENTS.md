@@ -145,6 +145,10 @@ model attestation or use it as sole authority.
   follow-up window and prospective limits. Context comparability precedes
   detection; same-GGUF Metal/CUDA controls are not vLLM qualification or
   independent operators. No private challenges or new economic authority.
+  The September17 follow-up records six native calls, a verified second private
+  reference, exact local rendered-input counts, and missing SDK/Completions/Chat
+  probabilities. That interface path stops before the24-case matrix; zero
+  comparable pairs is not zero false positives or successful detection.
 - **`SUPPORTED_BETA.md`** - supported paid-beta delivery scope: preserved
   operator reviews, verified in-place upgrades, one bounded production pilot,
   separately approved capped compensation and defensible capability claims.
