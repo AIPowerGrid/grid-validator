@@ -139,6 +139,12 @@ model attestation or use it as sole authority.
 
 ## Ownership
 
+- **`CONTEXT_FIDELITY_2026_09_16.md`** - sanitized 54-request native
+  Qwen/Mac study: strict comparisons unavailable, wrong-context false signals
+  and successful offline evasion fixtures. Owns the fixed September 17-24
+  follow-up window and prospective limits. Context comparability precedes
+  detection; same-GGUF Metal/CUDA controls are not vLLM qualification or
+  independent operators. No private challenges or new economic authority.
 - **`SUPPORTED_BETA.md`** - supported paid-beta delivery scope: preserved
   operator reviews, verified in-place upgrades, one bounded production pilot,
   separately approved capped compensation and defensible capability claims.
